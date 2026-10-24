@@ -22,7 +22,7 @@ void main() {
   test(
     'skill selection gives a short contact grace period, then damage returns',
     () {
-      final g = createGame()..xp = 18;
+      final g = createGame()..xp = GameEngine.firstGrowthCost;
       g.crystals.add(ExperienceCrystal.at(g.position, 1));
       g.update(.01);
       g.chooseUpgrade(g.choices.first.id);
@@ -114,7 +114,7 @@ void main() {
   );
   test('early random skill sets always include an attack option without duplicates', () {
     for (int seed = 0; seed < 80; seed++) {
-      final g = createGame(seed: seed)..xp = 18;
+      final g = createGame(seed: seed)..xp = GameEngine.firstGrowthCost;
       g.crystals.add(ExperienceCrystal.at(g.position, 1));
       g.update(.01);
       expect(g.choices.length, 3);

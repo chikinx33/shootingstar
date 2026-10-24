@@ -51,7 +51,9 @@ void main() {
   test('cards: enhance and evolve tracks, then a forced ultimate', () async {
     final g = await armed();
     final ids = g.growthChoices().map((c) => c.id).toSet();
-    expect(ids, containsAll(['enh|part:W1', 'evo|part:W3']));
+    // a fresh weapon starts on enhance cards; evolve n follows enhance n
+    expect(ids, containsAll(['enh|part:W1', 'enh|part:W3']));
+    expect(ids.where((id) => id.startsWith('evo|')), isEmpty);
     expect(ids, contains('paw:orbit')); // a new item attack
     // v12.4: bullets (main gun) and missiles grow only from field drops
     expect(ids.where((id) => id.endsWith('|gun')), isEmpty);
@@ -117,6 +119,9 @@ void main() {
       // the main gun and missiles grow from drops (v12.4), not from cards
       g.growthEnhance['part:W1'] = 3;
       g.growthEvolve['part:W1'] = 3;
+      // evolve cards need the enhance step of their rank first (v12.9)
+      g.growthEnhance['part:W3'] = 1;
+      g.growthEnhance['part:W4'] = 1;
       for (final set in [
         ['ult|part:W1', 'enh|part:W3', 'evo|part:W4'],
         ['paw:orbit', 'evo|part:W3', 'enh|part:W4'],

@@ -370,9 +370,15 @@ class GameEngine {
       hp = 100,
       maxHp = 100,
       xp = 0,
-      xpNeeded = 18;
+      xpNeeded = firstGrowthCost;
+
+  /// Gems needed per level (v12.9, user 2026-10-25: one or two gems opened
+  /// the cards and broke up the fight). An ordinary house gem is 7.2 and a
+  /// wiped formation drops 12, so the first draft takes about five gems and
+  /// later ones roughly half again as many as before.
+  static const firstGrowthCost = 45.0;
   static double growthCost(int level) =>
-      18 + level * 10 + math.pow(math.max(0, level - 8), 2) * 1.5;
+      45 + level * 14 + math.pow(math.max(0, level - 8), 2) * 1.5;
   int level = 1, kills = 0;
   double combatTime = 0, laserLife = 0, _laser = 0;
   double? firstEvolutionAt;

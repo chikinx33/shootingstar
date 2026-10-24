@@ -50,7 +50,14 @@ void main() {
       saved.update(.025);
     }
     expect(saved.level, 3);
-    expect(saved.xp, greaterThan(900)); // Excess XP stays banked.
+    // Excess XP stays banked.
+    expect(
+      saved.xp,
+      closeTo(
+        1001 - GameEngine.firstGrowthCost - GameEngine.growthCost(2),
+        1e-6,
+      ),
+    );
     // Saves from before v12.5.2 still carry the retired growth clock.
     final legacy = g.checkpoint();
     (legacy['state'] as Map)['nextGrowthAt'] = 42.0;

@@ -214,9 +214,23 @@ extension WeaponGrowth on GameEngine {
 
   List<UpgradeChoice> growthChoices() {
     final out = <UpgradeChoice>[];
+    // v12.9 (user 2026-10-25: the same card twice in one draft): when one
+    // part sits in two bays, only the less grown bay is offered.
+    final offered = <String, String>{};
     for (final id in growthWeapons) {
       final key = planKey(id);
       if (key == null || ult(id) || dropOnlyGrowth(id)) continue;
+      if (enh(id) >= 3 && evo(id) >= 3) continue; // its ultimate always shows
+      final rival = offered[key];
+      if (rival == null || enh(id) + evo(id) < enh(rival) + evo(rival)) {
+        offered[key] = id;
+      }
+    }
+    for (final id in growthWeapons) {
+      final key = planKey(id);
+      if (key == null || ult(id) || dropOnlyGrowth(id)) continue;
+      final ready = enh(id) >= 3 && evo(id) >= 3;
+      if (!ready && offered[key] != id) continue;
       final plan = growthPlans[key]!;
       final e = enh(id), v = evo(id);
       // the same part can sit in two bays: say which one
@@ -248,7 +262,9 @@ extension WeaponGrowth on GameEngine {
           ),
         );
       }
-      if (v < 3) {
+      // an evolution step follows the enhance step of the same rank, so a
+      // fresh weapon starts on plain enhance cards (user 2026-10-25)
+      if (v < 3 && v < e) {
         out.add(
           UpgradeChoice(
             'evo|$id',

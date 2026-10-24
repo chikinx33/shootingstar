@@ -698,7 +698,12 @@ extension ShipModuleCombat on GameEngine {
       );
     pool.shuffle(random);
     final fresh = pool.where((c) => !exclude.contains(c.id)).toList();
-    final picks = (fresh.isNotEmpty ? fresh : pool).take(3).toList();
+    // three different names: one weapon never fills two cards of a draft
+    final picks = <UpgradeChoice>[];
+    for (final c in fresh.isNotEmpty ? fresh : pool) {
+      if (picks.length == 3) break;
+      if (picks.every((p) => p.title != c.title)) picks.add(c);
+    }
     // a finished weapon's ultimate always shows up
     for (final ultimate in growth.where((c) => c.growth == 'ult')) {
       if (picks.contains(ultimate)) continue;
@@ -707,7 +712,13 @@ extension ShipModuleCombat on GameEngine {
     }
     // at least one weapon card in every draw
     if (!picks.any((c) => c.growth.isNotEmpty)) {
-      final weapons = growth.where((c) => !exclude.contains(c.id)).toList();
+      final weapons = growth
+          .where(
+            (c) =>
+                !exclude.contains(c.id) &&
+                picks.skip(1).every((p) => p.title != c.title),
+          )
+          .toList();
       if (weapons.isNotEmpty)
         picks[0] = weapons[random.nextInt(weapons.length)];
     }

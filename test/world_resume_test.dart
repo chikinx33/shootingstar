@@ -159,7 +159,7 @@ void main() {
     },
   );
   test('pending growth choices and reroll RNG survive', () {
-    final a = arena()..xp = 18;
+    final a = arena()..xp = GameEngine.firstGrowthCost;
     // v12.4.1: the draft opens on the frame a gem reaches the cat
     a.crystals.add(ExperienceCrystal.at(a.position, 1));
     a.update(.01);

@@ -188,8 +188,9 @@ void main() {
   test('magnet arrivals continue during final destruction and count in result level', () {
     final g = arena();
     g.xpNeeded = 10;
+    // 48 gems of 2: level 2 at 10, level 3 at growthCost(2), rest banked
     g.crystals.addAll(
-      List.generate(30, (i) => g.position + Offset(200, -100.0 - i)),
+      List.generate(48, (i) => g.position + Offset(200, -100.0 - i)),
     );
     g.supplies.add(Supply(g.position, 1));
     g.update(.001);
@@ -199,7 +200,7 @@ void main() {
     expect(g.finished, true);
     expect(g.absorbingCrystals, isEmpty);
     expect(g.level, 3);
-    expect(g.xp, 12);
+    expect(g.xp, closeTo(96 - 10 - GameEngine.growthCost(2), 1e-9));
     expect(g.choices, isEmpty);
   });
 }
