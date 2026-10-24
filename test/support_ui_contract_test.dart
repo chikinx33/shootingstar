@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'support/tabs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/data/cloud_sync.dart';
@@ -155,7 +156,7 @@ void main() {
           fixed();
           for (final label in ['로그인', '가입', '복구']) {
             final f = find.descendant(
-              of: find.widgetWithText(ChoiceChip, label),
+              of: tabWithText(label),
               matching: find.text(label),
             );
             final text = tester.renderObject<RenderParagraph>(f);
@@ -219,13 +220,13 @@ void main() {
           online.notifyListeners();
           await tester.pumpAndSettle();
           await tapUi(tester, action('로그아웃 · 게스트로 돌아가기'));
-          await tapUi(tester, find.widgetWithText(ChoiceChip, '복구'));
+          await tapUi(tester, tabWithText('복구'));
           await field('account-recovery', '0' * 48);
           await field('account-password', 'qa-new-password-123');
           await tapUi(tester, action('계정 복구'));
           expect(online.recoveryInput, '0' * 48);
           await tapUi(tester, action('로그아웃 · 게스트로 돌아가기'));
-          await tapUi(tester, find.widgetWithText(ChoiceChip, '가입'));
+          await tapUi(tester, tabWithText('가입'));
           await field('account-name', '검증 조종사');
           await field('account-password', 'qa-new-password-123');
           await tapUi(tester, action('현재 진행으로 계정 만들기'));
@@ -250,15 +251,24 @@ void main() {
           );
           await tapUi(tester, action('open'));
           fixed();
+          // v12.8: background music and sound effects are separate rows
           final heading = tester.renderObject<RenderParagraph>(
-            find.text('음악·효과음'),
+            find.text('효과음\n50%'),
           );
           expect(heading.text.style!.color, app.theme!.colorScheme.onSurface);
           expect(heading.text.style!.decoration, TextDecoration.none);
-          await tapUi(tester, find.text('음악·효과음'));
-          expect(p.soundEnabled, isTrue);
-          await tapUi(tester, find.byTooltip('음량 높이기'));
-          expect(p.volume, closeTo(.6, .001));
+          final music = p.musicEnabled, sfx = p.soundEnabled;
+          await tapUi(tester, find.byKey(const Key('music-switch')));
+          expect(p.musicEnabled, !music);
+          expect(p.soundEnabled, sfx, reason: 'effects keep their switch');
+          await tapUi(tester, find.byKey(const Key('sfx-switch')));
+          expect(p.soundEnabled, !sfx);
+          await tester.drag(
+            find.byKey(const Key('sfx-volume')),
+            const Offset(40, 0),
+          );
+          await tester.pump();
+          expect(p.volume, greaterThan(.5));
           await tapUi(tester, find.text('시각 효과 줄이기'));
           expect(p.reducedEffects, isTrue);
           await tapUi(tester, find.widgetWithText(InkWell, '라이선스').last);
@@ -315,15 +325,16 @@ void main() {
             fixed();
             await tapUi(tester, action('도감으로'));
           }
-          await tapUi(tester, find.widgetWithText(ChoiceChip, '보조'));
+          await tapUi(tester, tabWithText('보조'));
           await tapUi(tester, action('고밀도 탄약 진화 상세'));
           fixed();
           await tapUi(tester, action('도감으로'));
           expect(jsonEncode(p.exportProgress()), readOnly);
           await p.save();
           final q = await Profile.load();
-          expect(q.soundEnabled, isTrue);
-          expect(q.volume, closeTo(.6, .001));
+          expect(q.soundEnabled, p.soundEnabled);
+          expect(q.musicEnabled, p.musicEnabled);
+          expect(q.volume, closeTo(p.volume, .001));
           expect(q.reducedEffects, isTrue);
           expect(
             jsonEncode(q.inventory.map((g) => g.toJson()).toList()),

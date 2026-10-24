@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'arcade_home_widgets.dart';
+import '../art/toon_assets.dart';
+import '../art/ui_kit.dart';
+import 'game_motion.dart';
+
 import '../art/ship_sprite_art.dart';
 import '../data/cat_gear.dart';
 import '../data/profile.dart';
@@ -34,7 +39,6 @@ class _CatGearScreenState extends State<CatGearScreen> {
 
   Widget _slot(CatGearSlot slot) {
     final item = p.catGear.equippedIn(slot);
-    final color = Color(catGearRarityColors[item?.rarity ?? 0]);
     return Semantics(
       button: true,
       label: tr(
@@ -49,32 +53,79 @@ class _CatGearScreenState extends State<CatGearScreen> {
           () => item == null ? setState(() => _filter = slot) : _detail(item),
         ),
         borderRadius: BorderRadius.circular(12),
-        child: Container(
-          width: 68,
-          constraints: const BoxConstraints(minHeight: 74),
-          padding: const EdgeInsets.symmetric(vertical: 3),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1B2C40),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color, width: 3),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (item != null)
-                gearImage(item, 40)
-              else
-                const Icon(Icons.add, size: 32, color: Color(0xFF6E86A0)),
-              Text(
-                item == null ? tr(catGearSlotNames[slot]!) : 'Lv.${item.level}',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
+        // v12.9: the rarity slot frame of the generated kit
+        child: SizedBox(
+          width: 70,
+          height: 76,
+          child: ToonRarityFrame(
+            rank: item?.rarity ?? -1,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (item != null)
+                  gearImage(item, 42)
+                else
+                  const Icon(Icons.add, size: 32, color: Color(0xFF8EA6C2)),
+                Text(
+                  item == null
+                      ? tr(catGearSlotNames[slot]!)
+                      : 'Lv.${item.level}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _filterTab(CatGearSlot? f) {
+    final on = _filter == f;
+    final name = f == null ? '전체' : catGearSlotNames[f]!;
+    final shown = f == null ? null : p.catGear.equippedIn(f);
+    return Semantics(
+      button: true,
+      selected: on,
+      label: tr(name),
+      excludeSemantics: true,
+      child: GestureDetector(
+        key: Key('cat-gear-filter-${f?.name ?? 'all'}'),
+        behavior: HitTestBehavior.opaque,
+        onTap: audible(() => setState(() => _filter = f)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+          child: UiKitFrame(
+            on ? 'tab_on' : 'tab_off',
+            child: SizedBox(
+              height: 48,
+              child: Center(
+                child: f == null
+                    ? Text(
+                        tr(name),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                          color: on ? Colors.white : const Color(0xFFB8C7DA),
+                        ),
+
+                        textAlign: TextAlign.center,
+                      )
+                    : Opacity(
+                        opacity: on ? 1 : .7,
+                        child: Image.asset(
+                          catGearSet(shown?.set ?? 'sunshine').asset(f),
+                          width: 34,
+                          height: 34,
+                          filterQuality: FilterQuality.medium,
+                        ),
+                      ),
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -161,7 +212,7 @@ class _CatGearScreenState extends State<CatGearScreen> {
             actions: [
               GameActionButton(
                 label: equipped ? '장착 중' : '장착',
-                icon: Icons.check_circle,
+                icon: Icons.check,
                 primary: !equipped,
                 onPressed: equipped ? null : () => p.equipCatGear(item.id),
               ),
@@ -219,21 +270,61 @@ class _CatGearScreenState extends State<CatGearScreen> {
               });
         return Column(
           children: [
+            // v12.8: power and wallet as game plates instead of a text line
             Padding(
+              key: const Key('cat-gear-power'),
               padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
-              child: Text(
-                message('장비 전투력 {0} · 츄르 {1} · 별가루 {2}', [
-                  p.catGear.power,
-                  p.credits,
-                  p.blueprints,
-                ]),
-                key: const Key('cat-gear-power'),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFFFFD43D),
-                ),
+              child: Row(
+                children: [
+                  for (final (i, image, value, label) in [
+                    (
+                      0,
+                      'assets/art/menu_v13/trophy_gear_upgrades.webp',
+                      p.catGear.power,
+                      '장비 전투력',
+                    ),
+                    (1, CurrencyArt.churu, p.credits, '츄르'),
+                    (2, CurrencyArt.stardust, p.blueprints, '별가루'),
+                  ]) ...[
+                    if (i > 0) const SizedBox(width: 6),
+                    Expanded(
+                      child: Tooltip(
+                        message: tr(label),
+                        child: UiKitFrame(
+                          'plate',
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(image, width: 26, height: 26),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: CountUp(
+                                    value: value.toDouble(),
+                                    format: (v) => '${v.round()}',
+                                    duration: 600,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w900,
+                                      color: i == 0
+                                          ? const Color(0xFFFFD43D)
+                                          : Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
             ConstrainedBox(
@@ -249,17 +340,38 @@ class _CatGearScreenState extends State<CatGearScreen> {
                       _slot(CatGearSlot.armor),
                     ],
                   ),
+                  // the craft hovers over the glowing hangar pedestal
                   Expanded(
                     child: SizedBox(
                       height: 172,
-                      child: Padding(
-                        padding: const EdgeInsets.all(6),
-                        child: ShipSprite(
-                          hull: p.selectedShip,
-                          loadout: p.moduleLoadout,
-                          assets: p.shipLayerAssets,
-                          semanticLabel: tr('장착한 기체'),
-                        ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Positioned(
+                            bottom: 0,
+                            child: Image.asset(
+                              '${UiKit.root}pedestal.webp',
+                              width: 150,
+                              filterQuality: FilterQuality.medium,
+                            ),
+                          ),
+                          Positioned.fill(
+                            bottom: 22,
+                            child: Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: Bob(
+                                height: 5,
+                                period: 2600,
+                                child: ShipSprite(
+                                  hull: p.selectedShip,
+                                  loadout: p.moduleLoadout,
+                                  assets: p.shipLayerAssets,
+                                  semanticLabel: tr('장착한 기체'),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -287,39 +399,13 @@ class _CatGearScreenState extends State<CatGearScreen> {
                 style: const TextStyle(fontSize: 13, color: Color(0xFF9FE6B0)),
               ),
             ),
-            SizedBox(
-              height: 52,
+            // v12.9: kit tabs; each part filter shows the part itself
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
               child: Row(
                 children: [
                   for (final f in <CatGearSlot?>[null, ...CatGearSlot.values])
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Opacity(
-                          opacity: _filter == f ? 1 : .5,
-                          child: FilledButton(
-                            style: GameUi.compactButton,
-                            onPressed: audible(
-                              () => setState(() => _filter = f),
-                            ),
-                            child: Text(
-                              tr(
-                                f == null
-                                    ? '전체'
-                                    : const {
-                                        CatGearSlot.nose: '기수',
-                                        CatGearSlot.armor: '장갑',
-                                        CatGearSlot.wings: '날개',
-                                        CatGearSlot.engines: '추진',
-                                        CatGearSlot.shield: '보호',
-                                      }[f]!,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    Expanded(child: _filterTab(f)),
                 ],
               ),
             ),
@@ -329,10 +415,11 @@ class _CatGearScreenState extends State<CatGearScreen> {
                 children: [
                   for (final item in items)
                     GameItemSlot(
-                      title: '${catGearSlotNames[item.slot]}',
+                      title:
+                          '${catGearSlotNames[item.slot]} · ${catGearSet(item.set).name}',
                       status: 'Lv.${item.level}${item.locked ? ' 🔒' : ''}',
                       image: gearImage(item, 52),
-                      rarity: item.rarity + 1,
+                      rarity: item.rarity,
                       selected: p.catGear.isEquipped(item),
                       semanticLabel:
                           '${item.name} ${catGearRarityNames[item.rarity]} Lv.${item.level}',

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import '../art/aircraft_assembly_art.dart';
 import '../data/aircraft_assembly.dart';
 import '../data/content.dart';
@@ -58,7 +60,7 @@ class _AircraftDesignScreenState extends State<AircraftDesignScreen> {
     AppLanguage.watch(context);
     if (widget.profile != null) return ModuleWorkshop(profile: widget.profile!);
     return Scaffold(
-      appBar: AppBar(
+      appBar: GameAppBar(
         title: Text(tr(live ? '기체 조립' : '기체 설계'), textAlign: TextAlign.center),
         actions: [
           IconButton(

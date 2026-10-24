@@ -4,6 +4,8 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import '../data/profile.dart';
 import '../data/content.dart';
 import '../data/content_catalog.dart';
@@ -19,7 +21,7 @@ class BossGearHangar extends StatelessWidget {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return Scaffold(
-      appBar: AppBar(title: Text(tr('보스 전용 장비'), textAlign: TextAlign.center)),
+      appBar: GameAppBar(title: Text(tr('보스 전용 장비'), textAlign: TextAlign.center)),
       body: AnimatedBuilder(
         animation: profile,
         builder: (context, _) => Column(

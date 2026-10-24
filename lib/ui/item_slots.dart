@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'reward_flight.dart';
 
 import 'components.dart';
+import 'game_motion.dart';
 
 /// Only repeated item slots scroll. Titles/navigation stay outside this viewport.
 class GameSlotList extends StatelessWidget {
@@ -38,7 +39,11 @@ class GameSlotRows extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final child in children) SizedBox(width: width, child: child),
+            for (var i = 0; i < children.length; i++)
+              SizedBox(
+                width: width,
+                child: StaggerIn(index: i, child: children[i]),
+              ),
           ],
         );
       },
@@ -61,7 +66,7 @@ class GameItemSlot extends StatelessWidget {
     required this.onTap,
     this.status = '',
     this.selected = false,
-    this.rarity = 0,
+    this.rarity = -1,
     this.semanticLabel,
   });
   final String title, status;
@@ -69,6 +74,8 @@ class GameItemSlot extends StatelessWidget {
   final Widget image;
   final VoidCallback? onTap;
   final bool selected;
+
+  /// Rim colour: -1 the neutral kit slot, 0..5 gray to red rarity.
   final int rarity;
 
   static const imageHeight = 84.0;

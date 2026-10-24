@@ -7,6 +7,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import '../data/profile.dart';
 import '../art/arcade_aircraft.dart';
 import '../art/toon_assets.dart';
@@ -209,39 +211,13 @@ class _ContentHubState extends State<ContentHub> {
                   for (final i in [0, 1, 2])
                     SizedBox(
                       width: (c.maxWidth - 12) / 3,
-                      child: ChoiceChip(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 6,
-                        ),
-                        selectedColor: const Color(0xFF356D83),
-                        backgroundColor: const Color(0xFF192C40),
-                        label: SizedBox(
-                          width: double.infinity,
-                          child: Text(
-                            tr(['장비', '무기', '병아리', '보급', '시즌', '길드'][i]),
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        showCheckmark: false,
+                      child: GameTab(
+                        label: ['장비', '무기', '병아리'][i],
                         selected: page == i,
-                        onSelected: audibleChange((_) {
-                          if (i == 5) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute<void>(
-                                builder: (_) => GuildScreen(profile: p),
-                              ),
-                            );
-                          } else {
-                            p.refreshContentClock(DateTime.now());
-                            setState(() => page = i);
-                          }
-                        }),
+                        onTap: () {
+                          p.refreshContentClock(DateTime.now());
+                          setState(() => page = i);
+                        },
                       ),
                     ),
                 ],
@@ -514,7 +490,7 @@ class _ContentHubState extends State<ContentHub> {
                         context,
                         MaterialPageRoute<void>(
                           builder: (_) => Scaffold(
-                            appBar: AppBar(
+                            appBar: GameAppBar(
                               title: Text(
                                 tr('함대 진화 연구'),
                                 textAlign: TextAlign.center,

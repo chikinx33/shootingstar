@@ -217,8 +217,10 @@ class AudioDirector {
   final Map<int, _SoundRequest> _pending = {}, _active = {};
   final Map<int, DateTime> _voiceAt = {};
   AudioScene scene = AudioScene.lobby;
-  bool enabled = true, background = false;
-  double volume = .7;
+  /// Sound effects ([enabled], [volume]) and background music
+  /// ([musicEnabled], [musicVolume]) are switched and mixed separately.
+  bool enabled = true, background = false, musicEnabled = true;
+  double volume = .7, musicVolume = .7;
   bool _unlocked = false, _disposed = false, _dirty = false, _pumping = false;
   int _epoch = 0, _battleOwners = 0;
   int _serial = 0;
@@ -239,7 +241,7 @@ class AudioDirector {
   // reference) while never exceeding the .44 peak budget below.
   double get musicGain {
     final clip = audioClips[track ?? 'lobby-groove']!;
-    return volume *
+    return musicVolume *
         math.min(.44, .062 / clip.rms) *
         (now().isBefore(_duckUntil) ? .52 : 1);
   }
@@ -258,9 +260,14 @@ class AudioDirector {
   DateTime _retry = DateTime(2000);
   Future<void> _musicTask = Future<void>.value();
   final Set<Future<void>> _effectTasks = {};
-  bool get audible =>
-      !_disposed && _unlocked && enabled && volume > 0 && !background;
-  String? get track => !audible
+  bool get _live => !_disposed && _unlocked && !background;
+
+  /// Sound effects can play.
+  bool get audible => _live && enabled && volume > 0;
+
+  /// Background music can play.
+  bool get musicAudible => _live && musicEnabled && musicVolume > 0;
+  String? get track => !musicAudible
       ? null
       : switch (scene) {
           AudioScene.lobby => 'lobby-groove',
@@ -268,12 +275,28 @@ class AudioDirector {
           AudioScene.boss => 'boss-theme',
           AudioScene.quiet => null,
         };
-  void settings({required bool enabled, required double volume}) {
+  /// [enabled]/[volume] are the sound effects; music follows them unless
+  /// [musicEnabled]/[musicVolume] are given.
+  void settings({
+    required bool enabled,
+    required double volume,
+    bool? musicEnabled,
+    double? musicVolume,
+  }) {
     final level = volume.clamp(0.0, 1.0);
-    if (this.enabled == enabled && this.volume == level) return;
+    final music = musicEnabled ?? enabled;
+    final musicLevel = (musicVolume ?? volume).clamp(0.0, 1.0);
+    if (this.enabled == enabled &&
+        this.volume == level &&
+        this.musicEnabled == music &&
+        this.musicVolume == musicLevel) {
+      return;
+    }
+    if (this.enabled != enabled || this.volume != level) silenceEffects();
     this.enabled = enabled;
     this.volume = level;
-    silenceEffects();
+    this.musicEnabled = music;
+    this.musicVolume = musicLevel;
     _syncMusic();
   }
 

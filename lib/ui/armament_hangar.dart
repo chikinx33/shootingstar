@@ -5,6 +5,8 @@ import 'module_workshop.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import 'reward_popup.dart';
 
 import '../data/armament_collection.dart';
@@ -29,7 +31,7 @@ class ArmamentHangar extends StatelessWidget {
 
   Widget legacyBuild(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(tr('주무기 소유·성장'), textAlign: TextAlign.center)),
+      appBar: GameAppBar(title: Text(tr('주무기 소유·성장'), textAlign: TextAlign.center)),
       body: AnimatedBuilder(
         animation: profile,
         builder: (context, _) => Column(
@@ -112,7 +114,7 @@ class ArmamentHangar extends StatelessWidget {
                       profile.activeArmamentIndex == armaments.indexOf(a)
                       ? '장착 중'
                       : '장착',
-                  icon: Icons.check_circle,
+                  icon: Icons.check,
                   onPressed: audible(
                     profile.activeArmamentIndex == armaments.indexOf(a)
                         ? null

@@ -6,6 +6,8 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+import 'game_decor.dart';
 import 'package:flutter/services.dart';
 
 import '../app_version.dart';
@@ -82,7 +84,7 @@ class StorageHelpScreen extends StatelessWidget {
     AppLanguage.watch(context);
     final error = profile.saveError;
     return Scaffold(
-      appBar: AppBar(title: Text(tr('저장·복구 도움말'), textAlign: TextAlign.center)),
+      appBar: GameAppBar(title: Text(tr('저장·복구 도움말'), textAlign: TextAlign.center)),
       body: SafeArea(
         // v12.4.3: one page. Step-by-step rules open in the details popup.
         child: GamePages(
@@ -138,7 +140,7 @@ class StorageHelpScreen extends StatelessWidget {
               key: const Key('storage-help-details'),
               label: '저장·복구 자세히 보기',
               displayLabel: '자세히',
-              icon: Icons.help_outline,
+              icon: Icons.question_mark,
               onPressed: audible(() => _details(context)),
             ),
           ],

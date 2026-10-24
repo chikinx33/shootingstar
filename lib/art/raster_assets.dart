@@ -18,6 +18,7 @@ import 'lobby_art.dart';
 import 'game_art.dart';
 import 'refit_art.dart';
 import 'flight_scene_art.dart';
+import 'ui_kit.dart';
 import 'aircraft_assembly_art.dart';
 import 'ground_art.dart';
 
@@ -39,7 +40,7 @@ class RasterAssets {
   static Future<void> _load() async {
     try {
       // The living room comes first: it is the lobby's whole background.
-      await FlightSceneArt.loadLobbyHome();
+      await Future.wait([FlightSceneArt.loadLobbyHome(), UiKit.load()]);
       await RefitArt.load();
       await LobbyArt.load();
       await GameArt.load();
@@ -288,6 +289,45 @@ class RasterIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     final extent = size ?? IconTheme.of(context).size ?? 24;
+    // v12.9: the current menu sheet (cat-in-rocket launch, trophy, crate...)
+    // replaces the old jet/cargo pictures wherever these symbols appear.
+    final current = <IconData, String>{
+      Icons.rocket_launch: 'launch',
+      Icons.rocket_launch_outlined: 'launch',
+      Icons.flight: 'launch',
+      Icons.airplanemode_active: 'launch',
+      Icons.emoji_events: 'challenge',
+      Icons.emoji_events_outlined: 'challenge',
+      Icons.storefront: 'supply',
+      Icons.inventory_2: 'supply',
+      Icons.inventory_2_outlined: 'supply',
+      Icons.build: 'growth',
+      Icons.auto_fix_high: 'growth',
+      Icons.account_tree: 'research',
+      Icons.school: 'research',
+      Icons.precision_manufacturing: 'hangar',
+      Icons.radar: 'patrol',
+      Icons.explore: 'patrol',
+      Icons.travel_explore: 'patrol',
+      Icons.event_repeat: 'season',
+      Icons.workspace_premium: 'achievement',
+      Icons.groups: 'guild',
+    }[icon];
+    if (current != null) {
+      return Semantics(
+        label: tr(semanticLabel),
+        image: semanticLabel != null,
+        child: ExcludeSemantics(
+          child: Image.asset(
+            'assets/art/menu_v13/$current.webp',
+            width: extent,
+            height: extent,
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.medium,
+          ),
+        ),
+      );
+    }
     final menuName = <IconData, String>{
       Icons.storefront: 'gear-cargo',
       Icons.inventory_2: 'gear-cargo',

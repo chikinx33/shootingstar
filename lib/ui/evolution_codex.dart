@@ -77,7 +77,7 @@ class _EvolutionCodexState extends State<EvolutionCodex> {
               )
             else
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
                     child: GameActionButton(

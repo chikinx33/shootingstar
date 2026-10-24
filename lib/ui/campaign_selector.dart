@@ -106,7 +106,7 @@ class CampaignSelector extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               child: GameActionButton(
                 label: '선택 완료',
-                icon: Icons.check_circle,
+                icon: Icons.check,
                 onPressed: audible(() => Navigator.pop(context)),
               ),
             ),

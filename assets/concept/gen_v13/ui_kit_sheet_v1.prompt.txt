@@ -1,0 +1,26 @@
+Mode: built-in image_gen. Initial generation plus one targeted correction.
+Reference files: menu_icons_raw.png; card_frames_raw.png.
+Output: ui_kit_sheet_v1.png (concept sheet; not integrated into game).
+
+Use case: style-transfer.
+Asset type: one production mobile game UI sprite sheet for a cute cat guardian shooter.
+Input images: Image 1 is a supporting style reference for chunky colorful cat-themed game art; Image 2 is a supporting style reference for thick navy outlines, beveled rims and navy panel centers. Create the 12 requested UI pieces, preserving the shared visual identity rather than copying the existing icons/cards.
+Composition: strict 4 columns x 3 rows of equal cells, landscape 4:3 sheet. Every piece centered in its own cell, wide blank white gutters and outer margins. Exactly twelve separate pieces; no grid lines. Background perfectly flat pure white #FFFFFF with no texture, gradient or cast shadows.
+Style: chunky cel-shaded illustration matching both references, thick uniform dark navy outlines, bright saturated colors, restrained soft highlights on edges. All usable interiors are flat solid colors, clean and empty for later UI labels and nine-slice stretching; rectangular elements front-facing, with straight stretchable center spans.
+Row 1 left to right:
+1. Large square UI panel, deep navy-blue flat interior, thick warm golden-orange rounded rim, darker inner bevel, four small round paw-print bolts confined to the four corners.
+2. Wide red-and-gold ribbon title banner with folded tail ends and a plain flat red center.
+3. Wide rounded glossy YELLOW primary button, lighter top highlight and darker bottom edge.
+4. Wide rounded glossy SKY-BLUE secondary button, exactly same shape as yellow button.
+Row 2 left to right:
+5. Wide rounded ORANGE active tab button.
+6. Same tab shape and dimensions in dark slate-navy, inactive.
+7. Square item slot frame, flat dark navy interior, light steel-blue rim and small corner highlights.
+8. Small wide rounded stat plate, flat dark navy interior, thin golden rim.
+Row 3 left to right:
+9. Round red close button, white rim edged with navy, completely blank without a symbol.
+10. Empty wide progress bar track, flat dark navy rounded track and golden rim, no fill.
+11. Round glowing hangar platform pedestal seen from slightly above, metal with cyan light ring and a paw emblem.
+12. Wide wooden-and-gold shelf plank for displaying items, empty surface.
+Constraints: no text, letters, numbers, labels, watermark, characters, inventory objects, button symbols or extra icons. The ONLY paw decorations are the explicitly requested four corner bolts on piece 1 and emblem on piece 11. Keep every other interior entirely blank. Nothing overlaps or crosses cells. All twelve pieces fully visible and isolated.
+Targeted correction of the newly generated sheet: Preserve all twelve designs, colors, ordering and chunky style. Make the background mathematically uniform pure white without paper texture. Make the navy interiors of panel, slot, stat plate and progress track truly ONE FLAT SOLID navy color without any gradient, vignette or illumination. Make central red ribbon and button/tab label areas solid color; gloss belongs only along edges. Enforce equal grid cell centers at x = 12.5%,37.5%,62.5%,87.5% and y =16.667%,50%,83.333%. Every object contained within its cell with at least 5% of cell width of white margin on each side; especially ensure the bottom progress track is centered in column two and does not approach the red close button. Empty interiors; retain only requested paw decorations.

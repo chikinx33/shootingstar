@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'ui_kit.dart';
+
 /// Generated cartoon PNG skins, with a loading-only painted fallback.
 abstract final class ArcadeStyle {
   static const ink = Color(0xFF14263B);
@@ -28,6 +30,12 @@ abstract final class ArcadeStyle {
     Color? color,
   }) {
     if (target.isEmpty) return;
+    // v12.8: the generated game UI kit when it is loaded.
+    final piece = UiKit.pieceFor(skin, target, color);
+    if (piece != null &&
+        UiKit.paint(canvas, piece, target, corner: math.max(18, border * 2))) {
+      return;
+    }
     const colors = [
       Color(0xFF2C425A),
       Color(0xFF246C96),

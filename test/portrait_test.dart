@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'support/tabs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/main.dart';
 import 'package:shootingstar/data/profile.dart';
@@ -46,7 +47,7 @@ void main() {
         await tester.tap(find.text('성장'));
         await tester.pumpAndSettle();
         for (final label in ['장비', '펫', '테크', '장착', '보관', '관리']) {
-          final chip = find.widgetWithText(ChoiceChip, label).first;
+          final chip = tabWithText(label).first;
           expect(tester.getRect(chip).right, lessThanOrEqualTo(size.width));
           // Larger readable navigation may occupy more height than the old 230px cap.
           // It must still leave at least half the short screen for page content.

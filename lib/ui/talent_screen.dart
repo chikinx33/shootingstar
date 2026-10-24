@@ -5,6 +5,8 @@ import 'module_workshop.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import 'reward_popup.dart';
 
 import '../data/content.dart';
@@ -97,7 +99,7 @@ class _TalentScreenState extends State<TalentScreen> {
     context,
     MaterialPageRoute<void>(
       builder: (_) => Scaffold(
-        appBar: AppBar(
+        appBar: GameAppBar(
           title: Text(tr('무기 진화 도감'), textAlign: TextAlign.center),
         ),
         body: SurvivalMeta(profile: profile, section: 4, onChallenge: (_) {}),

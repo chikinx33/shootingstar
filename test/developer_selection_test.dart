@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'support/tabs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/main.dart';
@@ -50,7 +51,7 @@ void main() {
           }
 
           Future<void> tab(String name) async {
-            await tester.tap(find.widgetWithText(ChoiceChip, name));
+            await tester.tap(tabWithText(name));
             await tester.pumpAndSettle();
           }
 

@@ -20,10 +20,13 @@ import 'battle_hud.dart';
 import 'boss_intro_card.dart';
 import 'launch_assembly.dart';
 import 'ultimate_banner.dart';
-import 'lobby_cat_hero.dart';
 import '../art/ship_sprite_art.dart';
 import '../art/flight_scene_art.dart';
 import 'skill_cards.dart';
+import 'arcade_home_widgets.dart';
+import '../art/ui_kit.dart';
+import 'game_motion.dart';
+import 'game_decor.dart';
 import 'upgrade_slots.dart';
 import 'battle_statistics.dart';
 import '../art/game_art.dart';
@@ -1077,81 +1080,96 @@ class _BattleScreenState extends State<BattleScreen>
         : null,
   );
 
-  /// v12.4.3 (user 2026-10-25): one fixed page, short labels, no paging.
+  /// v12.8 (user 2026-10-25): the pause sign cat, a ribbon title and the
+  /// actions on a game panel, popping in one after another.
   Widget _pausePanel() {
+    final settings = _recordsRun
+        ? GameActionButton(
+            label: '조작·음향 설정',
+            displayLabel: '설정',
+            icon: Icons.settings,
+            onPressed: audible(() async {
+              _clearInput();
+              await Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => ControlSettingsScreen(profile: p),
+                ),
+              );
+              if (mounted) {
+                _clearInput();
+                setState(() {});
+              }
+            }),
+          )
+        : null;
     return _scrim(
-      Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const RasterIcon(Icons.pause_circle_outline, color: cyan, size: 48),
-          gap(6),
-          Text(
-            tr('일시정지'),
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-            textAlign: TextAlign.center,
-          ),
-          gap(16),
-          GameActionButton(
-            label: '계속 비행',
-            primary: true,
-            icon: Icons.play_arrow,
-            onPressed: audible(_resume),
-          ),
-          gap(10),
-          Row(
-            children: [
-              Expanded(
-                child: GameActionButton(
-                  key: const Key('pause-battle-statistics'),
-                  label: '전투 통계',
-                  displayLabel: '통계',
-                  onPressed: audible(_showStatistics),
-                ),
-              ),
-              if (_recordsRun) ...[
-                const SizedBox(width: 6),
-                Expanded(
-                  child: GameActionButton(
-                    label: '조작·음향 설정',
-                    displayLabel: '설정',
-                    onPressed: audible(() async {
-                      _clearInput();
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                          builder: (_) => ControlSettingsScreen(profile: p),
-                        ),
-                      );
-                      if (mounted) {
-                        _clearInput();
-                        setState(() {});
-                      }
-                    }),
+      PopIn(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const MascotImage(Mascot.pause, size: 112),
+            const RibbonTitle('일시정지', width: 320, height: 64, size: 26),
+            gap(6),
+            UiKitFrame(
+              'panel',
+              corner: 26,
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  StaggerIn(
+                    index: 1,
+                    child: GameActionButton(
+                      label: '계속 비행',
+                      primary: true,
+                      icon: Icons.play_arrow,
+                      onPressed: audible(_resume),
+                    ),
                   ),
-                ),
-              ],
-            ],
-          ),
-          gap(10),
-          Row(
-            children: [
-              Expanded(
-                child: GameActionButton(
-                  label: widget.dailyEntry != null
-                      ? '도전 중단 · 토큰 보상 없음'
-                      : '귀환 · 현재 보상 정산',
-                  displayLabel: widget.dailyEntry != null ? '도전 중단' : '귀환',
-                  onPressed: audible(() {
-                    setState(() {
-                      game.abandon();
-                      _clearInput();
-                    });
-                  }),
-                ),
+                  gap(10),
+                  StaggerIn(
+                    index: 2,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GameActionButton(
+                            key: const Key('pause-battle-statistics'),
+                            label: '전투 통계',
+                            displayLabel: '통계',
+                            icon: Icons.bar_chart,
+                            onPressed: audible(_showStatistics),
+                          ),
+                        ),
+                        if (settings != null) ...[
+                          const SizedBox(width: 6),
+                          Expanded(child: settings),
+                        ],
+                      ],
+                    ),
+                  ),
+                  gap(10),
+                  StaggerIn(
+                    index: 3,
+                    child: GameActionButton(
+                      label: widget.dailyEntry != null
+                          ? '도전 중단 · 토큰 보상 없음'
+                          : '귀환 · 현재 보상 정산',
+                      displayLabel: widget.dailyEntry != null ? '도전 중단' : '귀환',
+                      icon: Icons.home,
+                      onPressed: audible(() {
+                        setState(() {
+                          game.abandon();
+                          _clearInput();
+                        });
+                      }),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1166,7 +1184,8 @@ class _BattleScreenState extends State<BattleScreen>
   /// v12.4.3 (user 2026-10-25): one fixed page with only what matters —
   /// the outcome, three numbers, the reward and the next step. Everything
   /// else (loot text, progress, defeat advice, receipts) is in the reward
-  /// popup. No paging and no scrolling.
+  /// popup. No paging and no scrolling. v12.8: mascot, ribbon, counting
+  /// numbers and a reward that pops in.
   Widget _result() {
     final win = game.victory;
     final house = houseOf(game.stageIndex).place;
@@ -1181,57 +1200,56 @@ class _BattleScreenState extends State<BattleScreen>
               builder: (context, box) {
                 // a short phone with large text drops only the portrait
                 final text = MediaQuery.textScalerOf(context).scale(16) / 16;
-                final roomy = box.maxHeight >= 520 * text;
+                final roomy = box.maxHeight >= 600 * text;
+                // mascot and ribbon share what the fixed rows leave over
+                final mascot = (box.maxHeight - 470 * text).clamp(0.0, 150.0);
                 return Semantics(
                   container: true,
                   label: tr(win ? '승리' : '패배'),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (roomy)
+                      if (roomy && mascot >= 72)
                         SizedBox(
-                          height: 76,
+                          height: mascot + 12,
                           child: Stack(
                             alignment: Alignment.center,
+                            clipBehavior: Clip.none,
                             children: [
-                              if (win)
-                                Image.asset(
-                                  'assets/art/fx_v11/level_burst.webp',
-                                  width: 96,
-                                  height: 96,
+                              if (win) ...[
+                                GlowRays(size: mascot * 1.8),
+                                SparkleBurst(
+                                  size: mascot * 1.7,
+                                  count: 12,
+                                  delay: 250,
+                                  color: Color(0xFFFFE27A),
                                 ),
-                              Opacity(
-                                opacity: win ? 1 : .8,
-                                child: Image.asset(
-                                  LobbyCatHero.portraits[game.shipIndex.clamp(
-                                    0,
-                                    2,
-                                  )],
+                              ],
+                              PopIn(
+                                child: MascotImage(
+                                  win ? Mascot.victory : Mascot.defeat,
                                   key: const Key('result-cat'),
-                                  width: 72,
-                                  height: 72,
+                                  size: mascot,
+                                  sway: win ? .12 : .04,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      if (roomy) gap(6),
-                      Text(
-                        tr(
+                      PopIn(
+                        delay: 150,
+                        child: RibbonTitle(
                           _campaignComplete
                               ? '모든 동네 완주!'
                               : win
                               ? '집을 지켜 냈다냥!'
                               : '다음엔 꼭 이긴다냥',
-                        ),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          color: win ? Colors.white : const Color(0xFFFFD2A8),
+                          width: 340,
+                          height: roomy ? 62 : 52,
+                          size: roomy ? 24 : 21,
                         ),
                       ),
-                      gap(4),
+                      gap(2),
                       Text(
                         tr(
                           widget.training
@@ -1244,33 +1262,112 @@ class _BattleScreenState extends State<BattleScreen>
                         style: const TextStyle(fontSize: 16, color: muted),
                       ),
                       gap(14),
-                      Surface(
+                      StaggerIn(
+                        index: 3,
                         child: Row(
                           children: [
-                            Expanded(child: Stat('${game.kills}', '격파')),
-                            Expanded(child: Stat('Lv.${game.level}', '레벨')),
-                            Expanded(
-                              child: Stat(_clock(game.combatTime), '시간'),
-                            ),
+                            for (final (i, value, label, format) in [
+                              (
+                                0,
+                                game.kills.toDouble(),
+                                '격파',
+                                (double v) => '${v.round()}',
+                              ),
+                              (
+                                1,
+                                game.level.toDouble(),
+                                '레벨',
+                                (double v) => 'Lv.${v.round()}',
+                              ),
+                              (
+                                2,
+                                game.combatTime,
+                                '시간',
+                                (double v) => _clock(v),
+                              ),
+                            ]) ...[
+                              if (i > 0) const SizedBox(width: 6),
+                              Expanded(
+                                child: UiKitFrame(
+                                  'slot',
+                                  corner: 16,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      CountUp(
+                                        value: value,
+                                        format: format,
+                                        delay: 300 + i * 150,
+                                        style: const TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                      Text(
+                                        tr(label),
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: muted,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
                       gap(12),
-                      Text(
-                        tr(
-                          widget.training
-                              ? '훈련 보상 없음'
-                              : widget.dailyEntry != null
-                              ? '+ $reward 도전 토큰'
-                              : '+ $reward 츄르',
-                        ),
-                        key: const Key('result-reward'),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: cyan,
-                          fontSize: widget.training ? 18 : 30,
-                          fontWeight: FontWeight.w900,
-                        ),
+                      StaggerIn(
+                        index: 6,
+                        child: widget.training
+                            ? Text(
+                                tr('훈련 보상 없음'),
+                                key: const Key('result-reward'),
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: cyan,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              )
+                            : Row(
+                                key: const Key('result-reward'),
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    widget.dailyEntry != null
+                                        ? 'assets/art/menu_v13/challenge.webp'
+                                        : CurrencyArt.churu,
+                                    width: 40,
+                                    height: 40,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  CountUp(
+                                    value: reward.toDouble(),
+                                    delay: 700,
+                                    duration: 1100,
+                                    format: (v) => widget.dailyEntry != null
+                                        ? '+ ${v.round()} ${tr('도전 토큰')}'
+                                        : '+ ${v.round()} ${tr('츄르')}',
+                                    style: const TextStyle(
+                                      color: Color(0xFFFFE27A),
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.w900,
+                                      shadows: [
+                                        Shadow(
+                                          color: Color(0xFF3A1A06),
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                       ),
                       gap(14),
                       GameActionButton(
@@ -1402,7 +1499,7 @@ class _BattleScreenState extends State<BattleScreen>
               label: p.commerce!.rewardedRun(_runId)
                   ? '추가 보상 지급 완료'
                   : '광고 선택 · 추가 20 츄르',
-              icon: Icons.play_circle,
+              icon: Icons.play_arrow,
               onPressed: audible(
                 p.commerce!.canAdvertise && !p.commerce!.rewardedRun(_runId)
                     ? () async {

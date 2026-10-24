@@ -2,6 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../art/ui_kit.dart';
+import 'skill_cards.dart';
+import 'game_motion.dart';
+import 'game_decor.dart';
+
 import '../art/ship_sprite_art.dart';
 
 import '../art/module_aircraft_art.dart';
@@ -574,16 +579,49 @@ class ModuleWorkshop extends StatelessWidget {
             padding: const EdgeInsets.all(8),
             child: Row(
               children: [
+                // v12.8: the mechanic cat beside the craft on its pedestal
+                const MascotImage(Mascot.hangar, size: 76),
                 Expanded(
-                  child: Text(
-                    tr(
-                      '${ships[profile.selectedShip].name} · Lv.${profile.moduleLoadout.airframeLevel} · ${profile.credits} 츄르',
-                    ),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: 96,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Positioned(
+                              bottom: 0,
+                              child: Image.asset(
+                                '${UiKit.root}pedestal.webp',
+                                width: 112,
+                              ),
+                            ),
+                            Positioned.fill(
+                              bottom: 16,
+                              child: Bob(
+                                height: 4,
+                                child: ShipSprite(
+                                  hull: profile.selectedShip,
+                                  loadout: profile.moduleLoadout,
+                                  assets: profile.shipLayerAssets,
+                                  semanticLabel: tr('장착한 기체'),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        tr(
+                          '${ships[profile.selectedShip].name} · Lv.${profile.moduleLoadout.airframeLevel} · ${profile.credits} 츄르',
+                        ),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 PopupMenuButton<String>(
@@ -682,7 +720,7 @@ class ModuleWorkshop extends StatelessWidget {
                         : 'Lv.${profile.moduleLoadout.parts[mount.id]!.level}',
                     image: profile.moduleLoadout.parts[mount.id] == null
                         ? const Icon(Icons.add, size: 48)
-                        : ModulePartIcon(
+                        : partIllustration(
                             profile.moduleLoadout.parts[mount.id]!.definition,
                           ),
                     onTap: () => showModulePicker(context, profile, mount.id),
@@ -704,7 +742,7 @@ class ModuleWorkshop extends StatelessWidget {
     return embedded
         ? body
         : Scaffold(
-            appBar: AppBar(
+            appBar: GameAppBar(
               title: Text(tr('기체 모듈'), textAlign: TextAlign.center),
             ),
             body: body,

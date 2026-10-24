@@ -4,6 +4,8 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import 'prologue_screen.dart';
 
 import '../art/refit_art.dart';
@@ -257,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /// the three currencies as picture + amount, then settings. No title; the
   /// pilot level sits before the cat's name in the lobby.
   Widget _header() => ColoredBox(
-    color: const Color(0xFF15263B),
+    color: const Color(0xCC15263B),
     child: Padding(
       padding: const EdgeInsets.fromLTRB(8, 4, 4, 4),
       child: Row(
@@ -366,7 +368,9 @@ class _HomeScreenState extends State<HomeScreen> {
     context,
     MaterialPageRoute<void>(
       builder: (_) => Scaffold(
-        appBar: AppBar(title: Text(tr('시즌 원정'), textAlign: TextAlign.center)),
+        appBar: GameAppBar(
+          title: Text(tr('시즌 원정'), textAlign: TextAlign.center),
+        ),
         body: ContentHub(profile: p, initialPage: 4, showNavigation: false),
       ),
     ),

@@ -4,6 +4,8 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import 'reward_popup.dart';
 
 import '../data/content_catalog.dart';
@@ -145,7 +147,7 @@ class PetBondScreen extends StatelessWidget {
         final p = profile;
         if (pet < 0 || pet >= petNames.length) {
           return Scaffold(
-            appBar: AppBar(
+            appBar: GameAppBar(
               title: Text(tr('펫 교감·각성'), textAlign: TextAlign.center),
             ),
             body: Center(
@@ -169,7 +171,7 @@ class PetBondScreen extends StatelessWidget {
             ? 'Lv.${p.petLevels[pet]} · 승급 ${p.petRanks[pet]}단계 · 각성 $level/3'
             : '구조가 필요한 펫입니다.';
         return Scaffold(
-          appBar: AppBar(
+          appBar: GameAppBar(
             title: Text(tr('펫 교감·각성'), textAlign: TextAlign.center),
             actions: [
               IconButton(

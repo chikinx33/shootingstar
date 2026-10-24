@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'support/tabs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/cloud_sync.dart';
 import 'package:shootingstar/data/profile.dart';
@@ -89,7 +90,7 @@ void main() {
         ('가입', '현재 진행으로 계정 만들기'),
         ('복구', '계정 복구'),
       ]) {
-        await tester.tap(find.widgetWithText(ChoiceChip, tab));
+        await tester.tap(tabWithText(tab));
         await settle();
         onePage('$tab form');
         await tester.tap(action(submit));

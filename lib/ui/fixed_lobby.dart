@@ -6,6 +6,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../art/ui_kit.dart';
+
 import 'lobby_cat_hero.dart';
 import 'guardian_quest_screen.dart';
 
@@ -272,7 +274,6 @@ class FixedLobby extends StatelessWidget {
                             key: const Key('launch'),
                             displayLabel: '출격',
                             primary: true,
-                            image: 'assets/art/menu_v13/launch.webp',
                             panelColor: const Color(0xFFFFCC47),
                             onPressed: audible(onLaunch),
                             label: '${stages[profile.selectedStage].name} · 출격',
@@ -280,16 +281,13 @@ class FixedLobby extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      _launchSide('비행 가이드', '가이드', Icons.help_outline, onGuide),
+                      _launchSide(
+                        '비행 가이드',
+                        '가이드',
+                        Icons.question_mark,
+                        onGuide,
+                      ),
                     ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 5),
-                    child: RasterGauge(
-                      value: profile.pilotXp / profile.pilotXpNeeded,
-                      minHeight: 6,
-                      color: const Color(0xFF64D4BD),
-                    ),
                   ),
                 ],
               ),
@@ -320,8 +318,8 @@ class FixedLobby extends StatelessWidget {
     final nameHeight = tight
         ? 0.0
         : MediaQuery.textScalerOf(context).scale(24) * 1.3 + 6;
-    // chapter panel above, launch row and pilot gauge below
-    const top = 74.0, bottom = 100.0;
+    // chapter panel above, launch row below
+    const top = 74.0, bottom = 90.0;
     final floor = math.min(cushion.dy, board.maxHeight - bottom - nameHeight);
     final feet = LobbyCatHero.feetOf(profile);
     // The picture's box stays clear of the 64px shortcut columns.
@@ -376,6 +374,8 @@ class FixedLobby extends StatelessWidget {
     ];
   }
 
+  /// Training/guide beside the launch: kit slot tiles (v12.9), the same
+  /// framed look as the item slots instead of the old flat grey boxes.
   Widget _launchSide(
     String label,
     String visible,
@@ -386,36 +386,31 @@ class FixedLobby extends StatelessWidget {
     button: true,
     excludeSemantics: true,
     onTap: audible(action),
-    child: SizedBox(
-      width: 52,
-      height: 72,
-      child: TextButton(
-        onPressed: audible(action),
-        style: TextButton.styleFrom(
-          padding: EdgeInsets.zero,
-          foregroundColor: Colors.white,
-          backgroundColor: const Color(0xFF253C53),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(9),
-            side: const BorderSide(color: Color(0xFF6B7C88)),
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            RasterIcon(icon, size: 28),
-            const SizedBox(height: 3),
-            Text(
-              tr(visible),
-              style: const TextStyle(
-                fontSize: 13,
-                height: 1.1,
-                fontWeight: FontWeight.w900,
+    child: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: audible(action),
+      child: SizedBox(
+        width: 60,
+        height: 72,
+        child: UiKitFrame(
+          'slot',
+          corner: 16,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              RasterIcon(icon, size: 30),
+              const SizedBox(height: 2),
+              Text(
+                tr(visible),
+                style: const TextStyle(
+                  fontSize: 14,
+                  height: 1.1,
+                  fontWeight: FontWeight.w900,
+                ),
+                textAlign: TextAlign.center,
               ),
-
-              textAlign: TextAlign.center,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     ),

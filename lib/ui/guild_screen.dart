@@ -4,6 +4,11 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_motion.dart';
+import 'lobby_cat_hero.dart';
+
+import 'game_decor.dart';
+
 import '../data/profile.dart';
 import '../data/guild_client.dart';
 import 'components.dart';
@@ -85,7 +90,7 @@ class _GuildScreenState extends State<GuildScreen> {
         ? (state![g == null ? 'directory' : 'members'] as List? ?? [])
         : const [];
     return Scaffold(
-      appBar: AppBar(
+      appBar: GameAppBar(
         title: Text(tr('성간 길드'), textAlign: TextAlign.center),
         actions: [
           IconButton(
@@ -241,9 +246,33 @@ class _GuildScreenState extends State<GuildScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         if (!signed) ...[
+                          // v12.9: the guild flag over a squad of guardians
                           const Center(
-                            child: RasterIcon(Icons.groups, size: 144),
+                            child: RasterIcon(Icons.groups, size: 120),
                           ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              for (final (k, face)
+                                  in LobbyCatHero.faces.indexed)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  child: Bob(
+                                    height: 4,
+                                    period: 2200 + k * 300,
+                                    child: Image.asset(
+                                      face,
+                                      width: 72,
+                                      height: 72,
+                                      filterQuality: FilterQuality.medium,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          gap(8),
                           const GameSectionTitle('동료와 함께 성장하세요'),
                           Text(
                             tr(

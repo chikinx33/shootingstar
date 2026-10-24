@@ -4,6 +4,11 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import '../art/ui_kit.dart';
+import '../services/audio_director.dart';
+import 'game_motion.dart';
+import 'game_decor.dart';
+
 import '../data/profile.dart';
 import '../art/toon_assets.dart';
 import '../art/menu_art.dart';
@@ -52,40 +57,14 @@ class CatalogTabs extends StatelessWidget {
     }
     Widget chip(int i) => Padding(
       padding: const EdgeInsets.symmetric(horizontal: 3),
-      child: ChoiceChip(
-        selectedColor: const Color(0xFFFFD43D),
-        backgroundColor: const Color(0xFF1D3049),
-        side: BorderSide(
-          color: selected == i
-              ? const Color(0xFF142139)
-              : const Color(0xFF64829E),
-          width: 2,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        labelPadding: tight ? EdgeInsets.zero : null,
-        padding: tight
-            ? const EdgeInsets.symmetric(horizontal: 6, vertical: 12)
-            : null,
-        showCheckmark: false,
+      child: GameTab(
+        label: labels[i],
         selected: selected == i,
-        onSelected: audibleChange(
-          onSelected == null ? null : (_) => onSelected!(i),
-        ),
-        label: SizedBox(
-          width: double.infinity,
-          child: Text(
-            tr(labels[i]),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: selected == i ? const Color(0xFF152236) : Colors.white,
-              fontFamily: 'NotoSansKR',
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ),
+        tight: tight,
+        onTap: onSelected == null ? null : () => onSelected!(i),
       ),
     );
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: LayoutBuilder(
@@ -116,6 +95,7 @@ class CatalogTabs extends StatelessWidget {
   }
 }
 
+/// v12.8: a ribbon title over a status plate, with an optional mascot.
 class CatalogHeader extends StatelessWidget {
   const CatalogHeader({
     super.key,
@@ -124,45 +104,59 @@ class CatalogHeader extends StatelessWidget {
     required this.icon,
     this.action,
     this.localizeStatus = true,
+    this.mascot,
   });
   final bool localizeStatus;
   final String title, status;
   final IconData icon;
   final Widget? action;
+
+  /// A [Mascot] pose shown beside the title instead of the small icon.
+  final String? mascot;
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
-    return RasterPanel(
-      skin: 4,
+    return StaggerIn(
+      index: 0,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(6, 2, 6, 0),
         child: Column(
           children: [
             Row(
               children: [
                 SizedBox(
-                  width: 48,
-                  child: Center(child: RasterIcon(icon, size: 48)),
-                ),
-                Expanded(
-                  child: Text(
-                    tr(title),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
-                      height: 1.2,
-                    ),
+                  width: 64,
+                  child: Center(
+                    child: mascot != null
+                        ? MascotImage(mascot!, size: 60)
+                        : RasterIcon(icon, size: 40),
                   ),
                 ),
-                SizedBox(width: 48, child: action),
+                Expanded(
+                  child: Center(
+                    child: RibbonTitle(title, width: 320, height: 56, size: 22),
+                  ),
+                ),
+                SizedBox(width: 64, child: Center(child: action)),
               ],
             ),
-            Text(
-              localizeStatus ? tr(status) : status,
-              style: const TextStyle(fontSize: 16, height: 1.3),
-              textAlign: TextAlign.center,
-            ),
+            if (status.isNotEmpty)
+              UiKitFrame(
+                'plate',
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 3,
+                ),
+                child: Text(
+                  localizeStatus ? tr(status) : status,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    height: 1.3,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
           ],
         ),
       ),
@@ -221,6 +215,7 @@ class _SupplyShopState extends State<SupplyShop> {
         children: [
           CatalogHeader(
             title: '함대 보급',
+            mascot: Mascot.supply,
             status: p.developerMode ? '개발자 · 무료 구매' : '${p.credits} 츄르',
             icon: Icons.inventory_2,
           ),
@@ -236,40 +231,52 @@ class _SupplyShopState extends State<SupplyShop> {
             }),
           ),
           Expanded(
-            child: GameSlotList(
-              listKey: ValueKey('supply-items-$tab'),
-              children: tab == 0
-                  ? <Widget>[
-                      supply(
-                        '무기 파츠 보급',
-                        'gear-cargo',
-                        () => p.gearKeys,
-                        '건 · 미사일 · 드론 순환 획득 · 독립 Lv.1 파츠',
-                        '무기 파츠 보급 열기',
-                        () =>
-                            p.gearKeys > 0 && p.shipModules.owned.length < 240,
-                        p.openModuleSupply,
-                      ),
-                      supply(
-                        '테크 보급',
-                        'tech-cargo',
-                        () => p.techKeys,
-                        '테크 부품 8종을 순서대로 획득합니다.',
-                        '테크 보급 열기',
-                        () => p.techKeys > 0,
-                        p.openTechSupply,
-                      ),
-                      supply(
-                        '보조 파츠 보급',
-                        'pet-cargo',
-                        () => p.petEggs,
-                        '방어 · 공격 보조 · 유틸 7종 순환 획득',
-                        '보조 파츠 보급 열기',
-                        () => p.petEggs > 0 && p.shipModules.owned.length < 240,
-                        () => p.openModuleSupply(support: true),
-                      ),
-                    ]
-                  : <Widget>[
+            child: tab == 0
+                ? GameItemList(
+                    key: const ValueKey('supply-items-0'),
+                    padding: const EdgeInsets.fromLTRB(10, 12, 10, 12),
+                    child: Column(
+                      children: [
+                        for (final (i, card) in <Widget>[
+                          supply(
+                            '무기 파츠 보급',
+                            'gear-cargo',
+                            () => p.gearKeys,
+                            '건 · 미사일 · 드론 순환 획득 · 독립 Lv.1 파츠',
+                            '무기 파츠 보급 열기',
+                            () =>
+                                p.gearKeys > 0 &&
+                                p.shipModules.owned.length < 240,
+                            p.openModuleSupply,
+                          ),
+                          supply(
+                            '테크 보급',
+                            'tech-cargo',
+                            () => p.techKeys,
+                            '테크 부품 8종을 순서대로 획득합니다.',
+                            '테크 보급 열기',
+                            () => p.techKeys > 0,
+                            p.openTechSupply,
+                          ),
+                          supply(
+                            '보조 파츠 보급',
+                            'pet-cargo',
+                            () => p.petEggs,
+                            '방어 · 공격 보조 · 유틸 7종 순환 획득',
+                            '보조 파츠 보급 열기',
+                            () =>
+                                p.petEggs > 0 &&
+                                p.shipModules.owned.length < 240,
+                            () => p.openModuleSupply(support: true),
+                          ),
+                        ].indexed)
+                          StaggerIn(index: i, child: card),
+                      ],
+                    ),
+                  )
+                : GameSlotList(
+                    listKey: ValueKey('supply-items-$tab'),
+                    children: <Widget>[
                       for (final offer in offers)
                         GameItemSlot(
                           title: offer.$2,
@@ -327,7 +334,7 @@ class _SupplyShopState extends State<SupplyShop> {
                           ),
                         ),
                     ],
-            ),
+                  ),
           ),
         ],
       ),
@@ -342,12 +349,15 @@ class _SupplyShopState extends State<SupplyShop> {
     String action,
     bool Function() enabled,
     bool Function() claim,
-  ) => GameItemSlot(
+  ) => SupplyShelfCard(
     title: title,
-    image: MenuImage(asset, size: 56),
-    status: '×${keys()}',
-    semanticLabel: '$title 상세',
-    onTap: audible(
+    description: description,
+    image: MenuImage(asset, size: 84),
+    count: keys(),
+    canOpen: enabled(),
+    openLabel: action,
+    onOpen: () => claimWithRewardPopup(context, p, claim),
+    onDetails: audible(
       () => showDialog<void>(
         context: context,
         builder: (_) => AnimatedBuilder(
@@ -682,6 +692,203 @@ class RewardPreview extends StatelessWidget {
               ),
             ),
       ],
+    );
+  }
+}
+
+/// v12.8 game kit tab: the chosen one glows orange and sits raised.
+class GameTab extends StatelessWidget {
+  const GameTab({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.tight = false,
+  });
+  final String label;
+  final bool selected, tight;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: tr(label),
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap == null
+            ? null
+            : () {
+                AudioDirector.current?.unlock();
+                AudioDirector.current?.play('select');
+                onTap!();
+              },
+        child: AnimatedScale(
+          scale: selected ? 1.0 : .94,
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOutBack,
+          child: UiKitFrame(
+            selected ? 'tab_on' : 'tab_off',
+            padding: EdgeInsets.symmetric(
+              horizontal: tight ? 6 : 10,
+              vertical: tight ? 12 : 10,
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: Text(
+                tr(label),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: selected ? Colors.white : const Color(0xFFC6D3E2),
+                  fontFamily: 'NotoSansKR',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  shadows: const [
+                    Shadow(color: Color(0xFF3A1A06), offset: Offset(0, 2)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// v12.8.1: one supply on the shop shelf - a big bobbing crate (glowing when
+/// there is something to open), its name, what it gives, the count and an
+/// open button. Tapping the card shows its details.
+class SupplyShelfCard extends StatelessWidget {
+  const SupplyShelfCard({
+    super.key,
+    required this.title,
+    required this.description,
+    required this.image,
+    required this.count,
+    required this.canOpen,
+    required this.openLabel,
+    required this.onOpen,
+    required this.onDetails,
+  });
+  final String title, description, openLabel;
+  final Widget image;
+  final int count;
+  final bool canOpen;
+  final VoidCallback onOpen;
+  final VoidCallback? onDetails;
+
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Semantics(
+        button: true,
+        label: tr('$title 상세'),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onDetails,
+          child: UiKitFrame(
+            'slot',
+            corner: 18,
+            padding: const EdgeInsets.fromLTRB(12, 14, 14, 14),
+            child: Row(
+              children: [
+                SizedBox.square(
+                  dimension: 96,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      if (count > 0) const GlowRays(size: 120, opacity: .55),
+                      Bob(height: 4, child: image),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: UiKitFrame(
+                          'plate',
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 2,
+                          ),
+                          child: Text(
+                            '×$count',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFFFFE27A),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Text(
+                        tr(title),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        tr(description),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          height: 1.3,
+                          color: Color(0xFFB9C8D8),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Semantics(
+                        button: true,
+                        enabled: canOpen,
+                        label: tr(openLabel),
+                        excludeSemantics: true,
+                        child: GestureDetector(
+                          onTap: canOpen ? audible(onOpen, cue: 'chest') : null,
+                          child: Opacity(
+                            opacity: canOpen ? 1 : .45,
+                            child: UiKitFrame(
+                              canOpen ? 'btn_yellow' : 'tab_off',
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 26,
+                                vertical: 11,
+                              ),
+                              child: Text(
+                                tr(canOpen ? '열기' : '보급권 없음'),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w900,
+                                  color: canOpen
+                                      ? const Color(0xFF2A1A06)
+                                      : Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

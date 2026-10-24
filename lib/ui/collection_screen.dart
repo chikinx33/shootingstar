@@ -4,6 +4,8 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import '../data/collection_book.dart';
 import '../data/profile.dart';
 import '../art/toon_assets.dart';
@@ -82,7 +84,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
           GameActionButton(
             label: confirm,
             primary: true,
-            icon: Icons.check_circle,
+            icon: Icons.check,
             onPressed: audible(() => Navigator.pop(dialog, true)),
           ),
         ],
@@ -120,7 +122,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return Scaffold(
-      appBar: AppBar(title: Text(tr('항로 유물'), textAlign: TextAlign.center)),
+      appBar: GameAppBar(title: Text(tr('항로 유물'), textAlign: TextAlign.center)),
       body: SafeArea(
         top: false,
         child: Column(

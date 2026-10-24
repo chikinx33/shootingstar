@@ -1,0 +1,17 @@
+Mode: built-in image_gen; style-transfer with reference image.
+Reference: assets/art/lobby_v11/home.jpg
+
+INITIAL PROMPT
+Use case: style-transfer.
+Asset type: NEW full-screen portrait mobile game MENU BACKGROUND, exact 9:19.5 tall portrait aspect ratio (such as 1080 x 2340).
+Input image 1: style, color-world and architectural reference, the cozy living room of a cute cat guardian mobile game.
+Primary request: Create the cat guardians' secret night hangar in the attic of this same house. Deep indigo-blue night sky glimpsed through a large round attic window at the TOP CENTRE, soft stars and ONE tiny shooting star. Warm wooden roof beams along the top edges, soft cozy lamp glow, wooden plank floor and round cushion pad at the bottom.
+Composition: preserve the reference's straight-on cozy room perspective, circular window identity with cross mullions, rounded cushion geometry and warm wooden construction; change the scene and proportions as required for a tall attic with a LARGE calm middle area. Keep the round window in the upper portion and the floor/cushion in the bottom portion. The broad middle is mostly an even dusky blue-violet wall with a VERY SUBTLE faint pattern of small paw prints and tiny stars, ample uninterrupted negative space for future UI overlays.
+Style: chunky cel-shaded cartoon illustration, thick soft outlines, rounded friendly shapes, same cozy cartoon style as image 1. Warm amber wood and muted lamp light within a dusky indigo-violet nighttime color world.
+Lighting: soft, low contrast, slightly dim, gentle vignette. UI panels placed later must remain readable. No harsh bright hotspots.
+Constraints: no characters, no cats, no people, no text, no letters, no logos, no watermark, no UI elements, no panels, no buttons. Do not reproduce the reference's clutter in the central space. Render the background edge-to-edge.
+
+FINAL REFINEMENT PROMPT
+Edit this generated attic menu background. Output canvas MUST be exact width 936 pixels and height 2028 pixels, aspect 6:13 (9:19.5). Extend the canvas vertically to this exact very tall mobile aspect ratio; add calm dusky blue-violet wall space between the top window and bottom floor. Preserve the existing illustration style, round attic window, roof beams, perspective and cushion. Keep the round window near the top and cushion near the bottom. Make lighting softer and dimmer overall, especially floor and lamps, without losing cozy warm wood tones. Lower the contrast of paw prints and stars on the middle wall to almost invisible subtle pattern. The middle should be broad quiet even blue-violet negative space. No characters, cats, people, text, letters, logos, UI, buttons or panels.
+
+Delivery: standalone concept asset; not wired into game runtime.

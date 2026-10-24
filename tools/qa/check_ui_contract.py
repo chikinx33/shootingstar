@@ -55,6 +55,11 @@ for path in files:
             if re.search(r'\bFittedBox\s*\(|TextOverflow\.(?:ellipsis|fade)', block):
                 fail(path, source, offset, 'Do not shrink or truncate an action label; wrap and grow.')
 
+# v12.9: every screen title bar is the shared game bar, never a plain AppBar.
+for path in sorted((ROOT / 'lib/ui').rglob('*.dart')):
+    if re.search(r'appBar:\s*AppBar\(', path.read_text(encoding='utf-8')):
+        errors.append(f'{path.name}: use GameAppBar for screen title bars')
+
 # Critical decisions must keep the shared bounded component, not a local style.
 battle = (ROOT / 'lib/ui/battle.dart').read_text(encoding='utf-8')
 decisions = battle[battle.index('  Widget _pausePanel()'):]

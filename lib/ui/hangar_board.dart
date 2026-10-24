@@ -5,6 +5,8 @@ import 'module_workshop.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import '../art/arcade_aircraft.dart';
 import '../data/content.dart';
 import '../data/profile.dart';
@@ -113,7 +115,7 @@ class _HangarBoardState extends State<HangarBoard> {
                         onPressed: audible(
                           () => open(
                             Scaffold(
-                              appBar: AppBar(
+                              appBar: GameAppBar(
                                 title: Text(
                                   tr('영구 연구'),
                                   textAlign: TextAlign.center,
@@ -233,7 +235,7 @@ class _HangarBoardState extends State<HangarBoard> {
         GameActionButton(
           label: '파일럿 선택',
           primary: true,
-          icon: Icons.check_circle,
+          icon: Icons.check,
           onPressed: audible(() {
             p.selectPilot(id);
             Navigator.pop(dialog);
@@ -265,7 +267,7 @@ class _HangarBoardState extends State<HangarBoard> {
         GameActionButton(
           label: '모듈 장착',
           primary: true,
-          icon: Icons.check_circle,
+          icon: Icons.check,
           onPressed: audible(() {
             p.selectEquipment(id);
             Navigator.pop(dialog);

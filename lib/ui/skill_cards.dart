@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../art/module_aircraft_art.dart';
+import '../data/ship_modules.dart';
 import '../game/engine.dart';
 
 /// v12.7 skill cards (user 2026-10-25): every choice is an illustrated card
@@ -137,4 +139,18 @@ int skillRank(GameEngine game, UpgradeChoice choice) {
   } on StateError {
     return 0;
   }
+}
+
+/// A mounted part's picture: the skill-card illustration for the weapons
+/// that have one (vulcan, rear mortar), its module icon otherwise.
+Widget partIllustration(ModulePart part, {double size = 72}) {
+  final name = part.name;
+  final art = name.contains('발칸')
+      ? 'vulcan'
+      : name.contains('자주포')
+      ? 'mortar'
+      : null;
+  return art == null
+      ? ModulePartIcon(part, size: size)
+      : Image.asset('${SkillCardArt.root}$art.webp', width: size, height: size);
 }

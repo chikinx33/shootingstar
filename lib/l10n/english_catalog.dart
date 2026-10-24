@@ -1,197 +1,172 @@
 // Offline English catalog. Korean keys are presentation source text only.
 // Placeholders preserve values and may be reordered. No network translation.
 const englishCatalog = <String, String>{
-  // v12.4.3 one-page account/save/supporter screens and their popups.
-  '계정 안내':
-      'Account info',
-  '저장 도움말':
-      'Save help',
-  '비밀번호 분실 시 필요합니다. 한 번만 표시되니 남에게 알리지 마세요.':
-      'Needed if you forget your password. Shown only once; never share it.',
-  '사용할 진행을 고르세요.':
-      'Choose the progress to use.',
-  '계정 관리':
-      'Manage account',
-  '지금 기기의 진행으로 계정을 만듭니다.':
-      'Creates an account with this device\'s progress.',
-  '복구 코드로 새 비밀번호를 정합니다. 기존 로그인은 모두 해제됩니다.':
-      'Set a new password with the recovery code. All existing sign-ins end.',
-  '계정 진행을 불러오고 지금 진행은 기기에 백업합니다.':
-      'Loads account progress and backs up current progress on this device.',
-  '모든 기기 로그아웃은 다른 기기의 로그인도 해제합니다. 계정 삭제는 되돌릴 수 없습니다.':
-      'Signing out everywhere also ends sign-ins on other devices. Account deletion cannot be undone.',
-  '영구 진행을 파일로 보관하고 게스트 진행에 복원합니다.':
-      'Keep permanent progress in a file and restore it to guest progress.',
-  '백업·복원 안내':
-      'Backup and restore info',
-  '백업 보관':
-      'Keeping backups',
-  '백업·복원 자세히 보기':
-      'Backup and restore details',
-  '저장·복구 안내':
-      'Save and recovery info',
-  '중단한 전투':
-      'Suspended sorties',
-  '출격 중 자동 저장되며, 일시정지에서 저장 후 로비로 나갈 수 있습니다. 같은 기기·브라우저의 이어하기로 복원하고, 닫혀 있던 시간은 흐르지 않습니다.':
-      'Sorties save automatically, and you can save and return to the lobby from pause. Restore with Continue on the same device and browser; no time passes while closed.',
-  '다른 기기로는 옮겨지지 않으니 먼저 정산하거나 포기한 뒤 동기화하세요. 강제 종료 시 마지막 저장까지 복구됩니다.':
-      'They do not move to other devices, so settle or abandon first, then sync. A forced close recovers up to the last save.',
-  '저장 충돌과 데이터 삭제':
-      'Save conflicts and data deletion',
-  '두 기기에서 진행했다면 비교해 사용할 쪽을 고르세요. 복구 코드는 따로 보관하세요. 앱·브라우저 데이터를 지우면 기기 백업과 중단 전투도 사라집니다.':
-      'If you played on two devices, compare and choose one. Keep your recovery code separately. Clearing app or browser data also removes device backups and suspended sorties.',
-  '게스트 진행은 이 앱·브라우저에 저장됩니다. 기기를 바꾸기 전에 계정으로 동기화하세요.':
-      'Guest progress is saved in this app or browser. Sync with an account before changing devices.',
-  '현재 저장 오류가 없습니다.':
-      'No save errors right now.',
-  '{0}\n앱을 닫기 전에 저장 공간을 확인하고 저장 후 로비를 다시 시도하세요.':
-      '{0}\nBefore closing the app, check storage space and try Save and return to lobby again.',
-  '버전·저장 상태·항로·출격 횟수만 복사합니다. 닉네임·비밀번호·장비는 넣지 않고 자동 전송하지 않습니다.':
-      'Copies only version, save state, route and sortie count. No nickname, password or gear, and nothing is sent automatically.',
-  '저장·복구 자세히 보기':
-      'Save and recovery details',
-  '후원·보상 자세히 보기':
-      'Supporter and reward details',
-  '후원·보상 안내':
-      'Supporter and reward info',
-  '상품 가격':
-      'Product price',
-  '유도 폭발탄 · 지상 타격 · 보스 피해 70%':
-      'Homing blast · Ground targets · 70% damage to bosses',
-  '2초마다 기본 선체의 2.5% 충전 · 피격 후 6초 대기 · 상한 22%':
-      'Recharge 2.5% of base hull every 2s · Wait 6s after hits · Cap 22%',
-  '12초마다 기본 선체의 1.8% 회복': 'Repair 1.8% of base hull every 12s',
-  '정밀 운동탄 · 보스 피해 +50% · 비유도':
-      'Precision kinetic rounds · Boss damage +50% · Unguided',
-  '정밀 운동탄 · 보스 피해 +40% · 비유도':
-      'Precision kinetic rounds · Boss damage +40% · Unguided',
-  '운동탄 · 탄환 요격 · 기본 체력 42 · 재정비 4초':
-      'Kinetic rounds · Bullet interception · Base HP 42 · Rebuild 4s',
-  '전방 군집 확산 · 중앙 단일 표적에 불리':
-      'Front crowd spread · Weak against a central lone target',
-  '전방 추적 연사 · 측후방 사각': 'Forward homing volleys · Side and rear blind spots',
-  '좌우 엄호·요격 · 정면 사각': 'Side cover and interception · Front blind spot',
-  '직선 관통·보스 정밀 · 조준 필요':
-      'Line piercing and boss precision · Requires alignment',
-  '지상·밀집 범위 폭발 · 긴 재장전': 'Ground and clustered targets · Long reload',
-  '전방 요격 방패 · 뒤쪽 사각': 'Forward interception screen · Rear blind spot',
-  '후방 확산 · 정면 사각': 'Rear spread · Front blind spot',
-  '뒤쫓는 군집 추적 · 정면 사각': 'Tracks pursuing crowds · Front blind spot',
-  '후방 호위·탄환 차단 · 정면 사각': 'Rear escort and interception · Front blind spot',
-  '360° 자동 조준 · 짧은 사거리': '360° auto aim · Short range',
-  '주변 다중 낙하 · 피해 분산': 'Multi-target drops · Damage is divided',
-  '360° 회전 방공 · 짧은 사거리': '360° orbit cover · Short range',
-  '보스 기본 피해 {0} → {1}': 'Base boss damage {0} → {1}',
-  '드론 체력 {0} · 복귀 {1}초': 'Drone HP {0} · Rebuild {1}s',
-  '기체 정보': 'Ship info',
-  '격납고 메뉴': 'Hangar menu',
-  '후원 외형': 'Supporter skin',
-  '정밀 주포': 'Precision cannon',
-  '산탄 주포': 'Scatter cannon',
-  '고유 주포 · 공중 전방 공격': 'Signature gun · Forward air fire',
-  '공중 전방 공격': 'Forward air fire',
-  '전방 광선': 'Forward beam',
-  '주변 추적 포격': 'Nearby homing barrage',
-  '근거리 충격파': 'Close-range shockwave',
-  '{0} {1} 모듈': '{0} {1} module',
-  '무기 파츠 보급': 'Weapon part supply',
-  '보조 파츠 보급': 'Support part supply',
-  '무기 파츠 보급 열기': 'Open weapon supply',
-  '보조 파츠 보급 열기': 'Open support supply',
-  '보조 보급권': 'Support supply key',
-  '건 · 미사일 · 드론 순환 획득 · 독립 Lv.1 파츠':
-      'Cycles through gun, missile and drone · New level 1 parts',
-  '방어 · 공격 보조 · 유틸 7종 순환 획득':
-      'Cycles through 7 defense, attack support and utility parts',
-  '보급에서 파츠를 획득하세요.': 'Get parts from supplies.',
-  '보유 파츠 {0}/240 · 장착 7슬롯': 'Parts {0}/240 · 7 mounts',
-  '기체 모듈': 'Ship modules',
-  '날개끝': 'Wingtips',
-  '동체 하부': 'Belly',
-  '후미': 'Tail',
-  '상부': 'Top',
-  '전방 ±15°': 'Forward ±15°',
-  '전방 직선': 'Straight ahead',
-  '후방 60°': 'Rear 60° fan',
-  '360° 자동 조준': '360° auto aim',
-  '위치 효과 없음': 'No positional effect',
-  '발칸 건': 'Vulcan gun',
-  '호크 미사일': 'Hawk missile',
-  '와스프 드론': 'Wasp drone',
-  '운동 탄환 · 비유도': 'Kinetic rounds · Unguided',
-  '유도 폭발탄 · 모든 위치에서 지상 타격':
-      'Homing explosives · Ground targeting on every mount',
-  '독립 기체 · 운동 탄환 · 체력 30': 'Independent drone · Kinetic rounds · Base HP 30',
-  '보호막 발생기': 'Shield generator',
-  '보강 장갑': 'Reinforced armor',
-  '표식 센서': 'Marking sensor',
-  '자석 모듈': 'Magnet module',
-  '보조 추진기': 'Auxiliary thruster',
-  '2초마다 최대 체력의 2.5% 차폐 · 상한 22%': 'Shield 2.5% max HP every 2s · Cap 22%',
-  '12초마다 최대 체력의 1.8% 회복': 'Heal 1.8% max HP every 12s',
-  '받는 피해 6% 감소': 'Take 6% less damage',
-  '6초마다 공중 적 표식 · 2초간 받는 피해 +20%':
-      'Mark an air enemy every 6s · Takes +20% damage for 2s',
-  '궁극기 에너지 충전 속도 +15%': 'Ultimate charge rate +15%',
-  '경험치 회수 반경 +20%': 'XP pickup radius +20%',
-  '이동 속도 +8% · 이동 중 주기적 가속': 'Move speed +8% · Periodic boost while moving',
-  '빈 모듈': 'Empty module',
-  '파츠 특성': 'Part details',
-  '파츠 강화': 'Upgrade part',
-  '파츠 분해': 'Recycle part',
-  '분해 완료': 'Recycled',
-  '기체 강화': 'Upgrade ship',
-  '고유 주포': 'Signature gun',
-  '고유 궁극기': 'Signature ultimate',
-  '주포·궁극기는 탈착할 수 없습니다.':
-      'The signature gun and ultimate are built into the ship.',
-  '기체 강화는 주포·궁극기·기본 체력을 올립니다.':
-      'Ship upgrades improve its gun, ultimate and base HP.',
-  '같은 보조 부품은 중복 장착할 수 없습니다.': 'Duplicate support types cannot be equipped.',
-  '파츠는 무엇을, 모듈은 어디로 쏘는지 정합니다.': 'Parts choose what fires. Mounts choose where.',
-  '이전 조립 구성입니다. 모듈 구성으로 다시 저장하세요.':
-      'Legacy configuration. Save a new module loadout.',
-  '저장된 파츠를 보유하고 있지 않습니다.': 'A saved part is no longer owned.',
-  '지원 효율 {0}%': 'Support power {0}%',
-  '피해 {0} → {1}': 'Damage {0} → {1}',
-  '초당 발사 {0} → {1}': 'Shots/s {0} → {1}',
-  '발사 수 {0} → {1} · 관통 +{2}': 'Count {0} → {1} · Pierce +{2}',
-  '폭발 범위 {0} → {1} · 사거리 {2}': 'Blast {0} → {1} · Range {2}',
-  '{0} → {1} · 레벨 유지': '{0} → {1} · Keeps level',
-  '이번 전투 · 장착 파츠 피해 +20%': 'This run · Mounted part damage +20%',
-  '이번 전투 · 기체 고유 주포 강화': 'This run · Upgrade signature gun',
-  '{0} 모듈 편집': 'Edit module {0}',
-  '{0} 파츠 특성': 'Part details {0}',
-  '{0} 보조 슬롯': '{0} support slot',
-  '항성 광선': 'Stellar beam',
-  '유도탄 쇄도': 'Homing barrage',
-  '충격파 방벽': 'Shockwave barrier',
+  "계정 안내": "Account info",
+  "저장 도움말": "Save help",
+  "비밀번호 분실 시 필요합니다. 한 번만 표시되니 남에게 알리지 마세요.":
+      "Needed if you forget your password. Shown only once; never share it.",
+  "사용할 진행을 고르세요.": "Choose the progress to use.",
+  "계정 관리": "Manage account",
+  "지금 기기의 진행으로 계정을 만듭니다.": "Creates an account with this device's progress.",
+  "복구 코드로 새 비밀번호를 정합니다. 기존 로그인은 모두 해제됩니다.":
+      "Set a new password with the recovery code. All existing sign-ins end.",
+  "계정 진행을 불러오고 지금 진행은 기기에 백업합니다.":
+      "Loads account progress and backs up current progress on this device.",
+  "모든 기기 로그아웃은 다른 기기의 로그인도 해제합니다. 계정 삭제는 되돌릴 수 없습니다.": "Signing out everywhere also ends sign-ins on other devices. Account deletion cannot be undone.",
+  "영구 진행을 파일로 보관하고 게스트 진행에 복원합니다.":
+      "Keep permanent progress in a file and restore it to guest progress.",
+  "백업·복원 안내": "Backup and restore info",
+  "백업 보관": "Keeping backups",
+  "백업·복원 자세히 보기": "Backup and restore details",
+  "저장·복구 안내": "Save and recovery info",
+  "중단한 전투": "Suspended sorties",
+  "출격 중 자동 저장되며, 일시정지에서 저장 후 로비로 나갈 수 있습니다. 같은 기기·브라우저의 이어하기로 복원하고, 닫혀 있던 시간은 흐르지 않습니다.": "Sorties save automatically, and you can save and return to the lobby from pause. Restore with Continue on the same device and browser; no time passes while closed.",
+  "다른 기기로는 옮겨지지 않으니 먼저 정산하거나 포기한 뒤 동기화하세요. 강제 종료 시 마지막 저장까지 복구됩니다.": "They do not move to other devices, so settle or abandon first, then sync. A forced close recovers up to the last save.",
+  "저장 충돌과 데이터 삭제": "Save conflicts and data deletion",
+  "두 기기에서 진행했다면 비교해 사용할 쪽을 고르세요. 복구 코드는 따로 보관하세요. 앱·브라우저 데이터를 지우면 기기 백업과 중단 전투도 사라집니다.": "If you played on two devices, compare and choose one. Keep your recovery code separately. Clearing app or browser data also removes device backups and suspended sorties.",
+  "게스트 진행은 이 앱·브라우저에 저장됩니다. 기기를 바꾸기 전에 계정으로 동기화하세요.": "Guest progress is saved in this app or browser. Sync with an account before changing devices.",
+  "현재 저장 오류가 없습니다.": "No save errors right now.",
+  "{0}\n앱을 닫기 전에 저장 공간을 확인하고 저장 후 로비를 다시 시도하세요.": "{0}\nBefore closing the app, check storage space and try Save and return to lobby again.",
+  "버전·저장 상태·항로·출격 횟수만 복사합니다. 닉네임·비밀번호·장비는 넣지 않고 자동 전송하지 않습니다.": "Copies only version, save state, route and sortie count. No nickname, password or gear, and nothing is sent automatically.",
+  "저장·복구 자세히 보기": "Save and recovery details",
+  "후원·보상 자세히 보기": "Supporter and reward details",
+  "후원·보상 안내": "Supporter and reward info",
+  "상품 가격": "Product price",
+  "유도 폭발탄 · 지상 타격 · 보스 피해 70%":
+      "Homing blast · Ground targets · 70% damage to bosses",
+  "2초마다 기본 선체의 2.5% 충전 · 피격 후 6초 대기 · 상한 22%":
+      "Recharge 2.5% of base hull every 2s · Wait 6s after hits · Cap 22%",
+  "12초마다 기본 선체의 1.8% 회복": "Repair 1.8% of base hull every 12s",
+  "정밀 운동탄 · 보스 피해 +50% · 비유도":
+      "Precision kinetic rounds · Boss damage +50% · Unguided",
+  "정밀 운동탄 · 보스 피해 +40% · 비유도":
+      "Precision kinetic rounds · Boss damage +40% · Unguided",
+  "운동탄 · 탄환 요격 · 기본 체력 42 · 재정비 4초":
+      "Kinetic rounds · Bullet interception · Base HP 42 · Rebuild 4s",
+  "전방 군집 확산 · 중앙 단일 표적에 불리":
+      "Front crowd spread · Weak against a central lone target",
+  "전방 추적 연사 · 측후방 사각": "Forward homing volleys · Side and rear blind spots",
+  "좌우 엄호·요격 · 정면 사각": "Side cover and interception · Front blind spot",
+  "직선 관통·보스 정밀 · 조준 필요":
+      "Line piercing and boss precision · Requires alignment",
+  "지상·밀집 범위 폭발 · 긴 재장전": "Ground and clustered targets · Long reload",
+  "전방 요격 방패 · 뒤쪽 사각": "Forward interception screen · Rear blind spot",
+  "후방 확산 · 정면 사각": "Rear spread · Front blind spot",
+  "뒤쫓는 군집 추적 · 정면 사각": "Tracks pursuing crowds · Front blind spot",
+  "후방 호위·탄환 차단 · 정면 사각": "Rear escort and interception · Front blind spot",
+  "360° 자동 조준 · 짧은 사거리": "360° auto aim · Short range",
+  "주변 다중 낙하 · 피해 분산": "Multi-target drops · Damage is divided",
+  "360° 회전 방공 · 짧은 사거리": "360° orbit cover · Short range",
+  "보스 기본 피해 {0} → {1}": "Base boss damage {0} → {1}",
+  "드론 체력 {0} · 복귀 {1}초": "Drone HP {0} · Rebuild {1}s",
+  "기체 정보": "Ship info",
+  "격납고 메뉴": "Hangar menu",
+  "후원 외형": "Supporter skin",
+  "정밀 주포": "Precision cannon",
+  "산탄 주포": "Scatter cannon",
+  "고유 주포 · 공중 전방 공격": "Signature gun · Forward air fire",
+  "공중 전방 공격": "Forward air fire",
+  "전방 광선": "Forward beam",
+  "주변 추적 포격": "Nearby homing barrage",
+  "근거리 충격파": "Close-range shockwave",
+  "{0} {1} 모듈": "{0} {1} module",
+  "무기 파츠 보급": "Weapon part supply",
+  "보조 파츠 보급": "Support part supply",
+  "무기 파츠 보급 열기": "Open weapon supply",
+  "보조 파츠 보급 열기": "Open support supply",
+  "보조 보급권": "Support supply key",
+  "건 · 미사일 · 드론 순환 획득 · 독립 Lv.1 파츠":
+      "Cycles through gun, missile and drone · New level 1 parts",
+  "방어 · 공격 보조 · 유틸 7종 순환 획득":
+      "Cycles through 7 defense, attack support and utility parts",
+  "보급에서 파츠를 획득하세요.": "Get parts from supplies.",
+  "보유 파츠 {0}/240 · 장착 7슬롯": "Parts {0}/240 · 7 mounts",
+  "기체 모듈": "Ship modules",
+  "날개끝": "Wingtips",
+  "동체 하부": "Belly",
+  "후미": "Tail",
+  "상부": "Top",
+  "전방 ±15°": "Forward ±15°",
+  "전방 직선": "Straight ahead",
+  "후방 60°": "Rear 60° fan",
+  "360° 자동 조준": "360° auto aim",
+  "위치 효과 없음": "No positional effect",
+  "발칸 건": "Vulcan gun",
+  "호크 미사일": "Hawk missile",
+  "와스프 드론": "Wasp drone",
+  "운동 탄환 · 비유도": "Kinetic rounds · Unguided",
+  "유도 폭발탄 · 모든 위치에서 지상 타격":
+      "Homing explosives · Ground targeting on every mount",
+  "독립 기체 · 운동 탄환 · 체력 30": "Independent drone · Kinetic rounds · Base HP 30",
+  "보호막 발생기": "Shield generator",
+  "보강 장갑": "Reinforced armor",
+  "표식 센서": "Marking sensor",
+  "자석 모듈": "Magnet module",
+  "보조 추진기": "Auxiliary thruster",
+  "2초마다 최대 체력의 2.5% 차폐 · 상한 22%": "Shield 2.5% max HP every 2s · Cap 22%",
+  "12초마다 최대 체력의 1.8% 회복": "Heal 1.8% max HP every 12s",
+  "받는 피해 6% 감소": "Take 6% less damage",
+  "6초마다 공중 적 표식 · 2초간 받는 피해 +20%":
+      "Mark an air enemy every 6s · Takes +20% damage for 2s",
+  "궁극기 에너지 충전 속도 +15%": "Ultimate charge rate +15%",
+  "경험치 회수 반경 +20%": "XP pickup radius +20%",
+  "이동 속도 +8% · 이동 중 주기적 가속": "Move speed +8% · Periodic boost while moving",
+  "빈 모듈": "Empty module",
+  "파츠 특성": "Part details",
+  "파츠 강화": "Upgrade part",
+  "파츠 분해": "Recycle part",
+  "분해 완료": "Recycled",
+  "기체 강화": "Upgrade ship",
+  "고유 주포": "Signature gun",
+  "고유 궁극기": "Signature ultimate",
+  "주포·궁극기는 탈착할 수 없습니다.":
+      "The signature gun and ultimate are built into the ship.",
+  "기체 강화는 주포·궁극기·기본 체력을 올립니다.":
+      "Ship upgrades improve its gun, ultimate and base HP.",
+  "같은 보조 부품은 중복 장착할 수 없습니다.": "Duplicate support types cannot be equipped.",
+  "파츠는 무엇을, 모듈은 어디로 쏘는지 정합니다.": "Parts choose what fires. Mounts choose where.",
+  "이전 조립 구성입니다. 모듈 구성으로 다시 저장하세요.":
+      "Legacy configuration. Save a new module loadout.",
+  "저장된 파츠를 보유하고 있지 않습니다.": "A saved part is no longer owned.",
+  "지원 효율 {0}%": "Support power {0}%",
+  "피해 {0} → {1}": "Damage {0} → {1}",
+  "초당 발사 {0} → {1}": "Shots/s {0} → {1}",
+  "발사 수 {0} → {1} · 관통 +{2}": "Count {0} → {1} · Pierce +{2}",
+  "폭발 범위 {0} → {1} · 사거리 {2}": "Blast {0} → {1} · Range {2}",
+  "{0} → {1} · 레벨 유지": "{0} → {1} · Keeps level",
+  "이번 전투 · 장착 파츠 피해 +20%": "This run · Mounted part damage +20%",
+  "이번 전투 · 기체 고유 주포 강화": "This run · Upgrade signature gun",
+  "{0} 모듈 편집": "Edit module {0}",
+  "{0} 파츠 특성": "Part details {0}",
+  "{0} 보조 슬롯": "{0} support slot",
+  "항성 광선": "Stellar beam",
+  "유도탄 쇄도": "Homing barrage",
+  "충격파 방벽": "Shockwave barrier",
   "슬롯 선택": "Choose slot",
   "{0} 슬롯 선택": "Choose {0} slot",
   "장비 특성": "Equipment traits",
   "부품 특성": "Part traits",
   "보유한 부품이 없습니다.": "No owned parts.",
   "전방 고정 공격 · 주무장과 R/P/N 강화 적용":
-      "Forward fire \u00b7 Uses primary gear and R/P/N upgrades",
+      "Forward fire · Uses primary gear and R/P/N upgrades",
   "전방위 공중 조준 · 기본 사격 간격 0.95초":
-      "Omnidirectional air targeting \u00b7 Base interval 0.95s",
+      "Omnidirectional air targeting · Base interval 0.95s",
   "좌우 공중 표적 공격 · 기본 사격 간격 1.4초":
-      "Targets air enemies on both sides \u00b7 Base interval 1.4s",
+      "Targets air enemies on both sides · Base interval 1.4s",
   "후방 공중 표적 공격 · 기본 사격 간격 1.1초":
-      "Targets air enemies behind \u00b7 Base interval 1.1s",
+      "Targets air enemies behind · Base interval 1.1s",
   "지상 표적 전용 폭격 · 기본 간격 2초": "Bombs ground targets only · Base interval 2s",
   "기본 피해 감소 6% · 수호자 강화로 추가 방호":
-      "Base damage reduction 6% \u00b7 Guardian upgrades add protection",
+      "Base damage reduction 6% · Guardian upgrades add protection",
   "기본 피해 감소 10% · 수호자 강화로 추가 방호":
-      "Base damage reduction 10% \u00b7 Guardian upgrades add protection",
+      "Base damage reduction 10% · Guardian upgrades add protection",
   "2초마다 선체 비례 차폐 생성 · 최대 18%":
-      "Generates hull-based shielding every 2s \u00b7 Cap 18%",
+      "Generates hull-based shielding every 2s · Cap 18%",
   "12초마다 최대 선체의 1.8% 회복 · 지원 레벨로 증가":
-      "Repairs 1.8% max hull every 12s \u00b7 Scales with support level",
+      "Repairs 1.8% max hull every 12s · Scales with support level",
   "6초마다 에너지 충전 · 파일럿 대기 1.2초 단축":
-      "Energy every 6s \u00b7 Reduces pilot cooldown by 1.2s",
-  "4초마다 최대 선체의 2.5% 차폐 · 상한 22%":
-      "Shields 2.5% max hull every 4s \u00b7 Cap 22%",
+      "Energy every 6s · Reduces pilot cooldown by 1.2s",
+  "4초마다 최대 선체의 2.5% 차폐 · 상한 22%": "Shields 2.5% max hull every 4s · Cap 22%",
   "주무장 슬롯": "Primary slot",
   "센서 슬롯": "Sensor slot",
   "코어 슬롯": "Core slot",
@@ -207,7 +182,6 @@ const englishCatalog = <String, String>{
   "좌측 지원 슬롯": "Left support slot",
   "우측 지원 슬롯": "Right support slot",
   "후방 지원 슬롯": "Rear support slot",
-
   "슬롯 표시": "Show slots",
   "슬롯 숨기기": "Hide slots",
   "슬롯 분류": "Slot category",
@@ -220,7 +194,6 @@ const englishCatalog = <String, String>{
   "좌측 지원": "Left support",
   "우측 지원": "Right support",
   "후방 지원": "Rear support",
-
   "주포 모드에 전방 관통 사격을 결합": "Adds forward piercing to your primary firing mode",
   "주포 모드에 전방 유도 로켓을 결합":
       "Adds forward seeker rockets to your primary firing mode",
@@ -246,7 +219,6 @@ const englishCatalog = <String, String>{
   "같은 세계 희귀 이상 선체·추진기 2개 장착 시 발동":
       "Requires a rare or better hull and thruster from the same world",
   "유성 추적 로켓": "Meteor seeker rocket",
-
   "부품": "Parts",
   "전방 직선탄 · 진화 시 관통·피해 강화":
       "Forward rounds; evolution improves piercing and damage",
@@ -324,7 +296,6 @@ const englishCatalog = <String, String>{
   "기체 조립 정보가 올바르지 않습니다.": "Invalid aircraft assembly.",
   "기체 조립을 보존하려면 앱을 새로고침해 업데이트하세요.":
       "Refresh the app to preserve your aircraft assembly.",
-
   "JSON 요청이 필요합니다.": "A JSON request is required.",
   "JSON 형식 오류입니다.": "Invalid JSON format.",
   "POST 요청만 허용합니다.": "Only POST requests are allowed.",
@@ -2337,7 +2308,7 @@ const englishCatalog = <String, String>{
   "희귀 테크 선택": "Choose Rare tech",
   "희귀 테크 선택 해금! 성장 → 테크에서 받으세요.":
       "Rare tech choice unlocked! Claim in Growth → Tech.",
-  '군집 증가 · 보스 체력 +40%\n챕터 완주 시 도전 개방\n첫 승리 설계도 +5': 'Denser waves · Boss HP +40%\nClear chapter to unlock\nFirst win: +5 blueprints',
+  "군집 증가 · 보스 체력 +40%\n챕터 완주 시 도전 개방\n첫 승리 설계도 +5": "Denser waves · Boss HP +40%\nClear chapter to unlock\nFirst win: +5 blueprints",
   "기체 설계": "Aircraft design",
   "조합형 기체 설계": "Modular aircraft design",
   "부품 모두 해제": "Remove all parts",
@@ -2726,37 +2697,46 @@ const englishCatalog = <String, String>{
   "별똥별 광선": "Shooting-star beam",
   "냥냥 미사일 폭풍": "Meow missile storm",
   "꾹꾹이 충격파": "Kneading shockwave",
-  "{0} · “{1}”\n{2}회 보스 결전": "{0} · “{1}”\n{2} boss battle(s)",
+  "“{0}”\n{1}회 보스 결전": "“{0}”\n{1} boss battle(s)",
   "민지네 집": "Minji's House",
   "일곱 살 민지": "Minji, age 7",
-  "냥이야, 내 트램펄린 지켜 줘!": "Kitty, guard my trampoline!",
+  "민지가 아끼는 트램펄린, 내가 지켜 주겠다냥.":
+      "Minji's favourite trampoline. I'll guard it, meow.",
   "할아버지 댁": "Grandpa's House",
   "김 할아버지": "Grandpa Kim",
-  "허허, 감나무만은 안 된다.": "Ho ho, not my persimmon tree.",
+  "할아버지의 감나무, 감 한 알도 못 뺏긴다냥.":
+      "Grandpa's persimmon tree. Not one fruit gets taken, meow.",
   "수아 누나 옥탑": "Sua's Rooftop",
   "대학생 수아 누나": "Sua, the college student",
-  "시험 기간이야… 조용히 부탁해.": "It's exam week… keep it quiet, please.",
+  "시험공부 하는 누나가 깨지 않게 조용히 끝내자냥.":
+      "Sua is studying for exams. Let's finish quietly, meow.",
   "쌍둥이네 집": "The Twins' House",
   "쌍둥이 준이·건이": "Twins Jun & Geon",
-  "우리 장난감 자동차 지켜!": "Protect our toy cars!",
+  "쌍둥이의 장난감 자동차, 바퀴 하나도 안 내준다냥.":
+      "The twins' toy cars. Not a single wheel goes, meow.",
   "동네 빵집": "Corner Bakery",
   "빵집 아저씨": "Mr. Baker",
-  "갓 구운 빵 냄새를 지켜 다오!": "Guard the smell of fresh bread!",
+  "아저씨가 구운 빵 냄새, 아침까지 지켜 낸다냥.":
+      "The baker's fresh bread. I'll keep it safe till morning, meow.",
   "꽃집 언니네": "Florist Hana's",
   "꽃집 하나 언니": "Hana the florist",
-  "온실 유리 조심해 줘!": "Careful with the greenhouse glass!",
+  "언니의 온실 유리, 금 하나 안 가게 지킨다냥.":
+      "Hana's greenhouse glass. Not a single crack, meow.",
   "음악가 형네": "The Drummer's House",
   "드러머 도윤 형": "Doyun the drummer",
-  "내 드럼 세트는 소중하다고!": "My drum kit is precious!",
+  "형이 아끼는 드럼 세트, 흠집 하나 안 낸다냥.":
+      "Doyun's beloved drum kit. Not a scratch, meow.",
   "할머니 댁": "Grandma's House",
   "박 할머니": "Grandma Park",
-  "연못 잉어들이 놀라겠구나.": "The pond carp will get a fright.",
+  "할머니 연못의 잉어들이 놀라지 않게 막자냥.":
+      "Don't let grandma's pond carp get a fright, meow.",
   "동네 파출소": "Police Box",
   "경찰관 아저씨": "Officer Lee",
-  "순찰 협조 고맙다, 냥!": "Thanks for the patrol help, kitty!",
+  "아저씨가 골목을 돌 때, 하늘은 내가 지킨다냥.":
+      "While the officer walks the streets, I guard the sky, meow.",
   "우리 집": "Our House",
   "우리 집사": "Our human",
-  "오늘도 야근… 집은 네가 지켜 줘.": "Working late again… you guard the house.",
+  "야근하는 우리 집사가 돌아올 집, 내가 지킨다냥.": "My human works late tonight. I'll guard the home they come back to, meow.",
   "편대 전멸!": "Formation wiped!",
   "꾹꾹 냥펀치": "Kneading Paws",
   "고양이 발이 주위를 돌며 적을 밀쳐 내고 탄을 막습니다":
@@ -2907,34 +2887,40 @@ const englishCatalog = <String, String>{
   "{0}궁극 · {1}": "{0}Ultimate · {1}",
   "24시 편의점": "24-Hour Corner Store",
   "알바생 지호 형": "Jiho, the part-timer",
-  "츄르 진열대만은 꼭 지켜 줘!": "Please, just save the churu shelf!",
+  "지호 형의 츄르 진열대, 절대 못 뺏긴다냥.": "Jiho's churu shelf. Never letting it go, meow.",
   "동물병원": "Animal Clinic",
   "수의사 윤 선생님": "Dr. Yoon, the vet",
-  "오늘은 주사 없어, 진짜야.": "No shots today, I promise.",
+  "주사는 무섭지만 선생님 병원은 내가 지킨다냥.":
+      "Shots are scary, but I'll guard the doctor's clinic, meow.",
   "태권도장": "Taekwondo Dojo",
   "태권도 관장님": "The taekwondo master",
-  "기합! 도장 지붕을 부탁한다!": "Kiai! I'm counting on you for the dojo roof!",
+  "관장님의 도장 지붕, 기합 넣고 지킨다냥!":
+      "The master's dojo roof. Guarding it with a kiai, meow!",
   "세탁소": "Dry Cleaner",
   "세탁소 할아버지": "Grandpa at the dry cleaner",
-  "빨래가 다 젖으면 큰일이란다.": "It'd be a disaster if the laundry got soaked.",
+  "할아버지가 맡은 빨래가 젖지 않게 막아 주자냥.": "Keep grandpa's laundry dry, meow.",
   "어린이집": "Daycare",
   "원장 선생님": "The daycare director",
-  "낮잠 시간이야, 쉿!": "It's nap time, shh!",
+  "아이들 낮잠 시간이다냥. 쉿, 조용히 끝내자.":
+      "The kids are napping, meow. Shh, finish it quietly.",
   "캠핑카 언니네": "Sora's Camper",
   "여행가 소라 언니": "Sora the traveler",
-  "내 캠핑카, 바퀴 하나도 못 줘!": "Not a single wheel of my camper!",
+  "언니의 캠핑카, 바퀴 하나도 못 내준다냥.": "Sora's camper. Not a single wheel, meow.",
   "텃밭 아저씨네": "The Farmer's Garden",
   "농부 아저씨": "The farmer",
-  "토마토 다 익을 때까지만 버텨 줘.": "Hold on until the tomatoes ripen.",
+  "토마토가 다 익을 때까지 텃밭을 지킨다냥.":
+      "I'll guard the garden until the tomatoes ripen, meow.",
   "동네 도서관": "Neighborhood Library",
   "사서 선생님": "The librarian",
-  "도서관에선 정숙! 청소기는 더더욱!": "Quiet in the library! Vacuums most of all!",
+  "도서관은 정숙이다냥. 청소기는 더더욱 안 된다.":
+      "Libraries are quiet, meow. Vacuums least of all.",
   "소방서": "Fire Station",
   "소방관 누나": "The firefighter",
-  "불은 우리가 끌게, 청소기는 네가!": "We'll handle fires, you handle vacuums!",
+  "누나는 불을 끄고, 청소기는 내가 막는다냥.": "She puts out fires, I stop the vacuums, meow.",
   "고양이 카페": "Cat Cafe",
   "카페 사장님": "The cafe owner",
-  "우리 카페 고양이들도 다 네 편이야!": "Every cat in our cafe is on your side!",
+  "사장님의 카페 친구들, 모두 내가 지킨다냥!":
+      "The cafe owner's cat friends. I'll guard them all, meow!",
   "햇살 골목": "Sunny Lane",
   "집사네 동네 · 고양이를 돌봐 준 이웃들의 집": "Our human's neighborhood · homes of the neighbors who cared for the cats",
   "노을 언덕": "Sunset Hill",
@@ -2943,17 +2929,21 @@ const englishCatalog = <String, String>{
   "비행 가이드 자세히": "Flight guide details",
   "자세히": "Details",
   "이동": "Move",
-  "누른 채 드래그하면 이동해요.\n손을 떼면 5% 속도로 느려져요.": "Hold and drag to move.\nRelease to slow to 5% speed.",
+  "누른 채 드래그하면 이동해요.\n손을 떼면 5% 속도로 느려져요.":
+      "Hold and drag to move.\nRelease to slow to 5% speed.",
   "자동 발사": "Auto fire",
   "주포는 위쪽으로 자동 발사돼요.": "Your main gun fires upward on its own.",
   "보석과 레벨업": "Gems and level-up",
-  "보석을 모으면 레벨업해요.\n카드 3장 중 하나를 고르세요.": "Collect gems to level up.\nPick one of three cards.",
+  "보석을 모으면 레벨업해요.\n카드 3장 중 하나를 고르세요.":
+      "Collect gems to level up.\nPick one of three cards.",
   "오른쪽 위 일시정지 버튼을 눌러요.": "Tap the pause button at the top right.",
   "20초 충전 후 버튼을 눌러 쏴요.\n탄막을 지우지만 무적은 아니에요.": "Charges for 20s, then tap the button to fire.\nIt clears bullets but is not invincibility.",
   "보스": "Boss",
-  "예고선 밖으로 피하고\n코어가 열리면 공격하세요.": "Dodge outside the warning lines\nand attack when the core opens.",
+  "예고선 밖으로 피하고\n코어가 열리면 공격하세요.":
+      "Dodge outside the warning lines\nand attack when the core opens.",
   "R·P·N 보급": "R·P·N supplies",
-  "다가가서 회수해요.\n자석은 주변 보석만 모아요.": "Fly over them to collect.\nMagnets pull only nearby gems.",
+  "다가가서 회수해요.\n자석은 주변 보석만 모아요.":
+      "Fly over them to collect.\nMagnets pull only nearby gems.",
   "출격 후": "After a sortie",
   "자주 맞으면 선체 연구,\n적이 쌓이면 화력 연구를 보세요.": "Hit often? Check hull research.\nEnemies piling up? Check firepower research.",
   "지금 배치를 이 칸에 저장합니다.": "Saves your current setup to this slot.",
@@ -2978,17 +2968,19 @@ const englishCatalog = <String, String>{
   "시즌 {0} XP": "Season {0} XP",
   "희귀 테크 선택 해금 · 성장 → 테크": "Rare tech pick unlocked · Growth → Tech",
   "도전 중단": "Quit challenge",
-  // v12.4.3 one-page control, pet bond and precision growth screens.
   "정밀 성장 안내": "Precision growth guide",
   "융합 재료 선택": "Choose fusion materials",
   "화력 +{0} · 선체 +{1} · 회수 +{2}": "Firepower +{0} · Hull +{1} · Pickup +{2}",
   "융합 재료 선택 · {0}/2": "Choose fusion materials · {0}/2",
   "재료 선택 {0}/2": "Materials {0}/2",
   "조작 안내": "Controls guide",
-  "손가락 따라가기: 누른 곳 바로 위로 고양이가 날아갑니다": "Follow finger: the cat flies right above where you touch",
+  "손가락 따라가기: 누른 곳 바로 위로 고양이가 날아갑니다":
+      "Follow finger: the cat flies right above where you touch",
   "드래그 이동: 민 만큼만 움직이고 손을 멈추면 바로 멈춥니다": "Drag move: the cat moves only as far as you slide and stops when your finger stops",
-  "드래그 속도: 손가락 이동의 0.9배 · 1.15배 · 1.4배": "Drag speed: 0.9× · 1.15× · 1.4× of finger movement",
-  "능력 버튼 왼쪽: 항성포·파일럿 능력을 왼쪽에 표시": "Ability buttons left: star cannon and pilot ability on the left",
+  "드래그 속도: 손가락 이동의 0.9배 · 1.15배 · 1.4배":
+      "Drag speed: 0.9× · 1.15× · 1.4× of finger movement",
+  "능력 버튼 왼쪽: 항성포·파일럿 능력을 왼쪽에 표시":
+      "Ability buttons left: star cannon and pilot ability on the left",
   "조작 방식": "Control mode",
   "손가락 따라가기": "Follow finger",
   "누른 곳으로": "To your touch",
@@ -2997,7 +2989,8 @@ const englishCatalog = <String, String>{
   "드래그 속도": "Drag speed",
   "느리게": "Slow",
   "빠르게": "Fast",
-  "조작 시험: 누르고 움직여 보세요\n가로 {0} · 세로 {1}": "Control test: press and move\nX {0} · Y {1}",
+  "조작 시험: 누르고 움직여 보세요\n가로 {0} · 세로 {1}":
+      "Control test: press and move\nX {0} · Y {1}",
   "교감·각성 안내": "Bond & awakening guide",
   "먹이 10 선물": "Gift 10 food",
   "각성 {0}단계 · {1} 츄르": "Awaken tier {0} · {1} Churu",
@@ -3008,4 +3001,22 @@ const englishCatalog = <String, String>{
   "백업에는 영구 진행만 담습니다. 계정 인증·후원 소유권·최근 출격 기록은 포함하지 않습니다.": "Backups hold permanent progress only. Account sign-in, supporter ownership and recent flight records are not included.",
   "후원 외형은 계정의 구매 복원으로 확인합니다. 앱 데이터를 지우면 기기에 보관한 복원 전 진행도 지워집니다.": "Supporter cosmetics are confirmed by restoring purchases on your account. Clearing app data also removes the pre-restore progress kept on this device.",
   "{0}\n{1}단계": "{0}\nTier {1}",
+  "배경음": "Music",
+  "효과음": "Effects",
+  "도전 토큰": "challenge tokens",
+  "열기": "Open",
+  "보급권 없음": "No tickets",
+  "장비 전투력": "Gear power",
+  "신화": "Mythic",
+  "보스 보급!": "Boss supply!",
+  "진화할 무기를 고르세요": "Pick a weapon to evolve",
+  "새로운 힘을 고르세요": "Pick a new power",
+  "새 무기": "New weapon",
+  "진화 완성!": "Evolved!",
+  "진화!": "Evolve!",
+  "기동": "Agility",
+  "고유 주포 {0} · 궁극기 {1}": "Main gun {0} · Ultimate {1}",
+  "이 고양이로 출격": "Fly this cat",
+  "해금 · {0} 츄르": "Unlock · {0} Churu",
+  "{0} 고유 기체": "{0}'s own craft",
 };

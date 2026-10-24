@@ -171,7 +171,7 @@ class GuideTip extends StatelessWidget {
               Flexible(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
                       tr(title),

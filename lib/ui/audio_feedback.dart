@@ -75,7 +75,12 @@ class _GameAudioHostState extends State<GameAudioHost>
 
   void _settings() {
     final p = widget.profile;
-    audio.settings(enabled: p.soundEnabled, volume: p.volume);
+    audio.settings(
+      enabled: p.soundEnabled,
+      volume: p.volume,
+      musicEnabled: p.musicEnabled,
+      musicVolume: p.musicVolume,
+    );
     final tech = p.equippedTech.toList()..sort();
     final loadout =
         '${p.selectedShip}/${p.selectedArmament}/${p.selectedPilot}/'

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'support/tabs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shootingstar/main.dart';
@@ -126,7 +127,7 @@ void main() {
     await t.tap(find.byKey(const ValueKey('language-en')));
     await t.pumpAndSettle();
     expect(find.text('Options'), findsOneWidget);
-    expect(find.text('Music & sound'), findsOneWidget);
+    expect(find.text('Music\n50%'), findsOneWidget);
     expect(find.byType(Scrollable), findsNothing);
     expect(t.getRect(find.byType(Dialog)).bottom, lessThanOrEqualTo(568));
     expect(t.takeException(), isNull);
@@ -160,13 +161,13 @@ void main() {
 
     await t.pumpWidget(mount(FleetActivityScreen(profile: p, initialPage: 1)));
     await t.pumpAndSettle();
-    await t.tap(find.widgetWithText(ChoiceChip, '주간'));
+    await t.tap(tabWithText('주간'));
     await t.pumpAndSettle();
     AppLanguage.instance.select('en');
     await t.pumpAndSettle();
     expect(find.text('Weekly missions'), findsOneWidget);
     expect(find.text('Daily missions'), findsNothing);
-    expect(find.widgetWithText(ChoiceChip, 'Weekly'), findsOneWidget);
+    expect(tabWithText('Weekly'), findsOneWidget);
     for (final label in ['Check-in', 'Missions', 'Routes', 'Patrol']) {
       final textFinder = find.descendant(
         of: find.byType(FleetActivityTabs),

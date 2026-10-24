@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import 'game_art.dart';
+import 'ui_kit.dart';
 import 'refit_art.dart';
 
 /// Legacy atlas slots. No atlas is bundled any more: [images] stays empty and
@@ -122,6 +123,15 @@ class _RarityPainter extends CustomPainter {
   ];
   @override
   void paint(Canvas c, Size size) {
+    // v12.9: the generated rarity slot frames; code drawing is the fallback
+    if (UiKit.paint(
+      c,
+      rank < 0 ? 'slot' : 'slot_r${rank.clamp(0, 5)}',
+      Offset.zero & size,
+      corner: 22,
+    )) {
+      return;
+    }
     final r = (Offset.zero & size).deflate(2);
     final color = colors[rank.clamp(0, 5)];
     final shape = RRect.fromRectAndRadius(r, const Radius.circular(8));

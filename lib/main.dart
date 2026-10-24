@@ -77,8 +77,39 @@ class ShootingstarApp extends StatelessWidget {
         ),
         fontFamily: 'NotoSansKR',
         iconTheme: const IconThemeData(size: 28, color: Colors.white),
-        inputDecorationTheme: const InputDecorationTheme(
+        // v12.9: input fields are framed game slots, not bare underlines
+        inputDecorationTheme: InputDecorationTheme(
           floatingLabelAlignment: FloatingLabelAlignment.center,
+          filled: true,
+          fillColor: const Color(0xFF0C1A33),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFF7FA6D6), width: 2.5),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFF7FA6D6), width: 2.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFFFFC928), width: 3),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFFFF6B5E), width: 3),
+          ),
+          labelStyle: const TextStyle(
+            color: Color(0xFFDCE6F2),
+            fontWeight: FontWeight.w800,
+          ),
+          floatingLabelStyle: const TextStyle(
+            color: Color(0xFFFFD43D),
+            fontWeight: FontWeight.w900,
+          ),
         ),
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
@@ -101,6 +132,37 @@ class ShootingstarApp extends StatelessWidget {
             fontFamily: 'NotoSansKR',
             color: Colors.white,
             fontSize: 20,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        // v12.9: toasts are small gold-rimmed game plates
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: const Color(0xFF14284A),
+          elevation: 6,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFFFFC928), width: 3),
+          ),
+          contentTextStyle: const TextStyle(
+            fontFamily: 'NotoSansKR',
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        // v12.9: menus read as game panels (navy, gold rim), not system lists
+        popupMenuTheme: PopupMenuThemeData(
+          color: const Color(0xFF14284A),
+          surfaceTintColor: Colors.transparent,
+          elevation: 6,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFFFFC928), width: 3),
+          ),
+          textStyle: const TextStyle(
+            fontFamily: 'NotoSansKR',
+            color: Colors.white,
+            fontSize: 17,
             fontWeight: FontWeight.w900,
           ),
         ),

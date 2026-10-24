@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+
+import 'game_decor.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
@@ -971,7 +973,7 @@ class _ShipPartEditorScreenState extends State<ShipPartEditorScreen>
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF0E1726),
-        appBar: AppBar(
+        appBar: GameAppBar(
           title: Text(
             ship == null
                 ? tr('기체 조립 편집기')

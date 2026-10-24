@@ -4,6 +4,8 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import '../data/content.dart';
 import '../data/content_catalog.dart';
 import '../data/hangar_preset.dart';
@@ -20,7 +22,7 @@ class HangarPresets extends StatelessWidget {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return Scaffold(
-      appBar: AppBar(title: Text(tr('출격 구성 저장'), textAlign: TextAlign.center)),
+      appBar: GameAppBar(title: Text(tr('출격 구성 저장'), textAlign: TextAlign.center)),
       body: AnimatedBuilder(
         animation: profile,
         builder: (context, _) => Column(
@@ -66,7 +68,7 @@ class HangarPresets extends StatelessWidget {
     final preset = profile.hangarPresets[index];
     final issue = preset?.issue(profile);
     Widget pair(Widget a, Widget b) => Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(child: a),
         const SizedBox(width: 8),
@@ -124,7 +126,7 @@ class HangarPresets extends StatelessWidget {
             label: '구성 확인 · 적용',
             displayLabel: '편성 적용',
             primary: true,
-            icon: Icons.check_circle,
+            icon: Icons.check,
           ),
           gap(12),
           pair(

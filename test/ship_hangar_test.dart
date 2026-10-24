@@ -18,7 +18,7 @@ void main() {
   for (final width in [320.0, 360.0, 390.0, 430.0]) {
     for (final scale in [1.0, 1.3]) {
       testWidgets(
-        'ship list decisions fit and charge only once $width/$scale',
+        'ship showcase decision fits and charges only once $width/$scale',
         (tester) async {
           tester.view.physicalSize = Size(width, width == 320 ? 568 : 844);
           tester.view.devicePixelRatio = 1;
@@ -57,13 +57,11 @@ void main() {
           expect(p.selectedShip, 1);
           expect(p.credits, 800);
           expect(p.unlockedShips, contains(1));
-          await tester.tap(find.byTooltip('닫기').last); await tester.pumpAndSettle();
           await openShip(0);
           final aurora = find.byKey(const ValueKey('ship-select-0'));
           await revealUi(tester, aurora);
           await tester.tap(aurora);
           await tester.pumpAndSettle();
-          await tester.tap(find.byTooltip('닫기').last); await tester.pumpAndSettle();
           await openShip(1);
           await revealUi(tester, vector);
           await tester.tap(vector);

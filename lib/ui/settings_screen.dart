@@ -4,6 +4,8 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+import 'game_decor.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 
@@ -258,53 +260,30 @@ class _FlightSettingsState extends State<FlightSettings> {
                           ),
                       ],
                     ),
-                    RasterSwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      semanticLabel: '음악·효과음',
-                      title: Text(
-                        tr('음악·효과음'),
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                        ),
-
-                        textAlign: TextAlign.center,
-                      ),
-                      value: p.soundEnabled,
-                      onChanged: audibleChange((value) {
-                        p.updateSettings(soundEnabled: value);
+                    AudioChannelRow(
+                      id: 'music',
+                      label: '배경음',
+                      enabled: p.musicEnabled,
+                      volume: p.musicVolume,
+                      onEnabled: (v) {
+                        p.updateSettings(musicEnabled: v);
                         setState(() {});
-                      }),
+                      },
+                      onVolume: (v) {
+                        p.updateSettings(musicVolume: v);
+                        setState(() {});
+                      },
                     ),
-                    Text(
-                      message("음량 {0}%", [(p.volume * 100).round()]),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                      ),
-
-                      textAlign: TextAlign.center,
-                    ),
-                    Row(
-                      children: [
-                        IconButton(
-                          tooltip: tr('음량 줄이기'),
-                          onPressed: audible(() => volume(p.volume - .1)),
-                          icon: const RasterIcon(Icons.remove, size: 28),
-                        ),
-                        Expanded(
-                          child: Slider(
-                            value: p.volume,
-                            label: '${(p.volume * 100).round()}%',
-                            onChanged: audibleChange(volume),
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: tr('음량 높이기'),
-                          onPressed: audible(() => volume(p.volume + .1)),
-                          icon: const RasterIcon(Icons.add, size: 28),
-                        ),
-                      ],
+                    AudioChannelRow(
+                      id: 'sfx',
+                      label: '효과음',
+                      enabled: p.soundEnabled,
+                      volume: p.volume,
+                      onEnabled: (v) {
+                        p.updateSettings(soundEnabled: v);
+                        setState(() {});
+                      },
+                      onVolume: volume,
                     ),
                     RasterSwitchListTile(
                       contentPadding: EdgeInsets.zero,
@@ -367,11 +346,7 @@ class _FlightSettingsState extends State<FlightSettings> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      tr(
-                        p.developerMode
-                            ? '개발자 모드 · 별도 저장 중'
-                            : '자동 저장',
-                      ),
+                      tr(p.developerMode ? '개발자 모드 · 별도 저장 중' : '자동 저장'),
                       style: const TextStyle(fontSize: 14),
 
                       textAlign: TextAlign.center,
@@ -494,7 +469,7 @@ class _GameLicensesScreenState extends State<GameLicensesScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return Scaffold(
-      appBar: AppBar(title: Text(tr('라이선스'), textAlign: TextAlign.center)),
+      appBar: GameAppBar(title: Text(tr('라이선스'), textAlign: TextAlign.center)),
       body: SafeArea(
         top: false,
         child: Column(
@@ -637,6 +612,72 @@ class _LicenseTextDialog extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// One audio channel on one row (v12.8): name and level, a volume slider
+/// and an on/off switch. Background music and sound effects each get one.
+class AudioChannelRow extends StatelessWidget {
+  const AudioChannelRow({
+    super.key,
+    required this.id,
+    required this.label,
+    required this.enabled,
+    required this.volume,
+    required this.onEnabled,
+    required this.onVolume,
+  });
+  final String id, label;
+  final bool enabled;
+  final double volume;
+  final ValueChanged<bool> onEnabled;
+  final ValueChanged<double> onVolume;
+
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    final percent = (volume * 100).round();
+    return Row(
+      children: [
+        SizedBox(
+          width: 76,
+          child: Text(
+            '${tr(label)}\n$percent%',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              height: 1.2,
+              fontWeight: FontWeight.w900,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Opacity(
+            opacity: enabled ? 1 : .45,
+            child: Slider(
+              key: Key('$id-volume'),
+              value: volume,
+              label: '$percent%',
+              semanticFormatterCallback: (v) =>
+                  '${tr(label)} ${(v * 100).round()}%',
+              onChanged: audibleChange(
+                (v) => onVolume(v.clamp(0.0, 1.0).toDouble()),
+              ),
+            ),
+          ),
+        ),
+        Semantics(
+          label: tr(label),
+          toggled: enabled,
+          child: Switch(
+            key: Key('$id-switch'),
+            value: enabled,
+            onChanged: audibleChange(onEnabled),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -8,13 +8,15 @@ import 'reward_popup.dart';
 
 import '../data/content.dart';
 import '../data/profile.dart';
-import '../art/toon_assets.dart';
 import '../art/lobby_art.dart';
 import 'evolution_codex.dart';
 import '../main.dart';
 import 'components.dart';
 import 'content_hub.dart';
+import 'game_motion.dart';
+import 'game_decor.dart';
 import 'guild_screen.dart';
+import '../data/houses.dart';
 
 class SurvivalMeta extends StatelessWidget {
   const SurvivalMeta({
@@ -38,14 +40,11 @@ class SurvivalMeta extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  tr(['', '', '장비 공방', '도전', '진화 도감'][section]),
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                  ),
-
-                  textAlign: TextAlign.center,
+                RibbonTitle(
+                  ['', '', '장비 공방', '도전', '진화 도감'][section],
+                  width: 340,
+                  height: 64,
+                  size: 26,
                 ),
                 if (section == 3) ...[
                   gap(14),
@@ -69,15 +68,16 @@ class SurvivalMeta extends StatelessWidget {
                           context,
                           MaterialPageRoute<void>(
                             builder: (_) => Scaffold(
-                              appBar: AppBar(
+                              appBar: GameAppBar(
                                 title: Text(
-                                  tr('시즌'),
+                                  tr('시즌 원정'),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
                               body: ContentHub(
                                 profile: profile,
                                 initialPage: 4,
+                                showNavigation: false,
                               ),
                             ),
                           ),
@@ -109,45 +109,15 @@ class SurvivalMeta extends StatelessWidget {
                   ),
                   gap(),
                   for (int i = 0; i < stages.length; i++)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Surface(
-                        child: Row(
-                          children: [
-                            ToonTile('bosses', i ~/ 10, size: 48),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                message("{0}\n{1}", [
-                                  stages[i].name,
-                                  profile.clearedChallenges.contains(i)
-                                      ? '도전 완료'
-                                      : '군집 돌파 도전',
-                                ]),
-
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: audible(
-                                profile.clearedStages.contains(i) &&
-                                        profile.canStage(i)
-                                    ? () => onChallenge(i)
-                                    : null,
-                              ),
-                              child: Text(
-                                tr(
-                                  profile.clearedStages.contains(i) &&
-                                          profile.canStage(i)
-                                      ? '도전'
-                                      : '잠김',
-                                ),
-
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                        ),
+                    StaggerIn(
+                      index: i,
+                      child: _ChallengeRow(
+                        stage: i,
+                        cleared: profile.clearedChallenges.contains(i),
+                        open:
+                            profile.clearedStages.contains(i) &&
+                            profile.canStage(i),
+                        onChallenge: () => onChallenge(i),
                       ),
                     ),
                   gap(),
@@ -266,6 +236,130 @@ class _ChallengeShortcut extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One challenge: the house it is fought over, its state and the action
+/// (v12.8 — every house shows its own picture; locked ones are greyed).
+class _ChallengeRow extends StatelessWidget {
+  const _ChallengeRow({
+    required this.stage,
+    required this.cleared,
+    required this.open,
+    required this.onChallenge,
+  });
+  final int stage;
+  final bool cleared, open;
+  final VoidCallback onChallenge;
+
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    const grey = ColorFilter.matrix([
+      .3, .5, .1, 0, 0, //
+      .3, .5, .1, 0, 0,
+      .3, .5, .1, 0, 0,
+      0, 0, 0, 1, 0,
+    ]);
+    final picture = ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Image.asset(
+        houseMap(stage),
+        width: 76,
+        height: 76,
+        fit: BoxFit.cover,
+        cacheWidth: 200,
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Surface(
+        active: open && !cleared,
+        padding: const EdgeInsets.all(8),
+        child: Row(
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                open
+                    ? picture
+                    : ColorFiltered(colorFilter: grey, child: picture),
+                if (!open)
+                  const Icon(Icons.lock, size: 34, color: Color(0xFFE6EDF5)),
+                if (cleared)
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Image.asset(
+                      'assets/art/menu_v13/achievement.webp',
+                      width: 30,
+                      height: 30,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                children: [
+                  Text(
+                    tr(stages[stage].name),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    tr(cleared ? '도전 완료' : '군집 돌파 도전'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: cleared
+                          ? const Color(0xFF7FE0A0)
+                          : const Color(0xFFFFC85C),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 76,
+              child: open
+                  ? FilledButton(
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(64, 48),
+                        backgroundColor: const Color(0xFFFFCC47),
+                        foregroundColor: const Color(0xFF202838),
+                        padding: EdgeInsets.zero,
+                      ),
+                      onPressed: audible(onChallenge),
+                      child: Text(
+                        tr('도전'),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    )
+                  : Text(
+                      tr('잠김'),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF8DA2B6),
+                      ),
+                    ),
+            ),
+          ],
         ),
       ),
     );

@@ -154,7 +154,7 @@ class StageSpec {
   String get name => house.place;
   String get subtitle => '${worldIndex + 1}-${sector + 1} / ${world.name}';
   String get description =>
-      '${house.owner} · “${house.line}”\n$bossCount회 보스 결전';
+      '“${house.line}”\n$bossCount회 보스 결전';
   String get difficulty => sector == 9
       ? '세계 결전'
       : sector == 4

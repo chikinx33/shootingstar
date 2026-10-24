@@ -4,12 +4,15 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_motion.dart';
+import 'skill_cards.dart';
+import 'game_decor.dart';
+
 import '../art/toon_assets.dart';
 import '../art/menu_art.dart';
 import '../art/arcade_aircraft.dart';
 import '../data/profile.dart';
 import '../data/ship_modules.dart';
-import '../art/module_aircraft_art.dart';
 import '../data/collection_book.dart';
 import '../data/content_catalog.dart';
 import 'components.dart';
@@ -322,13 +325,27 @@ class RewardPopup extends StatelessWidget {
         GameActionButton(
           label: '확인',
           primary: true,
-          icon: Icons.check_circle,
+          icon: Icons.check,
           onPressed: audible(() => Navigator.of(context).pop()),
         ),
       ],
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // v12.8: the chest cat opens the haul over turning gold rays
+          if (entries.isNotEmpty)
+            const SizedBox(
+              height: 112,
+              child: Stack(
+                alignment: Alignment.center,
+                clipBehavior: Clip.none,
+                children: [
+                  GlowRays(size: 230),
+                  SparkleBurst(size: 210, count: 10, color: Color(0xFFFFE27A)),
+                  PopIn(child: MascotImage(Mascot.supply, size: 104)),
+                ],
+              ),
+            ),
           if (entries.isNotEmpty) RewardGrid(entries: entries),
           gap(16),
           Text(
@@ -353,15 +370,20 @@ class RewardGrid extends StatelessWidget implements GamePageContent {
       for (var start = 0; start < entries.length; start += columns)
         Padding(
           padding: const EdgeInsets.only(bottom: 12),
+          // a short last row is centred, never left-aligned
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              for (var c = 0; c < columns; c++) ...[
+              for (
+                var c = 0;
+                c < columns && start + c < entries.length;
+                c++
+              ) ...[
                 if (c > 0) const SizedBox(width: 12),
-                Expanded(
-                  child: start + c < entries.length
-                      ? _card(entries[start + c])
-                      : const SizedBox(),
+                SizedBox(
+                  width: (width - 12 * (columns - 1)) / columns,
+                  child: _card(entries[start + c]),
                 ),
               ],
             ],
@@ -420,7 +442,7 @@ class RewardIcon extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           if (entry.modulePartId != null)
-            ModulePartIcon(modulePart(entry.modulePartId!), size: size)
+            partIllustration(modulePart(entry.modulePartId!), size: size)
           else if (entry.atlas == 'hero')
             ArcadeAircraft(shipIndex: entry.index ?? 0, size: size)
           else if (entry.atlas == 'equipment' && MenuArt.images.isNotEmpty)

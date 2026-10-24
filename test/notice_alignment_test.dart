@@ -37,7 +37,7 @@ void main() {
       tester.view.physicalSize = const Size(432, 932);
       await show(GuildScreen(profile: p));
       final icon = find.byWidgetPredicate(
-        (w) => w is RasterIcon && w.size == 144,
+        (w) => w is RasterIcon && w.size == 120,
       );
       centered(
         tester.getTopLeft(icon).dy,

@@ -7,6 +7,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../art/ui_kit.dart';
+import 'skill_cards.dart';
+import 'game_motion.dart';
+import 'game_decor.dart';
+
 import '../data/content.dart';
 import '../game/engine.dart';
 import '../game/survival_skills.dart';
@@ -270,60 +275,63 @@ class BattleStatisticsDialog extends StatelessWidget {
     AppLanguage.watch(context);
     return Dialog(
       insetPadding: const EdgeInsets.all(10),
-      clipBehavior: Clip.antiAlias,
-      child: SizedBox(
-        width: 460,
-        height: math.min(680, MediaQuery.sizeOf(context).height - 48),
-        child: DefaultTabController(
-          length: 2,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 6, 4, 0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        tr('전투 통계'),
-                        style: TextStyle(
-                          fontSize: 21,
-                          fontWeight: FontWeight.w900,
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      child: PopIn(
+        child: UiKitFrame(
+          'panel',
+          corner: 26,
+          padding: const EdgeInsets.fromLTRB(6, 8, 6, 10),
+          child: SizedBox(
+            width: 460,
+            height: math.min(680, MediaQuery.sizeOf(context).height - 48),
+            child: DefaultTabController(
+              length: 2,
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      const MascotImage(Mascot.stats, size: 62),
+                      const Expanded(
+                        child: Center(
+                          child: RibbonTitle(
+                            '전투 통계',
+                            width: 300,
+                            height: 54,
+                            size: 22,
+                          ),
                         ),
-
-                        textAlign: TextAlign.center,
                       ),
-                    ),
-                    IconButton(
-                      key: const Key('close-battle-statistics'),
-                      tooltip: tr('통계 닫기'),
-                      onPressed: audible(() => Navigator.of(context).pop()),
-                      icon: const RasterIcon(Icons.close),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: Text(
-                  tr(
-                    snapshot.finished
-                        ? '이번 출격의 최종 기록'
-                        : '일시정지 중 · 이번 출격의 현재 기록',
+                      IconButton(
+                        key: const Key('close-battle-statistics'),
+                        tooltip: tr('통계 닫기'),
+                        onPressed: audible(() => Navigator.of(context).pop()),
+                        icon: const RasterIcon(Icons.close),
+                      ),
+                    ],
                   ),
-                  style: const TextStyle(color: muted, fontSize: 14),
-
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              TabBar(
-                onTap: audibleChange((_) {}),
-                tabs: const [
-                  Tab(text: '피해 기여'),
-                  Tab(text: '현재 빌드'),
+                  Text(
+                    tr(
+                      snapshot.finished
+                          ? '이번 출격의 최종 기록'
+                          : '일시정지 중 · 이번 출격의 현재 기록',
+                    ),
+                    style: const TextStyle(color: muted, fontSize: 14),
+                    textAlign: TextAlign.center,
+                  ),
+                  TabBar(
+                    onTap: audibleChange((_) {}),
+                    indicatorColor: const Color(0xFFFFB627),
+                    labelColor: const Color(0xFFFFD447),
+                    tabs: const [
+                      Tab(text: '피해 기여'),
+                      Tab(text: '현재 빌드'),
+                    ],
+                  ),
+                  Expanded(child: TabBarView(children: [_damage(), _build()])),
                 ],
               ),
-              Expanded(child: TabBarView(children: [_damage(), _build()])),
-            ],
+            ),
           ),
         ),
       ),
@@ -336,34 +344,32 @@ class BattleStatisticsDialog extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          message("누적 피해 {0}", [_number(snapshot.damage.totalDamage)]),
+        CountUp(
           key: const Key('battle-total-damage'),
+          value: snapshot.damage.totalDamage,
+          format: (v) => message("누적 피해 {0}", [_number(v)]),
           style: const TextStyle(
-            fontSize: 21,
+            fontSize: 24,
             fontWeight: FontWeight.w900,
-            color: cyan,
+            color: Color(0xFFFFE27A),
+            shadows: [Shadow(color: Color(0xFF3A1A06), offset: Offset(0, 2))],
           ),
-
-          textAlign: TextAlign.center,
         ),
-        gap(6),
+        gap(4),
         Text(
           message("전투 {0}초 · 평균 {1} DPS", [
             snapshot.damage.combatSeconds.toStringAsFixed(1),
             _number(snapshot.damage.dps),
           ]),
-
           textAlign: TextAlign.center,
         ),
-        gap(7),
+        gap(4),
         Text(
           tr('DPS = 실제 가한 피해 ÷ 실제 전투 시간\n일시정지·스킬 선택 시간과 초과 피해는 제외합니다.'),
           style: TextStyle(fontSize: 14, color: muted),
-
           textAlign: TextAlign.center,
         ),
-        gap(16),
+        gap(12),
         if (snapshot.damage.entries.isEmpty)
           Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
@@ -372,50 +378,102 @@ class BattleStatisticsDialog extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
-        for (final entry in snapshot.damage.entries) ...[
-          Text(
-            tr(entry.label),
-            style: const TextStyle(fontWeight: FontWeight.w800),
-
-            textAlign: TextAlign.center,
-          ),
-          gap(4),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  message("{0} 피해 · {1} DPS", [
-                    _number(entry.damage),
-                    _number(entry.dps),
-                  ]),
-                  style: const TextStyle(fontSize: 14, color: muted),
-
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Text(
-                message("{0}%", [(entry.share * 100).toStringAsFixed(1)]),
-                style: const TextStyle(
-                  color: cyan,
-                  fontWeight: FontWeight.w800,
-                ),
-
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-          gap(6),
-          RasterGauge(
-            key: ValueKey('damage-share-${entry.source}'),
-            value: entry.share,
-            minHeight: 9,
-            color: cyan,
-          ),
-          gap(17),
-        ],
+        for (final (i, entry) in snapshot.damage.entries.indexed)
+          StaggerIn(index: i, child: _damageRow(i, entry)),
       ],
     ),
   );
+
+  /// One weapon: its card art, name, a bar that fills in, share and DPS.
+  /// The top dealer wears the crown.
+  Widget _damageRow(int i, DamageContribution entry) {
+    final art = damageArt(entry.label);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: UiKitFrame(
+        'slot',
+        corner: 14,
+        padding: const EdgeInsets.fromLTRB(10, 8, 12, 10),
+        child: Row(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                art != null
+                    ? Image.asset(art, width: 48, height: 48)
+                    : const SizedBox.square(dimension: 48),
+                if (i == 0)
+                  Positioned(
+                    top: -14,
+                    left: -6,
+                    child: Transform.rotate(
+                      angle: -.3,
+                      child: Image.asset(
+                        'assets/art/menu_v13/trophy_bosses.webp',
+                        width: 30,
+                        height: 30,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          tr(entry.label),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 15,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Text(
+                        message("{0}%", [
+                          (entry.share * 100).toStringAsFixed(1),
+                        ]),
+                        style: const TextStyle(
+                          color: Color(0xFFFFD447),
+                          fontWeight: FontWeight.w900,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                  gap(4),
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: entry.share),
+                    duration: Duration(milliseconds: 700 + i * 90),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, _) => RasterGauge(
+                      key: ValueKey('damage-share-${entry.source}'),
+                      value: value,
+                      minHeight: 10,
+                      color: i == 0 ? const Color(0xFFFFB627) : cyan,
+                    ),
+                  ),
+                  gap(4),
+                  Text(
+                    message("{0} 피해 · {1} DPS", [
+                      _number(entry.damage),
+                      _number(entry.dps),
+                    ]),
+                    style: const TextStyle(fontSize: 13, color: muted),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _build() => GameItemList(
     key: const Key('battle-build-scroll'),
@@ -547,4 +605,29 @@ String _number(double value) {
   if (value >= 1000000) return '${(value / 1000000).toStringAsFixed(1)}M';
   if (value >= 10000) return '${(value / 1000).toStringAsFixed(1)}K';
   return value.toStringAsFixed(1);
+}
+
+/// The card illustration for a damage source, by its weapon name.
+String? damageArt(String label) {
+  const art = [
+    ('발칸', 'vulcan'),
+    ('자주포', 'mortar'),
+    ('통통 공', 'bounce'),
+    ('반달', 'crescent'),
+    ('레이저', 'laser'),
+    ('펀치', 'orbit'),
+    ('털실', 'yarn'),
+    ('번개', 'zap'),
+    ('포탑', 'ult_vulcan'),
+    ('폭격', 'ult_mortar'),
+    ('위성', 'ult_laser'),
+    ('천둥', 'ult_zap'),
+  ];
+  for (final (word, name) in art) {
+    if (label.contains(word)) return '${SkillCardArt.root}$name.webp';
+  }
+  if (label.contains('주포')) return 'assets/art/menu_v13/launch.webp';
+  if (label.contains('미사일')) return 'assets/art/menu_v13/supply.webp';
+  if (label.contains('펫')) return 'assets/art/game_v10/pet-0.webp';
+  return null;
 }

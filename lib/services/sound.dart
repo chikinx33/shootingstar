@@ -10,7 +10,12 @@ class GameSound {
   GameSound(this.profile) {
     _owned = AudioDirector.current == null;
     director = AudioDirector.current ?? AudioDirector();
-    director.settings(enabled: profile.soundEnabled, volume: profile.volume);
+    director.settings(
+      enabled: profile.soundEnabled,
+      volume: profile.volume,
+      musicEnabled: profile.musicEnabled,
+      musicVolume: profile.musicVolume,
+    );
     director.enterBattle();
   }
   final Profile profile;

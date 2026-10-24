@@ -4,6 +4,8 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import '../data/profile.dart';
 import '../data/flight_record.dart';
 import '../data/content.dart';
@@ -22,7 +24,7 @@ class FlightHistoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return Scaffold(
-      appBar: AppBar(title: Text(tr('출격 기록'), textAlign: TextAlign.center)),
+      appBar: GameAppBar(title: Text(tr('출격 기록'), textAlign: TextAlign.center)),
       body: Column(
         children: [
           Padding(
@@ -131,7 +133,7 @@ class FlightHistoryScreen extends StatelessWidget {
                 () => Navigator.of(dialog).push(
                   MaterialPageRoute<void>(
                     builder: (_) => Scaffold(
-                      appBar: AppBar(
+                      appBar: GameAppBar(
                         title: Text(tr('영구 연구'), textAlign: TextAlign.center),
                       ),
                       body: TalentScreen(profile: profile),

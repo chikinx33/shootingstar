@@ -96,6 +96,9 @@ abstract final class FlightSceneArt {
   /// Bumped once the living room is decoded so the lobby repaints.
   static final lobbyRevision = ValueNotifier<int>(0);
 
+  /// v12.9 background of every other screen: the cats' attic hangar.
+  static ui.Image? menuBackdrop;
+
   static Future<void> loadLobbyHome() async {
     if (lobbyHome != null) return;
     try {
@@ -103,6 +106,12 @@ abstract final class FlightSceneArt {
       lobbyRevision.value++;
     } catch (_) {
       // keep the plain lobby colour
+    }
+    try {
+      menuBackdrop = await _decodeAsset('assets/art/ui_v13/menu_bg.webp', 720);
+      lobbyRevision.value++;
+    } catch (_) {
+      // keep the plain background colour
     }
   }
 
@@ -202,25 +211,27 @@ abstract final class FlightSceneArt {
       Future<void> part(int slot, String asset, int width) async =>
           _parts[slot] ??= await _decodeAsset(asset, width);
       try {
-        await Future.wait([
-          () async =>
-              streets[n] ??= await _decodeAsset(streetMap(stageIndex), 720),
-          () async =>
-              houseImages[h] = await _decodeAsset(houseMap(stageIndex), 720),
-          () async =>
-              clouds ??= await _decodeAsset('${worldRoot}clouds.webp', 720),
-          () => part(1, 'assets/art/houses_v12/part_turret.webp', 200),
-          () => part(2, 'assets/art/houses_v12/part_shield.webp', 200),
-          () => part(3, 'assets/art/houses_v12/boss_barrage.webp', 360),
-          () => part(4, 'assets/art/houses_v12/boss_duelist.webp', 360),
-          () => part(5, 'assets/art/houses_v12/missile_fish.webp', 96),
-          () => part(6, 'assets/art/houses_v12/missile_spray.webp', 96),
-          for (final name in growthSprites)
-            () async => _sprites[name] ??= await _decodeAsset(
-              'assets/art/icons_v12/$name.webp',
-              160,
-            ),
-        ].map((load) => load()));
+        await Future.wait(
+          [
+            () async =>
+                streets[n] ??= await _decodeAsset(streetMap(stageIndex), 720),
+            () async =>
+                houseImages[h] = await _decodeAsset(houseMap(stageIndex), 720),
+            () async =>
+                clouds ??= await _decodeAsset('${worldRoot}clouds.webp', 720),
+            () => part(1, 'assets/art/houses_v12/part_turret.webp', 200),
+            () => part(2, 'assets/art/houses_v12/part_shield.webp', 200),
+            () => part(3, 'assets/art/houses_v12/boss_barrage.webp', 360),
+            () => part(4, 'assets/art/houses_v12/boss_duelist.webp', 360),
+            () => part(5, 'assets/art/houses_v12/missile_fish.webp', 96),
+            () => part(6, 'assets/art/houses_v12/missile_spray.webp', 96),
+            for (final name in growthSprites)
+              () async => _sprites[name] ??= await _decodeAsset(
+                'assets/art/icons_v12/$name.webp',
+                160,
+              ),
+          ].map((load) => load()),
+        );
       } catch (_) {
         _houseLoads.remove(h);
       }

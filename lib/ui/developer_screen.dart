@@ -4,6 +4,8 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import '../art/arcade_aircraft.dart';
 import '../art/menu_art.dart';
 import '../art/toon_assets.dart';
@@ -295,7 +297,7 @@ class _DeveloperTestScreenState extends State<DeveloperTestScreen> {
         if (didPop) persist(location: 'home');
       },
       child: Scaffold(
-        appBar: AppBar(
+        appBar: GameAppBar(
           title: Text(tr('테스트'), textAlign: TextAlign.center),
           actions: [
             IconButton(

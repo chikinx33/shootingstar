@@ -4,6 +4,8 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import '../art/arcade_aircraft.dart';
 import '../data/profile.dart';
 import 'account_screen.dart';
@@ -25,7 +27,7 @@ class _SupporterScreenState extends State<SupporterScreen> {
     AppLanguage.watch(context);
     final p = widget.profile, store = p.commerce;
     return Scaffold(
-      appBar: AppBar(title: Text(tr('잔광 후원 외형'), textAlign: TextAlign.center)),
+      appBar: GameAppBar(title: Text(tr('잔광 후원 외형'), textAlign: TextAlign.center)),
       body: SafeArea(
         child: AnimatedBuilder(
           animation: Listenable.merge([p, ?store]),
@@ -129,7 +131,7 @@ class _SupporterScreenState extends State<SupporterScreen> {
                 key: const Key('supporter-details'),
                 label: '후원·보상 자세히 보기',
                 displayLabel: '자세히',
-                icon: Icons.help_outline,
+                icon: Icons.question_mark,
                 onPressed: audible(() => _details(context)),
               ),
             ],

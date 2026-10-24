@@ -4,6 +4,7 @@ import 'ui_actions.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'support/tabs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/ui/content_hub.dart';
@@ -47,7 +48,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(p.gearAt(0).rank, 1);
       await tapUi(tester,find.byTooltip('장비 상세 닫기').last);
-      await tester.tap(find.widgetWithText(ChoiceChip, '펫'));
+      await tester.tap(tabWithText('펫'));
       await tester.pumpAndSettle();
       await tapUi(
         tester,
@@ -60,12 +61,12 @@ void main() {
       expect(p.petLevels[0], 2);
       expect(tester.takeException(), isNull);
       await tapUi(tester, find.byTooltip('닫기').last);
-      await tester.tap(find.widgetWithText(ChoiceChip, '테크'));
+      await tester.tap(tabWithText('테크'));
       await tester.pumpAndSettle();
       for (final name in ['보급', '시즌']) {
-        await tester.tap(find.widgetWithText(ChoiceChip, '장비'));
+        await tester.tap(tabWithText('장비'));
         await tester.pumpAndSettle();
-        await tester.tap(find.widgetWithText(ChoiceChip, '관리'));
+        await tester.tap(tabWithText('관리'));
         await tester.pumpAndSettle();
         await tapUi(tester, find.widgetWithText(GameActionButton, name));
         await tester.pumpAndSettle();

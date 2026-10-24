@@ -6,6 +6,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import '../data/daily_challenge.dart';
 import '../data/profile.dart';
 import '../main.dart';
@@ -92,7 +94,7 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return Scaffold(
-      appBar: AppBar(title: Text(tr('일일 순환 도전'), textAlign: TextAlign.center)),
+      appBar: GameAppBar(title: Text(tr('일일 순환 도전'), textAlign: TextAlign.center)),
       body: ListView(
         padding: const EdgeInsets.all(12),
         children: [

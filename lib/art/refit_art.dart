@@ -80,17 +80,21 @@ class RefitBackdropPainter extends CustomPainter {
     canvas.save();
     canvas.clipRect(rect);
     canvas.drawRect(rect, Paint()..color = const Color(0xFF142236));
-    final home = FlightSceneArt.lobbyHome;
+    final home = launch
+        ? FlightSceneArt.lobbyHome
+        : FlightSceneArt.menuBackdrop ?? FlightSceneArt.lobbyHome;
     if (home != null) FlightSceneArt.paintCover(canvas, size, home);
     if (!launch) {
-      // Other tabs keep the room only as a faint glow behind their panels.
+      // v12.9: the attic hangar stays visible; a soft shade keeps panels
+      // readable (was a near-opaque navy wash over the living room).
       canvas.drawRect(
         rect,
         Paint()
           ..shader = const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xF01E334C), Color(0xF50E1D30)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0x66091224), Color(0x33091224), Color(0x88091224)],
+            stops: [0, .55, 1],
           ).createShader(rect),
       );
     }

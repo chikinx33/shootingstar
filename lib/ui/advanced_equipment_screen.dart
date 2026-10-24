@@ -4,6 +4,8 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import 'reward_popup.dart';
 
 import '../data/advanced_equipment.dart';
@@ -213,7 +215,7 @@ class _AdvancedEquipmentScreenState extends State<AdvancedEquipmentScreen> {
         p.credits >= ledger.ascendCredits(target.id) &&
         p.blueprints >= ledger.ascendPlans(target.id);
     return Scaffold(
-      appBar: AppBar(
+      appBar: GameAppBar(
         title: Text(tr('장비 정밀 성장'), textAlign: TextAlign.center),
         actions: [
           IconButton(

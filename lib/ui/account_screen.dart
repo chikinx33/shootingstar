@@ -10,6 +10,8 @@ import 'supporter_screen.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import '../data/profile.dart';
 import '../data/cloud_sync.dart';
 
@@ -146,7 +148,7 @@ class _AccountScreenState extends State<AccountScreen> {
     AppLanguage.watch(context);
     if (widget.profile.online == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(tr('계정'), textAlign: TextAlign.center)),
+        appBar: GameAppBar(title: Text(tr('계정'), textAlign: TextAlign.center)),
         body: GamePages(
           centerContent: true,
           framed: true,
@@ -166,7 +168,7 @@ class _AccountScreenState extends State<AccountScreen> {
       builder: (context, _) {
         final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
         return Scaffold(
-          appBar: AppBar(
+          appBar: GameAppBar(
             title: Text(tr('계정'), textAlign: TextAlign.center),
             actions: [
               if (keyboard)

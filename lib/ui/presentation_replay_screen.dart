@@ -6,6 +6,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import '../data/profile.dart';
 import '../game/engine.dart';
 import '../game/presentation_replay.dart';
@@ -110,7 +112,7 @@ class _PresentationReplayScreenState extends State<PresentationReplayScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return Scaffold(
-      appBar: AppBar(
+      appBar: GameAppBar(
         title: Text(tr(widget.kind.label), textAlign: TextAlign.center),
         leading: IconButton(
           tooltip: tr('테스트로 돌아가기'),

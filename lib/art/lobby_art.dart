@@ -50,6 +50,28 @@ class LobbyIcon extends StatelessWidget {
   final double size;
   @override
   Widget build(BuildContext context) {
+    // v12.9: the current menu sheet first; the v9 pictures only for symbols
+    // it does not cover (coin, blueprint, key).
+    final current = <IconData, String>{
+      Icons.assignment_turned_in: 'mission',
+      Icons.card_giftcard: 'season',
+      Icons.explore: 'patrol',
+      Icons.groups: 'guild',
+      Icons.storefront: 'supply',
+      Icons.build: 'growth',
+      Icons.rocket_launch: 'launch',
+      Icons.emoji_events: 'challenge',
+      Icons.account_tree: 'research',
+    }[icon];
+    if (current != null) {
+      return Image.asset(
+        'assets/art/menu_v13/$current.webp',
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.medium,
+      );
+    }
     final name = <IconData, String>{
       Icons.assignment_turned_in: 'mission',
       Icons.card_giftcard: 'chest',

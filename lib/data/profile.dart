@@ -562,8 +562,11 @@ class Profile extends ChangeNotifier with ContentSystems {
     }
   }
 
+  /// [soundEnabled]/[volume] are the sound effects; background music has
+  /// its own switch and level (v12.8).
   bool onboarded = false, reducedEffects = false, soundEnabled = true;
-  double volume = .5;
+  bool musicEnabled = true;
+  double volume = .5, musicVolume = .5;
   int runs = 0, bestKills = 0;
   int totalKills = 0;
   @override
@@ -797,6 +800,14 @@ class Profile extends ChangeNotifier with ContentSystems {
     volume = savedVolume is num && savedVolume.isFinite
         ? savedVolume.toDouble().clamp(0, 1)
         : .5;
+    // saves from before v12.8 had one switch: music starts the same
+    musicEnabled = data['musicEnabled'] is bool
+        ? data['musicEnabled'] as bool
+        : soundEnabled;
+    final savedMusic = data['musicVolume'];
+    musicVolume = savedMusic is num && savedMusic.isFinite
+        ? savedMusic.toDouble().clamp(0, 1)
+        : volume;
     controls = ControlPreferences.restore(data['controls']);
     catGear = CatGearState.restore(data['catGear']);
     prologueSeen = data['prologueSeen'] == true;
@@ -858,6 +869,8 @@ class Profile extends ChangeNotifier with ContentSystems {
     'reducedEffects': reducedEffects,
     'soundEnabled': soundEnabled,
     'volume': volume,
+    'musicEnabled': musicEnabled,
+    'musicVolume': musicVolume,
     'controls': controls.toJson(),
     'runs': runs,
     'bestKills': bestKills,
@@ -974,10 +987,16 @@ class Profile extends ChangeNotifier with ContentSystems {
     bool? soundEnabled,
     bool? reducedEffects,
     double? volume,
+    bool? musicEnabled,
+    double? musicVolume,
   }) {
     if (soundEnabled != null) this.soundEnabled = soundEnabled;
     if (reducedEffects != null) this.reducedEffects = reducedEffects;
     if (volume != null && volume.isFinite) this.volume = volume.clamp(0, 1);
+    if (musicEnabled != null) this.musicEnabled = musicEnabled;
+    if (musicVolume != null && musicVolume.isFinite) {
+      this.musicVolume = musicVolume.clamp(0, 1);
+    }
     _changed();
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'support/tabs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/main.dart';
@@ -21,7 +22,7 @@ void main() {
         home:CollectionScreen(profile:p)));
       await tester.pumpAndSettle();
       Future<void> tap(Finder f) async {await revealUi(tester,f);await tester.tap(f);await tester.pumpAndSettle();expect(tester.takeException(),isNull);}
-      await tap(find.widgetWithText(ChoiceChip,'보관함'));
+      await tap(tabWithText('보관함'));
       await tap(find.byWidgetPredicate((w)=>w is Semantics && (w.properties.label??'')=='초신성 프리즘 Lv.2'));
       await tap(find.widgetWithText(GameActionButton,'조각 관리'));
       final shards=book.shards[0];

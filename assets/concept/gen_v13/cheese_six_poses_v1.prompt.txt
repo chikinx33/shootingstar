@@ -1,0 +1,18 @@
+Mode: built-in image_gen. Two generation calls: initial sheet and spacing revision.
+Reference: assets/art/cats_v11/cheese_side.webp
+Deliverable: cheese_six_poses_v1.png (concept sheet; no game integration).
+
+Use case: identity-preserve
+Asset type: one mobile-game character sprite sheet.
+Input Image 1 is the exact character identity and visual style reference. Create ONE sheet showing six distinct full-body poses of this same orange tabby chibi cat.
+Composition: landscape 3:2 canvas, strict 3 columns by 2 rows of equal square cells, invisible grid with NO drawn dividers. Each character and all its props centered inside its cell, ample pure white margins and wide white gutters. Consistent character scale, full ears, feet, tail and props uncropped. Perfectly flat pure white (#FFFFFF) background, no environment or background texture.
+Keep the exact recognizable oversized rounded head, short small body and paws, orange tabby stripes, cream muzzle/belly/paw tips/tail tip, pink ear interiors, thick almost-black navy outline, brass pilot goggles with cyan glass worn on top of head and dark brown strap, bright red scarf, cute :3 mouth. Match the reference's crisp cel-shaded mobile game illustration, simple bold shapes and glossy highlights. Preserve identity, proportions and geometry except for the explicitly requested pose, expression and props.
+Pose order, left to right:
+TOP LEFT: VICTORY — jumping joyfully, raising a golden trophy, a few sparkles.
+TOP CENTER: DEFEAT — sitting, crying big cartoon tears yet determined, small bandage on cheek.
+TOP RIGHT: PAUSE — standing, sleepy smile, holding a round sign showing exactly two vertical pause bars.
+BOTTOM LEFT: STATS — wearing small eyeglasses over eyes in addition to the original goggles on head, proudly holding clipboard with a simple bar chart made only of graphical bars, no labels or numbers.
+BOTTOM CENTER: SUPPLY — hugging and opening a golden treasure chest, warm light spilling from its open interior, contained within its cell.
+BOTTOM RIGHT: HANGAR — holding a big wrench over shoulder, grease smudge on cheek, confident wink.
+No text, letters, numbers, titles, captions, labels, watermarks or logos. The pause bars and chart bars are the only requested graphic symbols. Exactly six cats, one per cell.
+TARGETED REVISION: Image 2 is the first sheet. Preserve its successful six pose designs and exact row-major order, but correct spacing. Reduce every complete cat-plus-props group to fit within the central 76% width and 76% height of its equal square cell. Keep at least 12% cell-width blank white margin on each side of every group including sparkles and trophy. No element may cross a cell boundary. Center groups at normalized canvas coordinates (1/6,1/4), (1/2,1/4), (5/6,1/4), (1/6,3/4), (1/2,3/4), (5/6,3/4). Background must be solid RGB 255,255,255 with no paper texture, noise, shadows or tint. Use original Image 1 to preserve identity. Keep landscape 3:2 overall canvas.

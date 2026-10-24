@@ -4,6 +4,8 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_motion.dart';
+
 import '../art/raster_assets.dart';
 import 'game_ui.dart';
 import 'game_pages.dart';
@@ -25,98 +27,102 @@ class GameDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-      constraints: const BoxConstraints(maxWidth: 440),
-      child: RasterPanel(
-        key: const Key('game-dialog-panel'),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RasterPanel(
-              skin: 6,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 56),
-                    Expanded(
-                      child: Semantics(
-                        header: true,
-                        label: tr(title),
-                        excludeSemantics: true,
-                        child: Text(
-                          tr(title),
-                          style: const TextStyle(
-                            fontSize: 28,
-                            height: 1.25,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                color: Color(0xFF172031),
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      tooltip: tr(closeLabel),
-                      style: IconButton.styleFrom(
-                        minimumSize: const Size(48, 48),
-                      ),
-                      onPressed: audible(
-                        () => Navigator.of(context).pop(),
-                        cue: 'back',
-                      ),
-                      icon: const RasterIcon(Icons.close, size: 32),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Flexible(
-              child: Semantics(
-                container: true,
-                explicitChildNodes: true,
-                child: GamePages(
-                  key: const Key('game-dialog-pages'),
-                  shrinkWrap: true,
-                  centerContent: true,
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+    return PopIn(
+      child: Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: RasterPanel(
+          key: const Key('game-dialog-panel'),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RasterPanel(
+                skin: 6,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
                     children: [
-                      DefaultTextStyle(
-                        // This build context is above Dialog's Material. Inheriting
-                        // DefaultTextStyle here can pick Flutter's red error style.
-                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          fontSize: GameUi.body,
-                          height: 1.4,
-                          decoration: TextDecoration.none,
+                      const SizedBox(width: 56),
+                      Expanded(
+                        child: Semantics(
+                          header: true,
+                          label: tr(title),
+                          excludeSemantics: true,
+                          child: Text(
+                            tr(title),
+                            style: const TextStyle(
+                              fontSize: 28,
+                              height: 1.25,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  color: Color(0xFF172031),
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+
+                            textAlign: TextAlign.center,
+                          ),
                         ),
-                        child: child,
                       ),
-                      if (actions.isNotEmpty) ...[
-                        const SizedBox(height: 24),
-                        for (var i = 0; i < actions.length; i++) ...[
-                          if (i > 0) const SizedBox(height: 12),
-                          Center(child: actions[i]),
-                        ],
-                      ],
+                      const SizedBox(width: 8),
+                      IconButton(
+                        tooltip: tr(closeLabel),
+                        style: IconButton.styleFrom(
+                          minimumSize: const Size(48, 48),
+                        ),
+                        onPressed: audible(
+                          () => Navigator.of(context).pop(),
+                          cue: 'back',
+                        ),
+                        icon: const RasterIcon(Icons.close, size: 32),
+                      ),
                     ],
                   ),
                 ),
               ),
-            ),
-          ],
+              Flexible(
+                child: Semantics(
+                  container: true,
+                  explicitChildNodes: true,
+                  child: GamePages(
+                    key: const Key('game-dialog-pages'),
+                    shrinkWrap: true,
+                    centerContent: true,
+                    // v12.8: clear of the kit panel's gold rim and paw bolts
+                    padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        DefaultTextStyle(
+                          // This build context is above Dialog's Material. Inheriting
+                          // DefaultTextStyle here can pick Flutter's red error style.
+                          style: Theme.of(context).textTheme.bodyMedium!
+                              .copyWith(
+                                fontSize: GameUi.body,
+                                height: 1.4,
+                                decoration: TextDecoration.none,
+                              ),
+                          child: child,
+                        ),
+                        if (actions.isNotEmpty) ...[
+                          const SizedBox(height: 24),
+                          for (var i = 0; i < actions.length; i++) ...[
+                            if (i > 0) const SizedBox(height: 12),
+                            Center(child: actions[i]),
+                          ],
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

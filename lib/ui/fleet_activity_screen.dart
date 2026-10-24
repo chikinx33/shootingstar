@@ -6,6 +6,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import '../data/content.dart';
 import '../data/content_systems.dart';
 import '../data/fleet_journal.dart';
@@ -111,7 +113,7 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return Scaffold(
-      appBar: AppBar(title: Text(tr('함대 활동'), textAlign: TextAlign.center)),
+      appBar: GameAppBar(title: Text(tr('함대 활동'), textAlign: TextAlign.center)),
       body: Column(
         children: [
           FleetActivityTabs(
@@ -571,7 +573,7 @@ class FleetActivityTabs extends StatelessWidget {
   final int selected;
   final ValueChanged<int> onSelected;
   static const entries = [
-    ('출석', '출석', Icons.card_giftcard),
+    ('출석', '출석', Icons.storefront),
     ('임무', '임무', Icons.assignment_turned_in),
     ('항로 보상', '항로', Icons.emoji_events),
     ('순찰', '순찰', Icons.explore),
@@ -581,7 +583,7 @@ class FleetActivityTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return ColoredBox(
-      color: const Color(0xFF14263A),
+      color: const Color(0x6614263A),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Row(

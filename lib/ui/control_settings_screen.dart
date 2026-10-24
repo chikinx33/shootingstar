@@ -4,6 +4,10 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
+import 'settings_screen.dart';
+
 import '../data/control_preferences.dart';
 import '../data/profile.dart';
 import 'compact_choice.dart';
@@ -84,7 +88,7 @@ class _ControlSettingsScreenState extends State<ControlSettingsScreen> {
     AppLanguage.watch(context);
     final c = p.controls;
     return Scaffold(
-      appBar: AppBar(
+      appBar: GameAppBar(
         title: Text(tr('조작·음향'), textAlign: TextAlign.center),
         actions: [
           IconButton(
@@ -172,34 +176,33 @@ class _ControlSettingsScreenState extends State<ControlSettingsScreen> {
               ],
             ),
             gap(6),
-            RasterSwitchListTile(
-              title: Text(tr('효과음·배경음'), textAlign: TextAlign.center),
-              value: p.soundEnabled,
-              onChanged: audibleChange((value) {
-                p.updateSettings(soundEnabled: value);
+            AudioChannelRow(
+              id: 'music',
+              label: '배경음',
+              enabled: p.musicEnabled,
+              volume: p.musicVolume,
+              onEnabled: (v) {
+                p.updateSettings(musicEnabled: v);
                 setState(() {});
-              }),
+              },
+              onVolume: (v) {
+                p.updateSettings(musicVolume: v);
+                setState(() {});
+              },
             ),
-            Row(
-              children: [
-                SizedBox(
-                  width: 96,
-                  child: Text(
-                    message("음량 {0}%", [(p.volume * 100).round()]),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                Expanded(
-                  child: Slider(
-                    value: p.volume,
-                    onChanged: audibleChange((value) {
-                      p.updateSettings(volume: value);
-                      setState(() {});
-                    }),
-                    label: '${(p.volume * 100).round()}%',
-                  ),
-                ),
-              ],
+            AudioChannelRow(
+              id: 'sfx',
+              label: '효과음',
+              enabled: p.soundEnabled,
+              volume: p.volume,
+              onEnabled: (v) {
+                p.updateSettings(soundEnabled: v);
+                setState(() {});
+              },
+              onVolume: (v) {
+                p.updateSettings(volume: v);
+                setState(() {});
+              },
             ),
             gap(6),
             GameActionButton(

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../l10n/app_language.dart';
 
 import 'audio_feedback.dart';
@@ -5,25 +7,43 @@ import 'aircraft_design_screen.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+import 'game_motion.dart';
 import 'reward_popup.dart';
 
-import '../art/arcade_aircraft.dart';
+import '../art/ship_sprite_art.dart';
+import '../art/ui_kit.dart';
 import '../data/content.dart';
 import '../data/profile.dart';
-import '../data/aircraft_assembly.dart';
 import 'components.dart';
-import 'detail_widgets.dart';
 import 'item_slots.dart';
+import 'lobby_cat_hero.dart';
 
-class ShipHangar extends StatelessWidget {
+/// Guardian cat + craft selection (v12.9 redesign, user 2026-10-25: the
+/// old screen was three tiny jet cards on an empty page). The focused cat
+/// stands on the hangar pedestal with its own craft hovering beside it; its
+/// role, fixed main gun and stats sit in one game panel above the single
+/// decision, and the three cats are big portrait slots at the bottom.
+class ShipHangar extends StatefulWidget {
   const ShipHangar({super.key, required this.profile});
   final Profile profile;
+
+  @override
+  State<ShipHangar> createState() => _ShipHangarState();
+}
+
+class _ShipHangarState extends State<ShipHangar> {
+  late int _focus = widget.profile.selectedShip.clamp(0, ships.length - 1);
+  Profile get p => widget.profile;
+
+  static const _guns = ['냥냥 연사포', '정밀 냥냥포', '꾹꾹 산탄포'];
+  static const _ultimates = ['별똥별 광선', '냥냥 미사일 폭풍', '꾹꾹이 충격파'];
 
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return Scaffold(
-      appBar: AppBar(
+      appBar: GameAppBar(
         title: Text(tr('기체 선택'), textAlign: TextAlign.center),
         actions: [
           IconButton(
@@ -33,160 +53,302 @@ class ShipHangar extends StatelessWidget {
               () => Navigator.push(
                 context,
                 MaterialPageRoute<void>(
-                  builder: (_) => AircraftDesignScreen(profile: profile),
+                  builder: (_) => AircraftDesignScreen(profile: p),
                 ),
               ),
             ),
           ),
         ],
       ),
-      body: AnimatedBuilder(
-        animation: profile,
-        builder: (context, _) => Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Text(
-                message("장착: {0} · {1} 츄르", [
-                  ships[profile.selectedShip].name,
-                  profile.credits,
-                ]),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
-
-                textAlign: TextAlign.center,
-              ),
-            ),
-            Expanded(
-              child: GameSlotList(
-                listKey: const Key('ship-items'),
+      body: SafeArea(
+        top: false,
+        child: AnimatedBuilder(
+          animation: p,
+          builder: (context, _) => LayoutBuilder(
+            builder: (context, box) {
+              final compact = box.maxHeight < 600;
+              return Column(
                 children: [
-                  for (var i = 0; i < ships.length; i++)
-                    GameItemSlot(
-                      title: ships[i].name,
-                      image: ArcadeAircraft(
-                        shipIndex: i,
-                        assembly: AircraftAssembly(
-                          hull: i,
-                          modules: profile.shipModules.preview(i),
-                        ),
-                        size: 56,
-                        semanticLabel: ships[i].name,
-                      ),
-                      status: profile.unlockedShips.contains(i)
-                          ? (profile.selectedShip == i ? '장착 중' : '보유')
-                          : '${ships[i].unlockCost} 츄르',
-                      selected: profile.selectedShip == i,
-                      onTap: audible(
-                        () => showDialog<void>(
-                          context: context,
-                          builder: (_) => AnimatedBuilder(
-                            animation: profile,
-                            builder: (_, _) => GameDialog(
-                              title: ships[i].name,
-                              child: _entry(context, i),
-                            ),
-                          ),
-                        ),
-                      ),
+                  Expanded(child: _showcase(_focus)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: _info(_focus, compact),
+                  ),
+                  const SizedBox(height: 8),
+                  _decision(_focus),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
+                    child: GameSlotRows(
+                      children: [
+                        for (var i = 0; i < ships.length; i++) _slot(i),
+                      ],
                     ),
+                  ),
+                  const SizedBox(height: 6),
                 ],
-              ),
-            ),
-          ],
+              );
+            },
+          ),
         ),
       ),
     );
   }
 
-  Widget _entry(BuildContext context, int i) {
-    final ship = ships[i];
-    final owned = profile.unlockedShips.contains(i);
-    final selected = profile.selectedShip == i;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Surface(
-        active: selected,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+  /// The cat on the glowing pedestal, its craft hovering at its shoulder.
+  Widget _showcase(int i) {
+    final owned = p.unlockedShips.contains(i);
+    return LayoutBuilder(
+      builder: (context, box) {
+        final h = box.maxHeight, w = box.maxWidth;
+        final pedestal = math.min(w * .62, h * .9);
+        final cat = math.min(h * .92, w * .62);
+        final craft = math.min(h * .5, w * .32);
+        return Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
           children: [
-            GameDetailHeader(
-              image: ArcadeAircraft(
-                shipIndex: i,
-                assembly: AircraftAssembly(
-                  hull: i,
-                  modules: profile.shipModules.preview(i),
-                ),
-                size: 72,
-                semanticLabel: ship.name,
+            Positioned(
+              top: -h * .1,
+              child: GlowRays(
+                size: math.max(w * .9, h * 1.1),
+                color: ships[i].color,
+                opacity: .35,
               ),
-              title: ship.name,
-              status: selected ? '장착 중' : ship.tagline,
             ),
-            Text(
-              tr(ship.detail),
-              style: const TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message("기본 선체 {0} · 기동 {1} · 화력 {2}%", [
-                ship.health.toInt(),
-                ship.speed.toInt(),
-                (ship.damage * 100).round(),
-              ]),
-              style: const TextStyle(fontSize: 16),
-
-              textAlign: TextAlign.center,
-            ),
-            if (!owned) ...[
-              const SizedBox(height: 8),
-              Text(
-                message("영구 해금 {0} 츄르", [ship.unlockCost]),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
-
-                textAlign: TextAlign.center,
+            Positioned(
+              bottom: 0,
+              child: Image.asset(
+                '${UiKit.root}pedestal.webp',
+                width: pedestal,
+                filterQuality: FilterQuality.medium,
               ),
-            ],
-            const SizedBox(height: 16),
-            if (!selected)
-              Center(
-                child: GameActionButton(
-                  key: ValueKey('ship-select-$i'),
-                  primary: true,
-                  label: owned
-                      ? '${ship.name} ${selected ? '장착 중' : '선택'}'
-                      : '${ship.name} ${ship.unlockCost} 츄르 해금·선택',
-                  displayLabel: owned ? (selected ? '장착 중' : '기체 선택') : '해금·선택',
-                  icon: owned ? Icons.check_circle : Icons.lock_open,
-                  onPressed: audible(
-                    selected || (!owned && profile.credits < ship.unlockCost)
-                        ? null
-                        : () {
-                            if (owned || profile.unlockShip(i)) {
-                              profile.selectShip(i);
-                              RewardFlights.show(context, [
-                                RewardEntry(
-                                  ship.name,
-                                  1,
-                                  Icons.rocket_launch,
-                                  atlas: 'hero',
-                                  index: i,
-                                ),
-                              ]);
-                            }
-                          },
+            ),
+            // the cat stands on the pedestal's top face
+            Positioned(
+              bottom: pedestal * .3,
+              left: w / 2 - cat * .62,
+              child: KeyedSubtree(
+                key: ValueKey('ship-cat-$i'),
+                child: PopIn(
+                  child: ColorFiltered(
+                    colorFilter: owned
+                        ? const ColorFilter.mode(
+                            Colors.transparent,
+                            BlendMode.dst,
+                          )
+                        : const ColorFilter.mode(
+                            Color(0xCC101828),
+                            BlendMode.srcATop,
+                          ),
+                    child: Image.asset(
+                      LobbyCatHero.portraits[i],
+                      width: cat,
+                      height: cat,
+                      filterQuality: FilterQuality.medium,
+                      semanticLabel: tr(ships[i].name),
+                    ),
                   ),
                 ),
               ),
+            ),
+            Positioned(
+              right: w * .04,
+              top: h * .04,
+              child: Bob(
+                height: 6,
+                period: 2600,
+                child: SizedBox.square(
+                  dimension: craft,
+                  child: ShipSprite(
+                    key: ValueKey('ship-craft-$i'),
+                    hull: i,
+                    loadout: i == p.selectedShip ? p.moduleLoadout : null,
+                    assets: i == p.selectedShip ? p.shipLayerAssets : const {},
+                    semanticLabel: message('{0} 고유 기체', [tr(ships[i].name)]),
+                  ),
+                ),
+              ),
+            ),
+            if (!owned)
+              Positioned(
+                bottom: pedestal * .42,
+                child: const Icon(
+                  Icons.lock,
+                  size: 54,
+                  color: Color(0xFFFFD43D),
+                  shadows: [Shadow(color: Colors.black, blurRadius: 6)],
+                ),
+              ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
+
+  /// Name ribbon, role, the fixed main gun and the stat gauges.
+  Widget _info(int i, bool compact) {
+    final ship = ships[i];
+    double top(double Function(ShipSpec s) f) => ships.map(f).reduce(math.max);
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topCenter,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 22),
+          child: Surface(
+            padding: EdgeInsets.fromLTRB(24, compact ? 26 : 30, 24, 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  tr(ship.tagline),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFFFFD43D),
+                  ),
+                ),
+                // the smallest phones keep the gun line for the stats only
+                if (!compact) const SizedBox(height: 2),
+                if (!compact)
+                  Text(
+                    message('고유 주포 {0} · 궁극기 {1}', [
+                      tr(_guns[i]),
+                      tr(_ultimates[i]),
+                    ]),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFFDCE6F2),
+                    ),
+                  ),
+                if (compact)
+                  Text(
+                    message("기본 선체 {0} · 기동 {1} · 화력 {2}%", [
+                      ship.health.toInt(),
+                      ship.speed.toInt(),
+                      (ship.damage * 100).round(),
+                    ]),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 14),
+                  )
+                else ...[
+                  const SizedBox(height: 6),
+                  _gauge(
+                    '선체',
+                    ship.health / top((s) => s.health),
+                    '${ship.health.toInt()}',
+                    i,
+                  ),
+                  _gauge(
+                    '기동',
+                    ship.speed / top((s) => s.speed),
+                    '${ship.speed.toInt()}',
+                    i,
+                  ),
+                  _gauge(
+                    '화력',
+                    ship.damage / top((s) => s.damage),
+                    '${(ship.damage * 100).round()}%',
+                    i,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        RibbonTitle(ship.name, width: 270, height: 48, size: 21),
+      ],
+    );
+  }
+
+  /// A kit track filled with a yellow pill up to [value] (0..1).
+  Widget _gauge(String label, double value, String text, int i) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 2),
+    child: Row(
+      children: [
+        SizedBox(
+          width: 44,
+          child: Text(
+            tr(label),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
+
+            textAlign: TextAlign.center,
+          ),
+        ),
+        Expanded(
+          child: KitGauge(
+            value.clamp(.08, 1),
+            key: ValueKey('gauge-$label-$i'),
+            height: 18,
+          ),
+        ),
+        SizedBox(
+          width: 50,
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _decision(int i) {
+    final ship = ships[i];
+    final owned = p.unlockedShips.contains(i);
+    final selected = p.selectedShip == i;
+    return GameActionButton(
+      key: ValueKey('ship-select-$i'),
+      primary: true,
+      label: selected
+          ? '${ship.name} 장착 중'
+          : owned
+          ? '${ship.name} 선택'
+          : '${ship.name} ${ship.unlockCost} 츄르 해금·선택',
+      displayLabel: selected
+          ? '장착 중'
+          : owned
+          ? '이 고양이로 출격'
+          : message('해금 · {0} 츄르', [ship.unlockCost]),
+      icon: selected
+          ? Icons.check
+          : (owned ? Icons.play_arrow : Icons.lock_open),
+      onPressed: selected || (!owned && p.credits < ship.unlockCost)
+          ? null
+          : () {
+              if (owned || p.unlockShip(i)) {
+                p.selectShip(i);
+                RewardFlights.show(context, [
+                  RewardEntry(
+                    ship.name,
+                    1,
+                    Icons.rocket_launch,
+                    atlas: 'hero',
+                    index: i,
+                  ),
+                ]);
+              }
+            },
+    );
+  }
+
+  Widget _slot(int i) => GameItemSlot(
+    title: ships[i].name,
+    image: Image.asset(
+      LobbyCatHero.faces[i],
+      width: 84,
+      height: 84,
+      filterQuality: FilterQuality.medium,
+      color: p.unlockedShips.contains(i) ? null : const Color(0xFF8090A8),
+      colorBlendMode: BlendMode.modulate,
+    ),
+    status: p.unlockedShips.contains(i)
+        ? (p.selectedShip == i ? '장착 중' : '보유')
+        : '${ships[i].unlockCost} 츄르',
+    selected: _focus == i,
+    onTap: () => setState(() => _focus = i),
+  );
 }

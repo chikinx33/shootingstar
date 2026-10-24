@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'support/tabs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/data/content_systems.dart';
@@ -47,7 +48,7 @@ void main() {
         await t.tap(
           root >= 0
               ? find.byKey(ValueKey('activity-tab-$root'))
-              : find.widgetWithText(ChoiceChip, name),
+              : tabWithText(name),
         );
         await t.pumpAndSettle();
         expect(t.takeException(), isNull);
@@ -106,10 +107,10 @@ void main() {
       expect(find.text(ContentSystems.dailyNames.first), findsOneWidget);
       expect(find.text('주간 임무'), findsNothing);
       expect(action('일일 활동 상자 1'), findsNothing);
-      final fixed = t.getRect(find.widgetWithText(ChoiceChip, '주간'));
+      final fixed = t.getRect(tabWithText('주간'));
       await t.drag(find.byType(ListView), const Offset(0, -500));
       await t.pumpAndSettle();
-      expect(t.getRect(find.widgetWithText(ChoiceChip, '주간')), fixed);
+      expect(t.getRect(tabWithText('주간')), fixed);
       await category('주간');
       expect(find.text(FleetJournal.weeklyNames.first), findsOneWidget);
       expect(find.text(ContentSystems.dailyNames.first), findsNothing);

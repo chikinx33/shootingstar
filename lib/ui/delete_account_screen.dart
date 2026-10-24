@@ -4,6 +4,8 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import 'game_decor.dart';
+
 import '../data/profile.dart';
 import 'components.dart';
 
@@ -76,7 +78,7 @@ class _DeleteAccountState extends State<DeleteAccountScreen> {
     return PopScope(
       canPop: !deleting,
       child: Scaffold(
-        appBar: AppBar(
+        appBar: GameAppBar(
           title: Text(tr('계정 영구 삭제'), textAlign: TextAlign.center),
           automaticallyImplyLeading: false,
           leading: IconButton(

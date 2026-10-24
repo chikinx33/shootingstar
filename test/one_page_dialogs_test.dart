@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'support/tabs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/hangar_preset.dart';
 import 'package:shootingstar/data/profile.dart';
@@ -162,7 +163,7 @@ void main() {
       await mount(const Scaffold(body: EvolutionCodex()));
       for (final passive in [false, true]) {
         if (passive) {
-          await tapUi(tester, find.widgetWithText(ChoiceChip, '보조'));
+          await tapUi(tester, tabWithText('보조'));
         }
         for (final skill in survivalSkills.where((s) => s.passive == passive)) {
           await tapUi(tester, action('${skill.name} 진화 상세'));

@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+import 'game_decor.dart';
 import 'package:flutter/services.dart';
 
 import '../data/profile.dart';
@@ -185,7 +187,7 @@ class _ProgressBackupScreenState extends State<ProgressBackupScreen> {
     return PopScope(
       canPop: !busy,
       child: Scaffold(
-        appBar: AppBar(
+        appBar: GameAppBar(
           title: Text(tr('진행 백업·복원'), textAlign: TextAlign.center),
         ),
         body: SafeArea(
@@ -264,7 +266,7 @@ class _ProgressBackupScreenState extends State<ProgressBackupScreen> {
                 key: const Key('backup-details'),
                 label: '백업·복원 자세히 보기',
                 displayLabel: '자세히',
-                icon: Icons.help_outline,
+                icon: Icons.question_mark,
                 onPressed: audible(_details),
               ),
             ],

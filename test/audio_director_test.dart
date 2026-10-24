@@ -233,6 +233,38 @@ void main() {
     },
   );
 
+  test('music and sound effects switch and mix separately', () async {
+    final port = FakeAudio();
+    final a = AudioDirector(port: port)..unlock();
+    a.settings(
+      enabled: true,
+      volume: .6,
+      musicEnabled: false,
+      musicVolume: .4,
+    );
+    await drain();
+    expect(a.track, isNull, reason: 'music off');
+    expect(a.audible, isTrue, reason: 'effects still play');
+    a.settings(
+      enabled: false,
+      volume: .6,
+      musicEnabled: true,
+      musicVolume: .4,
+    );
+    await drain();
+    expect(a.track, 'lobby-groove', reason: 'music on alone');
+    expect(a.audible, isFalse, reason: 'effects off');
+    final quiet = a.musicGain;
+    a.settings(
+      enabled: false,
+      volume: .6,
+      musicEnabled: true,
+      musicVolume: .8,
+    );
+    expect(a.musicGain, closeTo(quiet * 2, 1e-9), reason: 'own level');
+    await a.dispose();
+  });
+
   test('muting during track load converges to silence', () async {
     final port = FakeAudio()..gate = Completer<void>();
     final a = AudioDirector(port: port)..unlock();
