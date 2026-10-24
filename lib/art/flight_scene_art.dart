@@ -106,6 +106,21 @@ abstract final class FlightSceneArt {
     }
   }
 
+  /// The living-room picture's size and the middle of its cat cushion, in
+  /// picture pixels (assets/art/lobby_v11/home.jpg).
+  static const lobbyArtSize = Size(720, 1279);
+  static const lobbyCushion = Offset(360, 900);
+
+  /// Where [point] of a [art]-sized picture lands when painted by
+  /// [paintCover] into [size].
+  static Offset coverPoint(Size size, Size art, Offset point) {
+    final scale = math.max(size.width / art.width, size.height / art.height);
+    return Offset(
+      (size.width - art.width * scale) / 2 + point.dx * scale,
+      (size.height - art.height * scale) / 2 + point.dy * scale,
+    );
+  }
+
   /// Paints [art] to cover [size], keeping its centre in view.
   static void paintCover(Canvas c, Size size, ui.Image art) {
     final scale = math.max(size.width / art.width, size.height / art.height);

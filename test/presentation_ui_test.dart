@@ -89,10 +89,9 @@ void main() {
                 builder: (context) => Column(
                   children: [
                     ResourceCounter(
-                      icon: Icons.hexagon,
+                      image: CurrencyArt.churu,
                       label: '츄르',
                       value: p.credits,
-                      color: Colors.amber,
                       onTap: () {},
                     ),
                     GameActionButton(

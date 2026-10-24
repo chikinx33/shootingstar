@@ -7,7 +7,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../art/toon_assets.dart';
-import '../art/lobby_art.dart';
 import '../main.dart';
 import 'game_ui.dart';
 import 'reward_flight.dart';
@@ -41,11 +40,11 @@ class FlightNavigation extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (final entry in const [
-              (5, '보급', Icons.storefront, Color(0xFF78DDA8)),
-              (2, '성장', Icons.build, Color(0xFFA3C7FF)),
-              (0, '출격', Icons.rocket_launch, Color(0xFFFFD447)),
-              (3, '도전', Icons.emoji_events, Color(0xFFFFA766)),
-              (4, '연구', Icons.account_tree, Color(0xFFD1A7FF)),
+              (5, '보급', 'supply'),
+              (2, '성장', 'growth'),
+              (0, '출격', 'launch'),
+              (3, '도전', 'challenge'),
+              (4, '연구', 'research'),
             ])
               Expanded(
                 // The reference prefab expands the battle slot to 344 vs 184.
@@ -78,9 +77,9 @@ class FlightNavigation extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          LobbyIcon(
+                          MenuArtIcon(
                             entry.$3,
-                            size: entry.$1 == 0 ? 52 : GameUi.navigationIcon,
+                            size: entry.$1 == 0 ? 54 : GameUi.navigationIcon,
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -115,59 +114,107 @@ class FlightNavigation extends StatelessWidget {
   }
 }
 
+/// v13 menu art (one generated sheet, cut by tools/slice_icon_sheet.py):
+/// mission, season, hangar, patrol, guild, achievement, supply, growth,
+/// launch, challenge, research.
+class MenuArtIcon extends StatelessWidget {
+  const MenuArtIcon(this.name, {super.key, this.size = 40});
+
+  /// Every menu picture the lobby and its navigation show.
+  static const lobby = [
+    'mission',
+    'season',
+    'hangar',
+    'patrol',
+    'guild',
+    'achievement',
+    'supply',
+    'growth',
+    'launch',
+    'challenge',
+    'research',
+  ];
+  final String name;
+  final double size;
+  @override
+  Widget build(BuildContext context) => Image.asset(
+    'assets/art/menu_v13/$name.webp',
+    width: size,
+    height: size,
+    filterQuality: FilterQuality.medium,
+  );
+}
+
+/// The three lobby currencies, each with the picture of what it is.
+abstract final class CurrencyArt {
+  static const churu = 'assets/art/icons_v11/churu.webp';
+  static const stardust = 'assets/art/icons_v11/stardust.webp';
+  static const gearTicket = 'assets/art/menu_v13/gear_ticket.webp';
+}
+
+/// A header currency: picture and amount only. The name stays available as
+/// a long-press tooltip and to screen readers.
 class ResourceCounter extends StatelessWidget {
   const ResourceCounter({
     super.key,
-    required this.icon,
+    required this.image,
     required this.label,
     required this.value,
-    required this.color,
     required this.onTap,
   });
-  final IconData icon;
+  final String image;
   final String label;
   final int value;
-  final Color color;
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return RewardTarget(
       name: label,
-      child: Semantics(
-        label: '${tr(label)} $value',
-        button: true,
-        excludeSemantics: true,
-        child: InkWell(
-          onTap: audible(onTap),
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 48),
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF213B54), Color(0xFF0D1D30)],
+      child: Tooltip(
+        message: tr(label),
+        child: Semantics(
+          label: '${tr(label)} $value',
+          button: true,
+          excludeSemantics: true,
+          child: InkWell(
+            onTap: audible(onTap),
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 44),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0D1D30),
+                border: Border.all(color: const Color(0xFF49617A)),
+                borderRadius: BorderRadius.circular(10),
               ),
-              border: Border.all(color: const Color(0xFF49617A), width: 1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                LobbyIcon(icon, size: 26),
-                const SizedBox(width: 5),
-                Flexible(
-                  child: Text(
-                    tr(_shortValue(value)),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 18,
-                      height: 1.3,
-                    ),
-                    textAlign: TextAlign.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    image,
+                    width: 30,
+                    height: 30,
+                    filterQuality: FilterQuality.medium,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        tr(_shortValue(value)),
+                        maxLines: 1,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 17,
+                          height: 1.2,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -179,7 +226,7 @@ class ResourceCounter extends StatelessWidget {
 class BridgeAction extends StatelessWidget {
   const BridgeAction({
     super.key,
-    required this.icon,
+    required this.art,
     required this.label,
     required this.onTap,
     this.color = cyan,
@@ -188,7 +235,8 @@ class BridgeAction extends StatelessWidget {
     this.width = 76,
     this.compact = false,
   });
-  final IconData icon;
+  /// A [MenuArtIcon] name.
+  final String art;
   final String label;
   final VoidCallback onTap;
   final Color color;
@@ -221,7 +269,7 @@ class BridgeAction extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Fill the existing shortcut area without squeezing the label.
-              Flexible(child: LobbyIcon(icon, size: 56)),
+              Flexible(child: MenuArtIcon(art, size: 56)),
               const SizedBox(height: 2),
               Text(
                 tr(displayLabel ?? label),

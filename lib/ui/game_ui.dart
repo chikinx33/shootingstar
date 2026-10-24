@@ -15,6 +15,11 @@ abstract final class GameUi {
   static const secondaryLabel = 20.0;
   static const primaryIcon = 36.0;
   static const secondaryIcon = 32.0;
+
+  /// A picture inside a button is drawn large (user 2026-10-25): it fills
+  /// the panel's height instead of sitting beside the text as a small glyph.
+  static const primaryImage = 60.0;
+  static const secondaryImage = 50.0;
   static const buttonHeight = 60.0;
   static const buttonLabel = 18.0;
   static const compactHeight = 48.0;
@@ -49,6 +54,7 @@ class GameActionButton extends StatelessWidget {
     this.primary = false,
     this.panelColor,
     this.leading,
+    this.image,
   });
 
   final String label;
@@ -60,6 +66,10 @@ class GameActionButton extends StatelessWidget {
   final bool primary;
   final Color? panelColor;
   final Widget? leading;
+
+  /// An illustration asset shown before the label at [GameUi.primaryImage]
+  /// or [GameUi.secondaryImage]; the panel's padding shrinks to fit it.
+  final String? image;
 
   @override
   Widget build(BuildContext context) {
@@ -94,14 +104,26 @@ class GameActionButton extends StatelessWidget {
                       : GameUi.secondaryHeight,
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 18,
-                    vertical: 14,
+                    vertical: image == null ? 14 : 4,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      if (leading != null || icon != null) ...[
+                      if (image != null) ...[
+                        Image.asset(
+                          image!,
+                          width: primary
+                              ? GameUi.primaryImage
+                              : GameUi.secondaryImage,
+                          height: primary
+                              ? GameUi.primaryImage
+                              : GameUi.secondaryImage,
+                          filterQuality: FilterQuality.medium,
+                        ),
+                        const SizedBox(width: 10),
+                      ] else if (leading != null || icon != null) ...[
                         leading ??
                             RasterIcon(
                               icon!,

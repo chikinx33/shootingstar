@@ -120,8 +120,9 @@ void main() {
           p.onboarded = true;
           p.reducedEffects = true;
           await mount(HomeScreen(profile: p));
+          // v12.6.0: the header has no title; the cat's name is centred.
           expect(
-            tester.getCenter(find.text('슈팅스타')).dx,
+            tester.getCenter(find.byKey(const Key('lobby-cat-name'))).dx,
             closeTo(width / 2, .6),
           );
           expect(find.byTooltip('격납고'), findsNothing);

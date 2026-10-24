@@ -1,0 +1,22 @@
+Mode: built-in image_gen
+Use case: style-transfer
+Asset type: one single mobile game menu icon sprite sheet.
+Input images: Image 1 is the orange tabby character identity, palette and drawing style reference. Image 2 is the orange-and-cream cat spaceship identity and top-view shape reference. Preserve their recognizable design cues as implied below.
+Create one single sprite sheet of exactly 11 simple icons arranged in a strict 4 columns x 3 rows grid. Landscape 4:3 canvas with 12 equal square cells; centers at 12.5%, 37.5%, 62.5%, 87.5% width and 16.67%, 50%, 83.33% height. Every icon centered in its own cell, same visual size and line weight, about 62% of cell extent, generous empty space between cells. Entire background perfectly flat pure white (#FFFFFF), including all margins and the empty twelfth cell. No cell borders or grid lines.
+Style: match the reference images closely: cute casual cat shooter, chunky rounded silhouettes, thick uniform dark navy outlines, flat bright cel-shaded colors with one soft highlight, very simple and readable at 40 pixels. Orange tabby palette: orange, cream, red scarf red, sky blue, warm yellow, plus green for growth. Small simple paw motifs. No tiny decorative details, no heavy gradients, no cast shadows.
+Row 1 left to right:
+1 mission: clipboard with a big check mark and a small paw print.
+2 season reward: wrapped gift box with a red ribbon bow.
+3 hangar: crossed wrench and screwdriver over a small round orange-and-cream cat spaceship.
+4 patrol: pair of binoculars with a tiny paw print.
+Row 2 left to right:
+5 guild: little flag banner with a paw emblem on a pole.
+6 achievements: gold medal with a red ribbon and paw print in the center.
+7 supply shop: small wooden treasure chest with gold trim and a paw lock.
+8 growth: big green upward arrow with a small star sparkle.
+Row 3 left to right:
+9 launch: round orange-and-cream spaceship from Image 2 seen from the top, nose facing UP, blue glass cockpit and an orange tabby cat ear peeking, small yellow exhaust flame below. Retain cream central stripe, orange hull and blue cockpit.
+10 challenge: gold trophy cup with a small red flag.
+11 research: round glass flask with bubbling blue liquid and a paw print.
+12 completely EMPTY pure white.
+Strict constraints: exactly eleven icons in the specified order, no duplicated or additional icons, all fully visible. No text, letters, numbers, labels, watermark, frames, background scenery or grid lines. Do not place a standalone full cat anywhere; use its identity for the spaceship occupant and palette.

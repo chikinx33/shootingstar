@@ -99,12 +99,6 @@ Future<void> showGuide(BuildContext context, VoidCallback done) async {
       title: '비행 가이드',
       actions: [
         GameActionButton(
-          label: '비행 가이드 자세히',
-          displayLabel: '자세히',
-          icon: Icons.description,
-          onPressed: audible(() => _guideDetails(dialog)),
-        ),
-        GameActionButton(
           label: '비행 준비 완료',
           primary: true,
           onPressed: audible(() {
@@ -115,6 +109,9 @@ Future<void> showGuide(BuildContext context, VoidCallback done) async {
           }),
         ),
       ],
+      // Each tip is centred at the same width, so the icons line up and the
+      // block sits in the middle (user 2026-10-25); separate tips still let
+      // the smallest phones split the guide into pages.
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -136,7 +133,7 @@ Future<void> showGuide(BuildContext context, VoidCallback done) async {
           GuideTip(
             icon: Icons.pause,
             title: '일시정지',
-            text: '오른쪽 위 버튼 또는 Esc·P 키',
+            text: '오른쪽 위 일시정지 버튼을 눌러요.',
           ),
         ],
       ),
@@ -144,40 +141,8 @@ Future<void> showGuide(BuildContext context, VoidCallback done) async {
   );
 }
 
-/// Secondary flight rules live in their own small popup, not extra pages.
-Future<void> _guideDetails(BuildContext context) => showDialog<void>(
-  context: context,
-  builder: (dialog) => const GameDialog(
-    title: '자세히',
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        GuideTip(
-          icon: Icons.auto_awesome,
-          title: '항성포',
-          text: '20초 충전 후 버튼·Space로 쏴요.\n탄막을 지우지만 무적은 아니에요.',
-        ),
-        GuideTip(
-          icon: Icons.track_changes,
-          title: '보스',
-          text: '예고선 밖으로 피하고\n코어가 열리면 공격하세요.',
-        ),
-        GuideTip(
-          icon: Icons.radar,
-          title: 'R·P·N 보급',
-          text: '다가가서 회수해요.\n자석은 주변 보석만 모아요.',
-        ),
-        GuideTip(
-          icon: Icons.school,
-          title: '출격 후',
-          text: '자주 맞으면 선체 연구,\n적이 쌓이면 화력 연구를 보세요.',
-        ),
-      ],
-    ),
-  ),
-);
-
-/// One short guide fact: icon, title and a centered one- or two-line note.
+/// One short guide fact: icon, then a left-aligned title and note. Every tip
+/// is [width] wide and centred, so a list of tips reads as one centred block.
 class GuideTip extends StatelessWidget {
   const GuideTip({
     super.key,
@@ -187,39 +152,50 @@ class GuideTip extends StatelessWidget {
   });
   final IconData icon;
   final String title, text;
+
+  static const width = 290.0;
+
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          RasterIcon(icon, size: 44),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  tr(title),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    height: 1.25,
-                    fontWeight: FontWeight.w900,
-                  ),
-                  textAlign: TextAlign.center,
+      child: Center(
+        child: SizedBox(
+          width: width,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              RasterIcon(icon, size: 44),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      tr(title),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        height: 1.25,
+                        fontWeight: FontWeight.w900,
+                      ),
+                      textAlign: TextAlign.start,
+                    ),
+                    Text(
+                      tr(text),
+                      style: const TextStyle(
+                        fontSize: GameUi.body,
+                        height: 1.35,
+                      ),
+                      textAlign: TextAlign.start,
+                    ),
+                  ],
                 ),
-                Text(
-                  tr(text),
-                  style: const TextStyle(fontSize: GameUi.body, height: 1.35),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -1,0 +1,23 @@
+Mode: built-in image_gen, reference-based generation
+Output: achievement_trophies_sheet_v1.png
+Reference 1: assets/concept/gen_v13/menu_icons_raw.png
+Reference 2: assets/art/cats_v11/cheese_side.webp
+
+Use case: style-transfer.
+Asset type: one single achievement trophy sprite sheet for a cute casual cat game.
+Input images: Image 1 is the exact art-style reference (chunky menu icons). Image 2 is the orange-and-cream cat identity reference, with round face, orange stripes, tiny black eyes, and cute expression. Use both as references to compose a NEW sheet, not to reproduce their existing layouts.
+Primary request: One single sprite sheet of exactly 9 achievement trophy icons in a strict 3 columns x 3 rows grid on a perfectly flat pure white (#FFFFFF) background. Square canvas, nine equal square cells. Each icon centered in its own cell, all icons the same visual size and uniform thick dark navy line weight. Wide empty white space between cells. No borders, grid lines, text, letters, numbers, labels, watermarks, ground shadows, or background texture.
+Style: Exactly the first reference's cute casual cat-game style: chunky rounded shapes, thick uniform dark navy outlines, flat bright cel-shaded colors with one soft highlight, simple and readable at 44 pixels. Every icon has a clearly DIFFERENT trophy or award silhouette, mostly gold with one accent color each, except the explicitly requested silver shield and blue-green globe.
+Row 1, left to right:
+1. Flights: a slim gold trophy cup topped with a tiny round orange-and-cream cat spaceship, keeping the cat reference's recognizable orange-tabby identity.
+2. Enemies defeated: a silver shield badge with a gold star burst and a small paw.
+3. Boss commanders defeated: a wide gold trophy shaped like a big royal crown with red gems.
+Row 2, left to right:
+4. Routes completed: a round gold medal on a black-and-white checkered ribbon.
+5. Worlds liberated: a gold trophy holding a small blue-and-green globe with a star.
+6. Gear upgraded: a gold trophy with a wrench crossed over it and an upward sparkle.
+Row 3, left to right:
+7. Gear collected: a gold pedestal trophy holding a big purple gem.
+8. Cat level: a gold trophy shaped like a cat head with ears and a tiny star on the forehead.
+9. Chick pet level: a small gold cup with a cute fluffy yellow chick sitting on top.
+Constraints: exactly one complete award in each of nine cells. Keep all extremities inside their own cells with generous margins. Clear distinct silhouettes, restrained interior detail, no extra trophies.

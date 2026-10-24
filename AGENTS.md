@@ -15,6 +15,8 @@
 
 UI·그래픽 작업 전에 `docs/UI_DESIGN_SYSTEM.md`와 `lib/ui/game_ui.dart`를 읽고 적용한다. 주요/보조 결정은 `GameActionButton`, 좁은 셀은 `GameUi.compactButton`을 사용한다. 작은 글자나 얇은 전체 폭 버튼으로 공간을 맞추지 않는다. 일반 패치는 소스 계약·변경 부분의 관련 검사·빠른 웹 확인으로 완료한다. 기본은320px1조건이며, 공통 변경의 확산 위험/실패가 있는 경우에만 영향 화면을 모바일320·360·390·430 및 글자1.3으로 확대한다. 전체 게임을 매번 재검수하지 않는다. 클릭 영역과 실제 도색 크기를 구분한다.
 
+사용자 확정(2026-10-25, 메인 규칙): 버튼 안에 그림이 들어가면 그림을 크게 그린다(`GameActionButton(image:)`, 주요 60px·보조 50px). 이 게임은 모바일 게임이므로 Esc·Space 같은 PC 키 안내를 쓰지 않는다. 공통 슬롯은 높이를 모두 같게, 제목은 줄바꿈 없이 두 줄(이름·설명)로 쓴다. 상세는 `docs/UI_DESIGN_SYSTEM.md` 맨 위.
+
 리스트 항목 이외에는 스크롤을 허용하지 않는다. 메인 로비는 모든 주요 조작이 한 화면에 들어가는 고정 구성이다. 긴 상세·설명·확인·폼·전투 결정은 `GamePages`로 나누고 글자를 줄이지 않는다. 상품·보상·우편·장비 등 반복 항목만 목록 안에서 이동할 수 있다. 이 규칙은 `docs/UI_DESIGN_SYSTEM.md`와 `check_ui_contract.py`의 허용 목록 및 모바일 웹 휠·터치 검증에 함께 반영한다.
 
 사용자 확정(2026-10-25, 용량): 번들 그림(`assets/art/`)은 WebP로만 넣는다. 생성 PNG는 `python tools/png_to_webp.py assets/art/<폴더>`로 변환하고(화면 디코딩 크기 이상은 축소), 원본 PNG·생성 기록은 번들 밖 `assets/concept/`에 둔다. 그림을 새것으로 바꾸면 옛 그림·로더 코드·pubspec 항목을 같은 패치에서 삭제한다. `test/assets_test.dart`가 `assets/art`의 PNG를 막는다. 효과음·음악은 Ogg Vorbis만 넣는다(`tools/compose_audio.py`가 WAV 원본을 `.local/audio-v12.3/wav/`에 두고 `tools/wav_to_ogg.py`로 인코딩). 글꼴 `NotoSansKR.ttf`는 한자를 뺀 서브셋(한글 11,172자·영문·기호·굵기 축 유지, `tools/subset_font.py`)이다. 이 도구들은 `PYTHONPATH=D:/Programs/pylib`(soundfile·fonttools)로 실행한다.

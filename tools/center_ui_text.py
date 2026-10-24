@@ -11,10 +11,24 @@ args=parser.parse_args()
 def mask(s):
     return re.sub(r"//[^\n]*|/\*[\s\S]*?\*/|'(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"",lambda m:' '*len(m[0]),s)
 
+# User 2026-10-25: the flight guide's tips are one centred block whose notes
+# read left-aligned beside their icons. Text inside these classes may start.
+LEFT_ALIGNED={'GuideTip'}
+
+def left_aligned_spans(m):
+    spans=[]
+    for name in LEFT_ALIGNED:
+        c=re.search(r'\nclass '+name+r'\b',m)
+        if c:
+            nxt=re.search(r'\nclass ',m[c.end():])
+            spans.append((c.start(),c.end()+nxt.start() if nxt else len(m)))
+    return spans
+
 count=0; failures=[]
 for p in [*(ROOT/'lib/ui').glob('*.dart'),ROOT/'lib/art/raster_assets.dart']:
-    s=p.read_text(encoding='utf8');m=mask(s);edits=[]
+    s=p.read_text(encoding='utf8');m=mask(s);edits=[];spans=left_aligned_spans(m)
     for call in re.finditer(r'\b(?:Text(?:\.rich)?|SelectableText(?:\.rich)?|TextField|TextFormField|RichText)\s*\(',m):
+        if any(a<=call.start()<b for a,b in spans):continue
         start=call.end();i=start;depth=1;align=None
         while i<len(m) and depth:
             if depth==1:

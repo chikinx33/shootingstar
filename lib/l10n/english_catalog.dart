@@ -841,7 +841,6 @@ const englishCatalog = <String, String>{
   "기본 전투 보상·기존 항로 상자에 더해 자동 지급합니다.":
       "Granted automatically alongside base combat rewards and route chests.",
   "기본 전투 츄르": "Base combat churu",
-  "기본 조종사의 항성포는 20초 충전 후 버튼 또는 Space로 발사합니다. 전방 탄막을 정리하지만 무적은 아닙니다. 보스 예고선을 피해 코어 개방 중 공격하세요. Esc·P로 일시정지합니다.": "The default pilot's Star Cannon charges in 20s. Fire with its button or Space. It clears forward bullets but gives no invincibility. Dodge boss warning lines and attack when its core opens. Esc/P pauses.",
   "기본 합성으로 우수 등급을 만들면 열립니다.":
       "Unlocks after making Fine gear with basic fusion.",
   "기술 부품": "Tech parts",
@@ -2294,7 +2293,6 @@ const englishCatalog = <String, String>{
   "화력 +{0}% · 선체 +{1}%": "Firepower +{0}% · Hull +{1}%",
   "화력 연구": "Firepower research",
   "화륜 항해사": "Flamewheel navigator",
-  "화면을 누르면 정상 속도, 손을 떼면 5% 속도로 느려집니다. 누른 채 드래그하거나 WASD·방향키로 이동하세요. 기본 주포는 위로 쏩니다.": "Hold for full speed; release for 5% slow motion. Drag while holding, or use WASD/arrow keys. The default main gun fires upward.",
   "화면을 눌러 비행 시작 · 손을 떼면 5% 속도": "Hold to fly · Release for 5% slow motion",
   "화염 장판을 남기는 융합 기뢰": "Fusion mine that leaves a fire field",
   "확산 펄스": "Spread pulse",
@@ -2966,8 +2964,8 @@ const englishCatalog = <String, String>{
   "주포는 위쪽으로 자동 발사돼요.": "Your main gun fires upward on its own.",
   "보석과 레벨업": "Gems and level-up",
   "보석을 모으면 레벨업해요.\n카드 3장 중 하나를 고르세요.": "Collect gems to level up.\nPick one of three cards.",
-  "오른쪽 위 버튼 또는 Esc·P 키": "Top-right button or the Esc/P key",
-  "20초 충전 후 버튼·Space로 쏴요.\n탄막을 지우지만 무적은 아니에요.": "Charges for 20s, then fire with the button or Space.\nIt clears bullets but is not invincibility.",
+  "오른쪽 위 일시정지 버튼을 눌러요.": "Tap the pause button at the top right.",
+  "20초 충전 후 버튼을 눌러 쏴요.\n탄막을 지우지만 무적은 아니에요.": "Charges for 20s, then tap the button to fire.\nIt clears bullets but is not invincibility.",
   "보스": "Boss",
   "예고선 밖으로 피하고\n코어가 열리면 공격하세요.": "Dodge outside the warning lines\nand attack when the core opens.",
   "R·P·N 보급": "R·P·N supplies",

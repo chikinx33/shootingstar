@@ -47,6 +47,12 @@ class GameSlotRows extends StatelessWidget {
 }
 
 /// Overview is image/name/state only. Full text and decisions live in detail.
+///
+/// Every slot has the same height (user 2026-10-25): a large picture, then
+/// two title lines and one status line that never wrap. A title of the form
+/// "name · description" (or "name\ndescription") shows name and description
+/// on their own lines; a line too long for the cell scales down instead of
+/// wrapping.
 class GameItemSlot extends StatelessWidget {
   const GameItemSlot({
     super.key,
@@ -64,16 +70,50 @@ class GameItemSlot extends StatelessWidget {
   final VoidCallback? onTap;
   final bool selected;
   final int rarity;
+
+  static const imageHeight = 84.0;
+
+  /// The two visible title lines, each translated on its own.
+  static List<String> titleLines(String title) {
+    final parts = title.contains('\n') ? title.split('\n') : title.split(' · ');
+    if (parts.length == 1) {
+      final whole = tr(title);
+      final english = whole.split(' · ');
+      return english.length == 2 ? english : [whole, ''];
+    }
+    return [tr(parts.first), tr(parts.skip(1).join(' · '))];
+  }
+
+  static Widget _line(String text, TextStyle style) => SizedBox(
+    width: double.infinity,
+    child: FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        text.isEmpty ? ' ' : text,
+        maxLines: 1,
+        softWrap: false,
+        textAlign: TextAlign.center,
+        style: style,
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
+    final lines = titleLines(title);
+    const name = TextStyle(
+      fontSize: 15,
+      fontWeight: FontWeight.w900,
+      height: 1.25,
+    );
     return RewardTarget(
       name: title,
       child: Semantics(
         button: true,
         selected: selected,
         enabled: onTap != null,
-        label: tr(semanticLabel ?? '$title $status'),
+        label: tr(semanticLabel ?? '${title.replaceAll('\n', ' ')} $status'),
         excludeSemantics: true,
         onTap: audible(onTap),
         child: InkWell(
@@ -98,11 +138,15 @@ class GameItemSlot extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     SizedBox(
-                      height: 60,
+                      height: imageHeight,
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
-                          Center(child: image),
+                          // Pictures grow to the slot, whatever size the
+                          // caller drew them at.
+                          Center(
+                            child: FittedBox(fit: BoxFit.contain, child: image),
+                          ),
                           if (selected)
                             const Positioned(
                               top: 0,
@@ -122,24 +166,21 @@ class GameItemSlot extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      tr(title),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
-                        height: 1.2,
+                    const SizedBox(height: 4),
+                    _line(lines[0], name),
+                    _line(
+                      lines[1],
+                      name.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFFDCE6F2),
                       ),
                     ),
-                    if (status.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        tr(status),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 14, height: 1.2),
-                      ),
-                    ],
+                    const SizedBox(height: 4),
+                    _line(
+                      tr(status),
+                      const TextStyle(fontSize: 14, height: 1.2),
+                    ),
                   ],
                 ),
               ),

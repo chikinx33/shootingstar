@@ -7,15 +7,14 @@ import 'package:flutter/material.dart';
 import 'prologue_screen.dart';
 
 import '../art/refit_art.dart';
-import '../art/lobby_art.dart';
 import '../art/flight_scene_art.dart';
 import '../art/raster_assets.dart';
 import '../data/profile.dart';
 import '../data/content.dart';
-import '../main.dart';
 import 'components.dart';
 import 'arcade_home_widgets.dart';
 import 'fixed_lobby.dart';
+import 'lobby_cat_hero.dart';
 import 'hangar_board.dart';
 import 'reward_popup.dart';
 import 'battle.dart';
@@ -79,6 +78,23 @@ class _HomeScreenState extends State<HomeScreen> {
   /// then the other worlds' grounds; launching then rarely waits.
   Future<void> _warmBattleArt() async {
     try {
+      // The lobby's own pictures first: battle art decoding in the
+      // background must never leave the first lobby screen blank.
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted) return;
+      final hull = p.selectedShip.clamp(0, 2);
+      await Future.wait([
+        for (final asset in [
+          LobbyCatHero.portraits[hull],
+          LobbyCatHero.faces[hull],
+          CurrencyArt.churu,
+          CurrencyArt.stardust,
+          CurrencyArt.gearTicket,
+          for (final name in MenuArtIcon.lobby)
+            'assets/art/menu_v13/$name.webp',
+        ])
+          precacheImage(AssetImage(asset), context),
+      ]);
       await RasterAssets.load();
       await BattleScreen.warmArt(p.selectedStage);
       await FlightSceneArt.preloadWorlds();
@@ -332,92 +348,85 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// One row (user 2026-10-25): the selected cat's face opens the account,
+  /// the three currencies as picture + amount, then settings. No title; the
+  /// pilot level sits before the cat's name in the lobby.
   Widget _header() => ColoredBox(
     color: const Color(0xFF15263B),
     child: Padding(
-      padding: const EdgeInsets.fromLTRB(10, 0, 10, 4),
-      child: Column(
+      padding: const EdgeInsets.fromLTRB(8, 4, 4, 4),
+      child: Row(
         children: [
-          Row(
-            children: [
-              SizedBox(
-                width: 48,
-                height: 48,
-                child: IconButton(
-                  tooltip: message("계정 · {0}", [p.online?.status ?? "게스트"]),
-                  onPressed: audible(
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AccountScreen(profile: p),
-                      ),
+          Tooltip(
+            message: message("계정 · {0}", [p.online?.status ?? "게스트"]),
+            child: Semantics(
+              button: true,
+              label: tr('계정'),
+              child: InkWell(
+                key: const Key('account-avatar'),
+                borderRadius: BorderRadius.circular(12),
+                onTap: audible(
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AccountScreen(profile: p),
                     ),
                   ),
-                  icon: const LobbyIcon(Icons.person, size: 36),
+                ),
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFC56B),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFFFE3A8),
+                      width: 2,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset(
+                      LobbyCatHero.faces[p.selectedShip.clamp(0, 2)],
+                      fit: BoxFit.cover,
+                      filterQuality: FilterQuality.medium,
+                    ),
+                  ),
                 ),
               ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      tr('슈팅스타'),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1,
-                      ),
-
-                      textAlign: TextAlign.center,
-                    ),
-                    Text(
-                      message("Lv.{0}", [p.pilotLevel + 1]),
-                      style: const TextStyle(color: muted, fontSize: 14),
-
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                tooltip: tr('설정'),
-                onPressed: audible(() => _settings(context)),
-                icon: const Icon(Icons.settings, color: Colors.white, size: 32),
-              ),
-            ],
+            ),
           ),
-          Row(
-            children: [
-              Expanded(
-                child: ResourceCounter(
-                  icon: Icons.hexagon,
-                  label: '츄르',
-                  value: p.credits,
-                  color: cyan,
-                  onTap: audible(() => setState(() => tab = 5))!,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: ResourceCounter(
-                  icon: Icons.description,
-                  label: '별가루',
-                  value: p.blueprints,
-                  color: const Color(0xFF9EC8FF),
-                  onTap: audible(() => setState(() => tab = 2))!,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: ResourceCounter(
-                  icon: Icons.vpn_key,
-                  label: '장비 보급권',
-                  value: p.gearKeys,
-                  color: const Color(0xFFA7E6B3),
-                  onTap: audible(() => setState(() => tab = 5))!,
-                ),
-              ),
-            ],
+          const SizedBox(width: 8),
+          Expanded(
+            child: ResourceCounter(
+              image: CurrencyArt.churu,
+              label: '츄르',
+              value: p.credits,
+              onTap: audible(() => setState(() => tab = 5))!,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: ResourceCounter(
+              image: CurrencyArt.stardust,
+              label: '별가루',
+              value: p.blueprints,
+              onTap: audible(() => setState(() => tab = 2))!,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: ResourceCounter(
+              image: CurrencyArt.gearTicket,
+              label: '장비 보급권',
+              value: p.gearKeys,
+              onTap: audible(() => setState(() => tab = 5))!,
+            ),
+          ),
+          IconButton(
+            tooltip: tr('설정'),
+            onPressed: audible(() => _settings(context)),
+            icon: const Icon(Icons.settings, color: Colors.white, size: 30),
           ),
         ],
       ),

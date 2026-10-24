@@ -8,6 +8,20 @@ import 'game_ui.dart';
 import 'item_slots.dart';
 
 /// Captain Momo's story quest on top, endless achievements below.
+
+/// Each achievement has its own trophy (user 2026-10-25).
+const trophyArt = {
+  GuardianStat.flights: 'assets/art/menu_v13/trophy_flights.webp',
+  GuardianStat.kills: 'assets/art/menu_v13/trophy_kills.webp',
+  GuardianStat.bosses: 'assets/art/menu_v13/trophy_bosses.webp',
+  GuardianStat.stagesCleared: 'assets/art/menu_v13/trophy_stages.webp',
+  GuardianStat.worldsCleared: 'assets/art/menu_v13/trophy_worlds.webp',
+  GuardianStat.gearUpgrades: 'assets/art/menu_v13/trophy_gear_upgrades.webp',
+  GuardianStat.gearOwned: 'assets/art/menu_v13/trophy_gear_owned.webp',
+  GuardianStat.pilotLevel: 'assets/art/menu_v13/trophy_pilot_level.webp',
+  GuardianStat.chickLevel: 'assets/art/menu_v13/trophy_chick_level.webp',
+};
+
 class GuardianQuestScreen extends StatelessWidget {
   const GuardianQuestScreen({super.key, required this.profile});
   final Profile profile;
@@ -148,16 +162,18 @@ class GuardianQuestScreen extends StatelessWidget {
                   children: [
                     for (final stat in stats)
                       GameItemSlot(
-                        title: p.quests.nextAchievement(stat).title,
+                        // Name on one line, the tier on the next.
+                        title:
+                            '${guardianStatNames[stat]}\n${p.quests.nextAchievement(stat).tier}단계',
                         status: p.achievementReady(stat)
                             ? '보상 받기'
                             : '${p.guardianStat(stat)}/${p.quests.nextAchievement(stat).target}',
                         selected: p.achievementReady(stat),
                         rarity: p.achievementReady(stat) ? 5 : 0,
                         image: Image.asset(
-                          'assets/art/icons_v11/trophy.webp',
-                          width: 44,
-                          height: 44,
+                          trophyArt[stat]!,
+                          width: GameItemSlot.imageHeight,
+                          height: GameItemSlot.imageHeight,
                         ),
                         semanticLabel:
                             '${p.quests.nextAchievement(stat).title} ${p.guardianStat(stat)}/${p.quests.nextAchievement(stat).target} 보상 ${p.quests.nextAchievement(stat).reward.summary}',

@@ -299,13 +299,8 @@ void main() {
           for (final label in ['이동', '자동 발사', '보석과 레벨업', '일시정지']) {
             await revealUi(tester, find.text(label));
           }
-          await tapUi(tester, action('비행 가이드 자세히'));
-          fixed();
-          for (final label in ['항성포', '보스', 'R·P·N 보급', '출격 후']) {
-            await revealUi(tester, find.text(label));
-          }
-          await tester.tap(find.byTooltip('닫기').last);
-          await tester.pumpAndSettle();
+          // v12.6.0 (user): the guide has no '자세히' page any more.
+          expect(find.text('자세히'), findsNothing);
           expect(completed, 0);
           await tapUi(tester, action('비행 준비 완료'));
           expect(completed, 1);

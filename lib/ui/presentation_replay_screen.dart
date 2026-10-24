@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import '../data/profile.dart';
 import '../game/engine.dart';
 import '../game/presentation_replay.dart';
-import '../main.dart';
 import 'battle.dart';
 import 'components.dart';
 import 'arcade_home_widgets.dart';
@@ -141,20 +140,18 @@ class _PresentationReplayScreenState extends State<PresentationReplayScreen> {
                     children: [
                       Expanded(
                         child: ResourceCounter(
-                          icon: Icons.hexagon,
+                          image: CurrencyArt.churu,
                           label: '츄르',
                           value: rehearsal.credits,
-                          color: cyan,
                           onTap: audible(() {})!,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: ResourceCounter(
-                          icon: Icons.vpn_key,
+                          image: CurrencyArt.gearTicket,
                           label: '장비 보급권',
                           value: rehearsal.gearKeys,
-                          color: cyan,
                           onTap: audible(() {})!,
                         ),
                       ),
