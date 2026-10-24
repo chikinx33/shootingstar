@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -31,7 +30,7 @@ void main() {
     )..addFont(rootBundle.load('assets/fonts/NotoSansKR.ttf'))).load();
   });
   test(
-    'final destruction can resume and settle the next loop exactly once',
+    'final destruction survives a checkpoint round-trip and settles the next loop exactly once',
     () async {
       SharedPreferences.setMockInitialValues({});
       final p = await Profile.load();
@@ -55,13 +54,9 @@ void main() {
       g.update(.01);
       expect(g.resolvingBoss, true);
       expect(g.finished, false);
-      expect(await p.checkpointBattle('finale-v33', g), true);
-      Directory('.local/balance-v33').createSync(recursive: true);
-      final prefs = await SharedPreferences.getInstance();
-      File('.local/balance-v33/finale-profile.json')
-          .writeAsStringSync(prefs.getString(Profile.storageKey)!);
-      final restored = p.restoreBattle()!.game;
-      expect(restored.paused, true);
+      final restored = BattleCheckpoint.restore(
+        jsonDecode(jsonEncode(g.checkpoint())),
+      );
       restored.setPaused(false);
       for (var frame = 0; frame < 120; frame++) {
         restored.update(.05);
@@ -83,7 +78,6 @@ void main() {
       expect(p.credits, credits);
       expect(p.campaignLoop, 1);
       expect(p.selectedStage, 0);
-      expect(p.hasSuspendedBattle, false);
       await p.save();
       p.dispose();
     },

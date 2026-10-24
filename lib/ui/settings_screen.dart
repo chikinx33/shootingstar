@@ -370,7 +370,7 @@ class _FlightSettingsState extends State<FlightSettings> {
                       tr(
                         p.developerMode
                             ? '개발자 모드 · 별도 저장 중'
-                            : '자동 저장 · 전투 이어하기 지원',
+                            : '자동 저장',
                       ),
                       style: const TextStyle(fontSize: 14),
 

@@ -1,11 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/data/aircraft_assembly.dart';
 import 'package:shootingstar/data/ship_modules.dart';
 import 'package:shootingstar/game/engine.dart';
@@ -51,7 +48,6 @@ void ring(GameEngine g) {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  setUp(() => SharedPreferences.setMockInitialValues({}));
 
   test('twelve mounts fire from the painted tip, with drone aiming and top vertical missile', () {
     for (final id in ['gun_vulcan', 'missile_hawk', 'drone_wasp']) {
@@ -193,33 +189,5 @@ void main() {
       g.damageByWeapon['part:W2:missile_hawk'],
       closeTo(g.partStats('W2').damage * 2, .001),
     );
-  });
-  test('create twelve isolated real-browser review saves with the same owned part moved in UI', () async {
-    final folder = Directory('.local/module-v67/fixtures')
-      ..createSync(recursive: true);
-    for (final id in ['gun_vulcan', 'missile_hawk', 'drone_wasp']) {
-      for (final mount in ['W1', 'W2', 'W3', 'W4']) {
-        SharedPreferences.setMockInitialValues({});
-        final p = await Profile.load();
-        final f = p.shipModules;
-        f.owned.clear();
-        f.loadouts.clear();
-        f.airframeLevels.clear();
-        for (final kind in ['gun_vulcan', 'missile_hawk', 'drone_wasp']) {
-          f.add(kind, id: 'review-$kind');
-        }
-        f.loadouts[0] = {'W1': 'review-$id'};
-        f.airframeLevels[0] = 1;
-        p.onboarded = true;
-        final g = reviewGame(id, mount);
-        ring(g);
-        expect(await p.checkpointBattle('review-$id-$mount', g), isTrue);
-        final prefs = await SharedPreferences.getInstance();
-        File('${folder.path}/$id-$mount.json')
-            .writeAsStringSync(prefs.getString(Profile.storageKey)!);
-        expect(p.restoreBattle(), isNotNull);
-        p.dispose();
-      }
-    }
   });
 }

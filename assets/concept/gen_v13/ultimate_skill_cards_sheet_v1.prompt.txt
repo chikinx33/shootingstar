@@ -1,0 +1,26 @@
+Mode: built-in image_gen
+References: skill_cards_a_raw.png; menu_icons_raw.png
+
+Use case: style-transfer.
+Create ONE new ultimate skill illustration sprite sheet, using both attached reference images as style references, not as images to reproduce verbatim.
+Image 1: preserve the cat-paw weapon identity, chunky rounded object forms and dynamic skill illustration language.
+Image 2: preserve the same thick uniform dark navy outlines, cute rounded silhouettes, bright saturated cel shading and soft glossy highlights.
+Canvas: landscape 4:3 aspect ratio, strict invisible 4 columns by 3 rows of equal square cells. Exactly TEN illustrations, with row 3 column 3 and row 3 column 4 COMPLETELY EMPTY PURE WHITE. Perfectly flat pure white #FFFFFF background. Wide empty white gutters. Each scene centered within its own cell with generous margins; glow and particles confined to its cell. No borders, grid lines, text, letters, numbers, labels, card frames or watermark.
+Style: exactly match the supplied cute casual cat guardian shooter game references. Small dynamic scene-like object illustrations, not flat symbols. Chunky rounded shapes, thick consistent dark navy outlines, saturated cel-shaded orange/gold/red/cyan colors, soft highlights, strong concentrated glow and energy. More epic and dramatic than normal skill art while remaining readable at 90 pixels; simple clear silhouettes.
+Exact cell order left to right:
+ROW 1:
+1. Thunder cloud whiskers: an angry storm cloud with cat ears and whiskers dropping exactly five distinct lightning bolts.
+2. Cat carpet bombing: exactly six glowing paw-print bombs arranged in a row, falling from the sky, with explosions below.
+3. Giant cat punch: a huge golden cat paw slamming downward with a powerful circular shockwave.
+4. Red dot satellite: a cute satellite with cat ears firing a giant red dot laser beam downward.
+ROW 2:
+5. Twin rotating turret: exactly two orange cat-eared gun turrets spinning and firing outward in all directions.
+6. King yarn pinball: a giant glowing yarn ball bouncing off pinball bumpers with stars and clear bounce motion.
+7. Typhoon crescent: exactly three giant spinning crescent claw blades within a whirlwind.
+8. Yarn great storm: a huge rolling yarn ball leaving a trail of explosions.
+ROW 3:
+9. Thruster booster: a small rocket booster with cyan flames and speed lines.
+10. Emergency repair: a white first-aid kit with a paw-cross emblem and green healing sparkles.
+11. Completely empty white cell.
+12. Completely empty white cell.
+Do not fill the two empty cells with anything. Keep subjects fully inside their own equal cells.

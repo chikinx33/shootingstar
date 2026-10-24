@@ -1,18 +1,9 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/content.dart';
-import 'package:shootingstar/data/profile.dart';
-import 'package:shootingstar/data/cloud_sync.dart';
-import 'package:shootingstar/data/online_api.dart';
 import 'package:shootingstar/game/engine.dart';
 import 'package:shootingstar/game/seeded_random.dart';
-import 'package:shootingstar/ui/battle.dart';
-import 'package:shootingstar/ui/home.dart';
-
-import 'ui_actions.dart';
 
 GameEngine arena({
   int world = 0,
@@ -38,21 +29,8 @@ void advance(GameEngine game, int frames) {
   }
 }
 
-class NoNetwork extends OnlineApi {
-  int calls = 0;
-  @override
-  Future<Map<String, dynamic>> post(
-    String path, [
-    Map<String, dynamic> data = const {},
-  ]) async {
-    calls++;
-    throw StateError('Checkpoint must not sync');
-  }
-}
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  setUp(() => SharedPreferences.setMockInitialValues({}));
   test('portable RNG resumes after mixed calls', () {
     final r = CombatRandom(24);
     for (var i = 0; i < 101; i++) {
@@ -257,157 +235,4 @@ void main() {
     huge['enemies'] = List.filled(261, 0);
     expect(() => BattleCheckpoint.restore(huge), throwsFormatException);
   });
-  test('local restart restores same run, cloud export excludes state, payout retires it atomically', () async {
-    var p = await Profile.load();
-    final a = arena()
-      ..elapsed = 40
-      ..kills = 20;
-    expect(await p.checkpointBattle('persistent-run', a), true);
-    expect(p.exportProgress().containsKey('_battle'), false);
-    p.dispose();
-    p = await Profile.load();
-    final resume = p.restoreBattle()!;
-    expect(resume.runId, 'persistent-run');
-    expect(resume.game.elapsed, 40);
-    expect(resume.game.paused, true);
-    expect(resume.game.input, Offset.zero);
-    final before = p.credits;
-    p.completeRun(
-      runId: resume.runId,
-      victory: false,
-      stageIndex: 0,
-      kills: 20,
-      level: 2,
-      seconds: 40,
-      training: false,
-    );
-    await p.save();
-    expect(p.hasSuspendedBattle, false);
-    expect(p.credits, greaterThan(before));
-    final paid = p.credits;
-    p.dispose();
-    p = await Profile.load();
-    expect(p.hasSuspendedBattle, false);
-    p.completeRun(
-      runId: 'persistent-run',
-      victory: false,
-      stageIndex: 0,
-      kills: 20,
-      level: 2,
-      seconds: 40,
-      training: false,
-    );
-    expect(p.credits, paid);
-    p.dispose();
-  });
-  test('cloud replacement, different owner, expired daily and corrupt record cannot restore', () async {
-    var p = await Profile.load();
-    await p.checkpointBattle('one', arena());
-    await p.replaceProgress(Profile.freshProgress());
-    expect(p.hasSuspendedBattle, false);
-    await p.checkpointBattle('two', arena());
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('online.bound', 'another-account');
-    expect(p.restoreBattle(), null);
-    expect(p.battleSaveNotice, isNotNull);
-    await prefs.setString('online.bound', '');
-    p.refreshContentClock(DateTime.now());
-    final entry = p.dailyChallenge.begin(0)!;
-    final daily = GameEngine(
-      stageIndex: 0,
-      shipIndex: 0,
-      attackLevel: 0,
-      hullLevel: 0,
-      magnetLevel: 0,
-      equipmentIndex: 0,
-      dailyEntry: entry,
-    );
-    await p.checkpointBattle('daily', daily);
-    p.dailyChallenge.advance(
-      DateTime.now().toUtc().add(const Duration(days: 1)),
-    );
-    expect(p.restoreBattle(), null);
-    await p.checkpointBattle('corrupt', arena());
-    await p.save();
-    final raw = jsonDecode(
-      prefs.getString(Profile.storageKey)!,
-    ) as Map<String, dynamic>;
-    (raw['_battle'] as Map)['checksum'] = 0;
-    await prefs.setString(Profile.storageKey, jsonEncode(raw));
-    p.dispose();
-    p = await Profile.load();
-    expect(p.hasSuspendedBattle, false);
-    expect(p.credits, 150);
-    p.dispose();
-  });
-  test(
-    'pending battle blocks background cloud replacement; rehearsal never saves',
-    () async {
-      final p = await Profile.load(), api = NoNetwork();
-      final cloud = CloudSync(p, api: api)
-        ..account = {'id': 'a'}
-        ..boundId = 'a'
-        ..ready = true;
-      await p.checkpointBattle('one', arena());
-      await cloud.sync();
-      expect(api.calls, 0);
-      expect(
-        await Profile.presentationCopy(p).checkpointBattle('demo', arena()),
-        false,
-      );
-      expect(
-        await Profile.developerCopy(p).checkpointBattle('dev', arena()),
-        false,
-      );
-      cloud.dispose();
-      p.dispose();
-    },
-  );
-  for (final width in [320.0, 360.0, 390.0, 430.0]) {
-    for (final scale in [1.0, 1.3]) {
-      testWidgets('resume and save return reachable at $width/$scale', (
-        tester,
-      ) async {
-        tester.view.physicalSize = Size(width, 568);
-        tester.view.devicePixelRatio = 1;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
-        final p = await Profile.load()
-          ..onboarded = true
-          ..reducedEffects = true
-          ..soundEnabled = false;
-        await p.checkpointBattle(
-          'ui-run',
-          arena()
-            ..elapsed = 35
-            ..kills = 10,
-        );
-        await tester.pumpWidget(
-          MaterialApp(
-            theme: ThemeData.dark(),
-            builder: (c, child) => MediaQuery(
-              data: MediaQuery.of(c)
-                  .copyWith(textScaler: TextScaler.linear(scale)),
-              child: child!,
-            ),
-            home: HomeScreen(profile: p),
-          ),
-        );
-        await tester.pumpAndSettle();
-        await tapUi(tester, find.byKey(const Key('launch')));
-        await tapUi(tester, find.bySemanticsLabel('이전 전투 이어하기').last);
-        await tester.pump(const Duration(milliseconds: 500));
-        expect(find.text('일시정지'), findsOneWidget);
-        await tapUi(tester, find.byKey(const Key('save-battle-return')));
-        await tester.pumpAndSettle();
-        expect(find.byType(BattleScreen), findsNothing);
-        expect(p.restoreBattle()!.runId, 'ui-run');
-        expect(p.credits, 150);
-        expect(p.runs, 0);
-        expect(tester.takeException(), isNull);
-        await tester.pumpWidget(const SizedBox());
-        p.dispose();
-      });
-    }
-  }
 }

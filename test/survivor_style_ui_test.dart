@@ -66,7 +66,8 @@ void main() {
         expect(cards[2].right, lessThanOrEqualTo(size.width));
         expect(tester.takeException(), isNull);
         await tester.tap(find.byKey(const Key('upgrade-missile')));
-        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 2100));
         expect(game.upgrades['missile'], 1);
         expect(game.choices, isEmpty);
         await tester.pump(const Duration(milliseconds: 32));

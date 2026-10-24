@@ -185,7 +185,9 @@ void main() {
       expect(g.position, position);
       final choice = g.choices.first.id;
       await tester.tap(find.byKey(Key('upgrade-$choice')));
-      await tester.pump(const Duration(milliseconds: 300));
+      // v12.7: the choice commits when its card celebration ends.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 2100));
       expect(g.choices, isEmpty);
       expect(g.input, Offset.zero);
       final next = await tester.startGesture(const Offset(100, 650));

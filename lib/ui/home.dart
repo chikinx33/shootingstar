@@ -10,7 +10,6 @@ import '../art/refit_art.dart';
 import '../art/flight_scene_art.dart';
 import '../art/raster_assets.dart';
 import '../data/profile.dart';
-import '../data/content.dart';
 import 'components.dart';
 import 'arcade_home_widgets.dart';
 import 'fixed_lobby.dart';
@@ -60,16 +59,6 @@ class _HomeScreenState extends State<HomeScreen> {
         await Navigator.of(
           context,
         ).push(MaterialPageRoute<void>(builder: (_) => const PrologueScreen()));
-      });
-    }
-    if (p.battleSaveNotice != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || p.battleSaveNotice == null) return;
-        final notice = p.battleSaveNotice!;
-        p.battleSaveNotice = null;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr(notice), textAlign: TextAlign.center)),
-        );
       });
     }
   }
@@ -135,89 +124,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _launching = true;
     if (p.online != null) p.online!.inBattle = true;
     try {
-      SuspendedSortie? resume;
-      if (p.hasSuspendedBattle && !p.developerMode) {
-        final pending = p.restoreBattle();
-        if (pending != null) {
-          final decision = await showDialog<String>(
-            context: context,
-            builder: (c) => GameDialog(
-              title: '진행 중인 출격',
-              child: GamePages(
-                children: [
-                  Text(
-                    message("{0} · Lv.{1} · {2}초", [
-                      stages[pending.game.stageIndex].name,
-                      pending.game.level,
-                      pending.game.elapsed.floor(),
-                    ]),
-
-                    textAlign: TextAlign.center,
-                  ),
-                  Text(
-                    tr('기체·무장·적탄과 성장 선택을 저장했습니다. 종료 중에는 전투 시간이 흐르지 않습니다.'),
-
-                    textAlign: TextAlign.center,
-                  ),
-                  GameActionButton(
-                    label: '이전 전투 이어하기',
-                    primary: true,
-                    icon: Icons.play_arrow,
-                    onPressed: audible(() => Navigator.pop(c, 'resume')),
-                  ),
-                  GameActionButton(
-                    label: '이전 전투 포기',
-                    onPressed: audible(() => Navigator.pop(c, 'discard')),
-                  ),
-                ],
-              ),
-            ),
-          );
-          if (!mounted || decision == null) return;
-          if (decision == 'resume') {
-            resume = pending;
-            training = false;
-            challenge = pending.game.challenge;
-            dailyEntry = pending.game.dailyEntry;
-          } else {
-            final discard = await showDialog<bool>(
-              context: context,
-              builder: (c) => GameDialog(
-                title: '출격을 포기할까요?',
-                child: GamePages(
-                  children: [
-                    Text(
-                      tr('저장된 전투와 미정산 보상이 사라집니다. 영구 성장과 재화는 유지됩니다.'),
-                      textAlign: TextAlign.center,
-                    ),
-                    GameActionButton(
-                      label: '포기하고 새로 출격',
-                      onPressed: audible(() => Navigator.pop(c, true)),
-                    ),
-                    GameActionButton(
-                      label: '이전 전투 유지',
-                      primary: true,
-                      onPressed: audible(() => Navigator.pop(c, false)),
-                    ),
-                  ],
-                ),
-              ),
-            );
-            if (!mounted || discard != true) return;
-            await p.discardBattle();
-          }
-        } else if (mounted && p.battleSaveNotice != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                tr(p.battleSaveNotice!),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
-        }
-      }
-      if (!mounted) return;
       if (!p.onboarded) {
         await showGuide(context, p.finishOnboarding);
         if (!mounted) return;
@@ -240,7 +146,6 @@ class _HomeScreenState extends State<HomeScreen> {
             training: training,
             challenge: challenge,
             dailyEntry: dailyEntry,
-            resume: resume,
           ),
         ),
       );

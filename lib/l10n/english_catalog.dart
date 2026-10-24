@@ -899,7 +899,6 @@ const englishCatalog = <String, String>{
   "능력 버튼 위치": "Ability button position",
   "닉네임": "Nickname",
   "닉네임은 1~16자로 입력하세요.": "Nickname must be 1–16 characters.",
-  "다른 기기에서 동시에 진행했다면 두 저장을 비교해 사용할 쪽을 고르세요. 복구 코드는 계정을 만들거나 복구할 때 별도로 보관하세요. 앱·브라우저 데이터를 지우면 기기의 백업과 중단 전투도 사라집니다.": "If you played on another device, compare both saves and choose one. Keep your recovery code separately. Clearing app/browser data also removes device backups and suspended battles.",
   "다른 기기의 진행과 충돌했습니다. 두 진행을 비교하고 사용할 쪽을 고르세요.": "Progress conflicts with another device. Compare both saves and choose one.",
   "다른 기기의 진행과 충돌했습니다. 저장할 진행을 선택하세요.":
       "Progress conflicts with another device. Choose which save to keep.",
@@ -1104,7 +1103,6 @@ const englishCatalog = <String, String>{
   "백업 파일은 512 KB 이하여야 합니다.": "Backup files must be 512 KB or smaller.",
   "백업 파일을 읽지 못했습니다.": "Could not read the backup file.",
   "백업 형식이 올바르지 않습니다.": "Invalid backup format.",
-  "백업에는 영구 진행만 담습니다. 계정 인증·후원 소유권·중단 전투·최근 출격 기록은 포함하지 않습니다.": "Backups contain permanent progress only. Account credentials, supporter ownership, suspended battles and recent flight records are excluded.",
   "백업은 암호화되지 않은 게임 데이터입니다. 공유하면 진행 수치가 노출될 수 있으므로 개인 보관 장소에 저장하세요.": "Backups are unencrypted game data. Sharing exposes progress values. Keep them in private storage.",
   "버전·저장 상태·항로와 출격 횟수만 복사합니다. 닉네임·비밀번호·토큰·장비 목록은 포함하지 않으며 자동 전송하지 않습니다.": "Copies only version, save status, route and run counts. Nicknames, passwords, tokens and gear lists are excluded. Nothing is sent automatically.",
   "벡터": "Vector",
@@ -1592,13 +1590,8 @@ const englishCatalog = <String, String>{
   "이번 성장 선택과 교체 1회를 사용합니다. 고른 보조의 모든 단계가 사라집니다.": "Uses this growth choice and one swap. All tiers of the selected support are lost.",
   "이번 출격과 영구 성장은 다릅니다": "Run upgrades and permanent growth differ",
   "이번 출격의 최종 기록": "Final run record",
-  "이어하기": "Resume",
   "이온 낙뢰": "Ion lightning",
   "이전": "Previous",
-  "이전 전투 유지": "Keep previous battle",
-  "이전 전투 이어하기": "Resume previous battle",
-  "이전 전투 포기": "Abandon previous battle",
-  "이전 전투는 계정·항로·도전 날짜가 바뀌었거나 저장이 손상되어 이어갈 수 없습니다. 영구 진행은 유지됩니다.": "Cannot resume: account, route or challenge date changed, or the save is damaged. Permanent progress is kept.",
   "이전 전투를 복원했습니다. 계속 비행을 누르면 재개합니다.":
       "Previous battle restored. Press Keep flying to resume.",
   "이전 페이지": "Previous page",
@@ -1633,7 +1626,6 @@ const englishCatalog = <String, String>{
   "자광 창기사": "Violet lancer",
   "자기장 귀환진": "Magnetic return array",
   "자동 순찰": "Auto patrol",
-  "자동 저장 · 전투 이어하기 지원": "Auto save · Battle resume supported",
   "자동 추적 AI": "Auto-tracking AI",
   "자석": "Magnet",
   "자석 · 전장 경험치 회수": "Magnet · Collect battlefield XP",
@@ -1714,7 +1706,6 @@ const englishCatalog = <String, String>{
   "저장 후 로비": "Save & lobby",
   "저장·복구 도움말": "Save & recovery help",
   "저장된 기체 또는 무장 정보가 올바르지 않습니다.": "Invalid saved ship or weapon data.",
-  "저장된 전투 이어하기": "Resume saved battle",
   "저장된 전투와 미정산 보상이 사라집니다. 영구 성장과 재화는 유지됩니다.": "The saved battle and unsettled rewards will be lost. Permanent growth and resources are kept.",
   "저장소를 사용할 수 없습니다. 이번 진행은 앱을 종료하면 사라집니다.": "Storage unavailable. This session's progress will be lost when the app closes.",
   "저장에 실패했을 때": "If saving fails",
@@ -1769,7 +1760,6 @@ const englishCatalog = <String, String>{
   "전투 영역": "Battlefield",
   "전투 저장 실패 · 앱을 닫기 전에 다시 저장해 주세요.":
       "Battle save failed · Save again before closing the app.",
-  "전투 저장 실패 · 일시정지에서 다시 저장하세요": "Battle save failed · Try again from Pause",
   "전투 정보": "Battle info",
   "전투 정보 닫기": "Close battle info",
   "전투 중 무기 5단계와 대응 보조 스킬 또는 합성 쌍을 준비하세요. 독립 주포와 R·P·N 보급은 현장에서 회수합니다.": "Prepare a tier-5 weapon with its matching support or fusion pair. Collect main-gun R/P/N supplies on the battlefield.",
@@ -1882,10 +1872,8 @@ const englishCatalog = <String, String>{
   "준비": "Ready",
   "중단 출격 보관 · 이어하기/정산 후 동기화":
       "Suspended run kept · Resume or settle before sync",
-  "중단한 전투 이어하기": "Resume suspended battle",
   "중단한 전투를 먼저 이어서 정산하거나 포기한 뒤 복원하세요.":
       "Resume and settle or abandon the suspended battle before restoring.",
-  "중단한 출격을 먼저 이어서 정산하거나 포기한 뒤 계정을 바꿔 주세요.": "Resume and settle or abandon the suspended run before changing accounts.",
   "중단한 출격을 먼저 이어서 정산하거나 포기한 뒤 로그아웃해 주세요.":
       "Resume and settle or abandon the suspended run before signing out.",
   "중량 위성진": "Heavy satellite array",
@@ -1937,7 +1925,6 @@ const englishCatalog = <String, String>{
   "진행 중": "In progress",
   "진행 중인 작업이 끝난 뒤 다시 시도하세요.":
       "Wait for the current operation to finish, then retry.",
-  "진행 중인 출격": "Current run",
   "진행과 기록에 영향을 주지 않습니다.": "Does not affect progress or records.",
   "진행은 그대로 유지됩니다.": "Progress is kept.",
   "진화": "Evolve",
@@ -2039,7 +2026,6 @@ const englishCatalog = <String, String>{
   "출격 준비 중": "Preparing flight",
   "출격 중": "In flight",
   "출격 중 R 연사 · P 출력·굵기 · N 발사 수 획득\n주포는 성장 선택의 6개 무기 슬롯을 사용하지 않습니다.": "Collect R fire rate · P power/width · N shots during runs\nThe main gun uses none of the 6 weapon skill slots.",
-  "출격 중 자동 저장되며 일시정지에서 저장 후 로비로 나갈 수 있습니다. 같은 기기·같은 브라우저의 이어하기로 복원하세요. 닫혀 있던 시간은 흐르지 않습니다.": "Runs save automatically. Use Pause → Save & lobby to leave. Resume in the same app/browser on the same device. Combat time does not pass while closed.",
   "출격 츄르 단계당 +8%": "Run churu +8% per tier",
   "출격 펫: {0}": "Active pet: {0}",
   "출격 펫과 보조 펫 배치가 올바르지 않습니다.": "Invalid active/support pet assignment.",
@@ -2266,7 +2252,6 @@ const englishCatalog = <String, String>{
   "현재 기기의 진행으로 계정을 만듭니다.": "Creates an account with this device's progress.",
   "현재 비밀번호": "Current password",
   "현재 빌드": "Current build",
-  "현재 저장 오류가 없습니다. 오류가 나타나면 앱을 닫기 전에 저장 공간을 확인하고 저장 후 로비를 다시 시도하세요.": "No current save error. If one appears, check storage space before closing the app, then try Save & lobby again.",
   "현재 진행으로 계정 만들기": "Create account with current progress",
   "현재 진행을 안전하게 보관하지 못해 복원을 중단했습니다.":
       "Could not safely back up current progress. Restore canceled.",
@@ -2338,7 +2323,6 @@ const englishCatalog = <String, String>{
   "후원 외형·선택형 보상 안내": "Supporter skins & optional rewards",
   "후원 외형과 선택형 광고를 준비하고 있습니다.":
       "Supporter skins and optional ads are being prepared.",
-  "후원 외형은 계정의 구매 복원으로 확인합니다. 중단 전투는 같은 기기의 이어하기로 복구하세요. 앱 데이터를 지우면 기기에 보관한 복원 전 진행도 지워집니다.": "Restore supporter ownership through your account's purchase restore. Resume suspended battles on the same device. Clearing app data also removes pre-restore progress stored on this device.",
   "훈련": "Training",
   "훈련 완료 · 실전에서 항로를 정복하세요": "Training complete · Conquer real routes",
   "훈련 종료 · 계속 움직이며 포위를 벗어나세요":
@@ -2993,8 +2977,6 @@ const englishCatalog = <String, String>{
   "보스 {0}/{1} · 진행 {2}": "Bosses {0}/{1} · Progress {2}",
   "시즌 {0} XP": "Season {0} XP",
   "희귀 테크 선택 해금 · 성장 → 테크": "Rare tech pick unlocked · Growth → Tech",
-  "이전 전투를 복원했습니다.": "Previous battle restored.",
-  "저장·로비": "Save & lobby",
   "도전 중단": "Quit challenge",
   // v12.4.3 one-page control, pet bond and precision growth screens.
   "정밀 성장 안내": "Precision growth guide",
@@ -3020,4 +3002,10 @@ const englishCatalog = <String, String>{
   "먹이 10 선물": "Gift 10 food",
   "각성 {0}단계 · {1} 츄르": "Awaken tier {0} · {1} Churu",
   "각성 되돌리기": "Undo awakening",
+  "출격과 저장": "Sorties and saving",
+  "출격은 한 판으로 끝납니다. 전투를 마치거나 귀환하면 보상이 정산되고 진행이 자동 저장됩니다.": "A sortie is played in one go. Finishing or returning settles rewards and saves progress automatically.",
+  "자동 저장": "Auto save",
+  "백업에는 영구 진행만 담습니다. 계정 인증·후원 소유권·최근 출격 기록은 포함하지 않습니다.": "Backups hold permanent progress only. Account sign-in, supporter ownership and recent flight records are not included.",
+  "후원 외형은 계정의 구매 복원으로 확인합니다. 앱 데이터를 지우면 기기에 보관한 복원 전 진행도 지워집니다.": "Supporter cosmetics are confirmed by restoring purchases on your account. Clearing app data also removes the pre-restore progress kept on this device.",
+  "{0}\n{1}단계": "{0}\nTier {1}",
 };

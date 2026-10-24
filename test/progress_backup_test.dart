@@ -8,7 +8,6 @@ import 'package:shared_preferences_platform_interface/shared_preferences_platfor
 import 'package:shootingstar/data/cloud_sync.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/data/progress_backup.dart';
-import 'package:shootingstar/game/engine.dart';
 import 'package:shootingstar/ui/components.dart';
 import 'package:shootingstar/ui/progress_backup_screen.dart';
 
@@ -64,21 +63,12 @@ void main() {
       p.dispose();
     },
   );
-  test('portable backup normalizes progress and excludes account bindings, paid rights and suspended runs', () async {
+  test('portable backup normalizes progress and excludes account bindings and paid rights', () async {
     final p = await Profile.load();
     p.credits = 654;
     p.guildToken = 'private-account-binding';
     p.guildNickname = 'private-nickname';
     p.guildReports.add({'runId': 'private-run'});
-    final game = GameEngine(
-      stageIndex: 0,
-      shipIndex: 0,
-      attackLevel: 0,
-      hullLevel: 0,
-      magnetLevel: 0,
-      equipmentIndex: 0,
-    );
-    await p.checkpointBattle('private-checkpoint', game);
     final text = await ProgressBackup.encode(p, at: DateTime.utc(2026, 10, 20));
     expect(text, isNot(contains('private-')));
     expect(text, isNot(contains('_battle')));
@@ -87,7 +77,6 @@ void main() {
     expect(backup.progress['credits'], 654);
     expect(backup.progress['verifiedAdCredits'], 0);
     expect(backup.createdAt, DateTime.utc(2026, 10, 20));
-    expect(p.hasSuspendedBattle, true);
     p.dispose();
   });
   test('corrupt, oversized, malformed, future schema, wrong game and invalid counters are rejected without mutation', () async {
@@ -145,7 +134,7 @@ void main() {
     expect(p.previousManualBackup()!['credits'], 77);
     p.dispose();
   });
-  test('signed-in, expired account, connecting, active or suspended battle and developer profiles cannot be overwritten', () async {
+  test('signed-in, expired account, connecting, active battle and developer profiles cannot be overwritten', () async {
     final p = await Profile.load(), cloud = CloudSync(await Profile.load());
     p.online = cloud;
     for (final state in [0, 1, 2, 3, 4]) {
@@ -162,22 +151,6 @@ void main() {
     cloud.busy = false;
     cloud.inBattle = false;
     p.online = null;
-    await p.checkpointBattle(
-      'pending',
-      GameEngine(
-        stageIndex: 0,
-        shipIndex: 0,
-        attackLevel: 0,
-        hullLevel: 0,
-        magnetLevel: 0,
-        equipmentIndex: 0,
-      ),
-    );
-    await expectLater(
-      p.restoreGuestBackup(Profile.freshProgress()),
-      throwsStateError,
-    );
-    expect(p.hasSuspendedBattle, true);
     final dev = Profile.developerCopy(p);
     await expectLater(
       dev.restoreGuestBackup(Profile.freshProgress()),

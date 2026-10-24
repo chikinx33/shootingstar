@@ -2,7 +2,6 @@ import '../l10n/app_language.dart';
 
 import 'audio_feedback.dart';
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -24,6 +23,7 @@ import 'ultimate_banner.dart';
 import 'lobby_cat_hero.dart';
 import '../art/ship_sprite_art.dart';
 import '../art/flight_scene_art.dart';
+import 'skill_cards.dart';
 import 'upgrade_slots.dart';
 import 'battle_statistics.dart';
 import '../art/game_art.dart';
@@ -53,10 +53,8 @@ class BattleScreen extends StatefulWidget {
     this.engineFactory,
     this.developerConfig,
     this.presentationAutoplay = false,
-    this.resume,
   });
   final Profile profile;
-  final SuspendedSortie? resume;
   final DeveloperBattleConfig? developerConfig;
   final bool training;
   final bool challenge;
@@ -91,11 +89,10 @@ class _BattleScreenState extends State<BattleScreen>
   int reward = 0;
   CampaignRewardReceipt? _campaignReceipt;
   String _runId = '';
-  double _saveElapsed = 0;
-  bool _savingBattle = false, _restored = false;
-  String _decisionStamp = '';
-  bool get _canCheckpoint =>
-      p.supportsBattleSave &&
+
+  /// Runs that count: recorded in the flight log and given settings access.
+  bool get _recordsRun =>
+      p.persistsProgress &&
       !widget.training &&
       widget.engineFactory == null &&
       !widget.presentationAutoplay;
@@ -122,16 +119,15 @@ class _BattleScreenState extends State<BattleScreen>
     WidgetsBinding.instance.addObserver(this);
     p.commerce?.addListener(_commerceChanged);
     sound = GameSound(p);
-    _newGame(restore: true);
+    _newGame();
     _artLoading = GameArt.ready && !GameArt.battleReady;
     _loadArt();
     _ticker = createTicker(_tick)..start();
   }
 
-  void _newGame({bool restore = false}) {
+  void _newGame() {
     if (p.online != null) p.online!.inBattle = true;
     _adStatus = null;
-    _restored = false;
     _runId = DateTime.now().microsecondsSinceEpoch.toString();
     // Equipped cat gear: stats for this run and its sprites on the ship.
     final gear = p.catGear.bonuses;
@@ -172,16 +168,9 @@ class _BattleScreenState extends State<BattleScreen>
           petAwakePower: p.petBond.powerBonus(p.activePet),
           petAwakeCooldown: p.petBond.cooldownReduction(p.activePet),
         );
-    if (restore && widget.resume != null) {
-      game = widget.resume!.game;
-      _runId = widget.resume!.runId;
-      _restored = true;
-    }
     game.onEvent = (event) => sound.play(event, armament: game.armament);
     game.visuals.onSound = sound.cue;
     sound.beginFlight(paused: game.paused);
-    _saveElapsed = 2;
-    _decisionStamp = '';
     _rewarded = false;
     _selectedUpgrade = null;
     reward = 0;
@@ -199,7 +188,13 @@ class _BattleScreenState extends State<BattleScreen>
   Future<void> _loadArt() async {
     await RasterAssets.load();
     try {
-      await BattleScreen.warmArt(game.stageIndex);
+      await Future.wait([
+        BattleScreen.warmArt(game.stageIndex),
+        // skill cards decode now, not when the first draft is dealt
+        if (mounted)
+          for (final asset in SkillCardArt.preload)
+            precacheImage(AssetImage(asset), context),
+      ]);
     } catch (_) {
       if (mounted) setState(() => _artError = true);
     } finally {
@@ -245,25 +240,12 @@ class _BattleScreenState extends State<BattleScreen>
         _clearInput();
       }
     }
-    if (_canCheckpoint &&
-        !game.finished &&
-        !game.paused &&
-        !_artLoading &&
-        !_artError) {
-      if (wasActive) _saveElapsed += dt.clamp(0.0, .5);
-      final stamp =
-          '${game.choices.map((c) => c.id).join(',')}/${game.rerolls}/${game.passiveReplacements}';
-      if (stamp != _decisionStamp || _saveElapsed >= 2) {
-        _decisionStamp = stamp;
-        _checkpoint();
-      }
-    }
     final needsReward = game.finished && !_rewarded;
     if (needsReward) {
       sound.pauseMusic();
       _rewarded = true;
       if (p.online != null) p.online!.inBattle = false;
-      if (_canCheckpoint) p.recordFlight(_runId, game);
+      if (_recordsRun) p.recordFlight(_runId, game);
       reward = widget.dailyEntry != null
           ? p.completeDailyChallenge(
               runId: _runId,
@@ -292,36 +274,6 @@ class _BattleScreenState extends State<BattleScreen>
       }
     }
     if (wasActive || needsReward) setState(() {});
-  }
-
-  Future<bool> _checkpoint({bool force = false}) async {
-    if (!_canCheckpoint || game.finished) return false;
-    if (_savingBattle) {
-      if (!force) return false;
-      await p.save();
-    }
-    _saveElapsed = 0;
-    _savingBattle = true;
-    try {
-      final saved = await p.checkpointBattle(_runId, game);
-      if (mounted) setState(() {});
-      return saved;
-    } finally {
-      _savingBattle = false;
-    }
-  }
-
-  Future<void> _saveAndReturn() async {
-    if (_returning) return;
-    _returning = true;
-    _pause();
-    final saved = await _checkpoint(force: true);
-    if (!mounted) return;
-    if (saved) {
-      Navigator.of(context).pop(false);
-    } else {
-      setState(() => _returning = false);
-    }
   }
 
   void _clearInput() {
@@ -370,7 +322,6 @@ class _BattleScreenState extends State<BattleScreen>
       sound.stop();
       sound.play('pause');
     });
-    _checkpoint(force: true);
   }
 
   void _resume() {
@@ -708,7 +659,6 @@ class _BattleScreenState extends State<BattleScreen>
                                         t: game.ultimateShow / 1.6,
                                       ),
                                     if (!widget.presentationAutoplay &&
-                                        !_restored &&
                                         game.moduleLoadout != null)
                                       LaunchAssembly(
                                         key: ValueKey('launch-$_runId'),
@@ -924,7 +874,6 @@ class _BattleScreenState extends State<BattleScreen>
   );
   Widget _hud() => BattleHud(
     game: game,
-    saveWarning: p.battleSaveNotice != null,
     title: widget.training
         ? '45초 훈련'
         : widget.dailyEntry?.name ?? stages[game.stageIndex].name,
@@ -953,12 +902,6 @@ class _BattleScreenState extends State<BattleScreen>
               ),
               BattleLoadoutDetails(game: game),
               const SizedBox(height: 12),
-              if (p.battleSaveNotice != null)
-                Text(
-                  tr(p.battleSaveNotice!),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.orange),
-                ),
               Text(tr(game.worldTactic), textAlign: TextAlign.center),
               Text(
                 '${_clock(game.elapsed)} / ${_clock(game.duration)}',
@@ -1111,19 +1054,13 @@ class _BattleScreenState extends State<BattleScreen>
     if (_selectedUpgrade != null || !game.choices.any((c) => c.id == id)) {
       return;
     }
-    setState(() => _selectedUpgrade = id);
-    final selectedRun = game;
-    await Future<void>.delayed(const Duration(milliseconds: 240));
-    if (!mounted || game.paused || game != selectedRun) {
-      if (mounted) setState(() => _selectedUpgrade = null);
-      return;
-    }
+    // UpgradeSlots has already played the card's choice celebration.
+    if (game.paused) return;
     setState(() {
       game.chooseUpgrade(id);
       _selectedUpgrade = null;
       _clearInput();
     });
-    _checkpoint(force: true);
     _focus.requestFocus();
   }
 
@@ -1142,7 +1079,6 @@ class _BattleScreenState extends State<BattleScreen>
 
   /// v12.4.3 (user 2026-10-25): one fixed page, short labels, no paging.
   Widget _pausePanel() {
-    final notice = p.battleSaveNotice ?? (_restored ? '이전 전투를 복원했습니다.' : null);
     return _scrim(
       Column(
         mainAxisSize: MainAxisSize.min,
@@ -1154,14 +1090,6 @@ class _BattleScreenState extends State<BattleScreen>
             style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
             textAlign: TextAlign.center,
           ),
-          if (notice != null) ...[
-            gap(6),
-            Text(
-              tr(notice),
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: muted, fontSize: GameUi.body),
-            ),
-          ],
           gap(16),
           GameActionButton(
             label: '계속 비행',
@@ -1180,7 +1108,7 @@ class _BattleScreenState extends State<BattleScreen>
                   onPressed: audible(_showStatistics),
                 ),
               ),
-              if (_canCheckpoint) ...[
+              if (_recordsRun) ...[
                 const SizedBox(width: 6),
                 Expanded(
                   child: GameActionButton(
@@ -1196,7 +1124,6 @@ class _BattleScreenState extends State<BattleScreen>
                       );
                       if (mounted) {
                         _clearInput();
-                        await _checkpoint(force: true);
                         setState(() {});
                       }
                     }),
@@ -1208,17 +1135,6 @@ class _BattleScreenState extends State<BattleScreen>
           gap(10),
           Row(
             children: [
-              if (_canCheckpoint) ...[
-                Expanded(
-                  child: GameActionButton(
-                    key: const Key('save-battle-return'),
-                    label: '저장 후 로비',
-                    displayLabel: '저장·로비',
-                    onPressed: audible(_returning ? null : _saveAndReturn),
-                  ),
-                ),
-                const SizedBox(width: 6),
-              ],
               Expanded(
                 child: GameActionButton(
                   label: widget.dailyEntry != null
@@ -1477,7 +1393,7 @@ class _BattleScreenState extends State<BattleScreen>
                 () => showCampaignRewardReceipt(context, _campaignReceipt!),
               ),
             ),
-          if (_canCheckpoint &&
+          if (_recordsRun &&
               widget.dailyEntry == null &&
               game.elapsed >= 30 &&
               game.kills >= 10 &&

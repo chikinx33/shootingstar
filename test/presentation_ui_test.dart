@@ -74,7 +74,8 @@ void main() {
         }
         expect(tester.takeException(), isNull);
         await tester.tap(find.byKey(Key('upgrade-${choiceIds.first}')));
-        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 2100));
         expect(g.choices, isEmpty);
         expect(g.mainBranch, isNotNull);
         expect(tester.takeException(), isNull);

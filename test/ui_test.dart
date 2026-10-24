@@ -83,7 +83,6 @@ void main() {
     }
 
     expect(find.text('일시정지'), findsOneWidget);
-    expect(find.byKey(const Key('save-battle-return')), findsOneWidget);
     expectCentered();
     await tester.tap(
       find.byWidgetPredicate(

@@ -340,6 +340,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('upgrade-enh|part:W3')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 2100));
       expect(g.enh('part:W3'), 1);
       await tester.pumpWidget(
         MaterialApp(

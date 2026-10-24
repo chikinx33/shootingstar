@@ -4,8 +4,10 @@ square transparent WebP icons.
 The white background is removed by flood fill from each cell's border, so
 white areas inside an outlined icon stay opaque.
 
-Run: python tools/slice_icon_sheet.py <sheet.png> <cols> <rows> <out dir>
-                                      <name> [<name> ...]   ('-' skips a cell)
+Run: python tools/slice_icon_sheet.py [--fx] <sheet.png> <cols> <rows>
+                                      <out dir> <name> [<name> ...]
+('-' skips a cell). --fx: light effects drawn on black; brightness becomes
+alpha, so the sprite glows the same over any background.
 """
 import pathlib
 import sys
@@ -51,6 +53,38 @@ def _drop_edge_slivers(im: Image.Image) -> None:
                 px[i % w, i // w] = (255, 255, 255, 0)
 
 
+def light(cell: Image.Image) -> Image.Image:
+    """Black-background glow -> straight-alpha sprite (alpha = brightest
+    channel, colour un-premultiplied)."""
+    rgb = cell.convert('RGB')
+    px = rgb.load()
+    out = Image.new('RGBA', rgb.size)
+    po = out.load()
+    w, h = rgb.size
+    for y in range(h):
+        for x in range(w):
+            r, g, b = px[x, y]
+            a = max(r, g, b)
+            if a < 10:
+                po[x, y] = (0, 0, 0, 0)
+                continue
+            po[x, y] = (min(255, r * 255 // a), min(255, g * 255 // a),
+                        min(255, b * 255 // a), a)
+    return out
+
+
+def square(im: Image.Image) -> Image.Image:
+    box = im.getchannel('A').point(lambda a: 255 if a > 8 else 0).getbbox()
+    if box is None:
+        raise ValueError('empty cell')
+    sprite = im.crop(box)
+    side = round(max(sprite.size) * (1 + 2 * MARGIN))
+    canvas = Image.new('RGBA', (side, side), (0, 0, 0, 0))
+    canvas.alpha_composite(
+        sprite, ((side - sprite.width) // 2, (side - sprite.height) // 2))
+    return canvas.resize((SIZE, SIZE), Image.LANCZOS)
+
+
 def cut(cell: Image.Image) -> Image.Image:
     im = cell.convert('RGBA')
     px = im.load()
@@ -72,22 +106,18 @@ def cut(cell: Image.Image) -> Image.Image:
             if 0 <= nx < w and 0 <= ny < h and not seen[ny * w + nx]:
                 todo.append((nx, ny))
     _drop_edge_slivers(im)
-    box = im.getchannel('A').point(lambda a: 255 if a > 8 else 0).getbbox()
-    if box is None:
-        raise ValueError('empty cell')
-    sprite = im.crop(box)
-    side = round(max(sprite.size) * (1 + 2 * MARGIN))
-    square = Image.new('RGBA', (side, side), (0, 0, 0, 0))
-    square.alpha_composite(
-        sprite, ((side - sprite.width) // 2, (side - sprite.height) // 2))
-    return square.resize((SIZE, SIZE), Image.LANCZOS)
+    return square(im)
 
 
 def main() -> None:
-    sheet = Image.open(sys.argv[1])
-    cols, rows = int(sys.argv[2]), int(sys.argv[3])
-    out = pathlib.Path(sys.argv[4])
-    names = sys.argv[5:]
+    args = sys.argv[1:]
+    fx = args[0] == '--fx'
+    if fx:
+        args = args[1:]
+    sheet = Image.open(args[0])
+    cols, rows = int(args[1]), int(args[2])
+    out = pathlib.Path(args[3])
+    names = args[4:]
     out.mkdir(parents=True, exist_ok=True)
     cw, ch = sheet.width / cols, sheet.height / rows
     for index, name in enumerate(names):
@@ -96,7 +126,8 @@ def main() -> None:
         c, r = index % cols, index // cols
         cell = sheet.crop((round(c * cw), round(r * ch),
                            round((c + 1) * cw), round((r + 1) * ch)))
-        cut(cell).save(out / f'{name}.webp', 'WEBP', quality=90,
+        sprite = square(light(cell)) if fx else cut(cell)
+        sprite.save(out / f'{name}.webp', 'WEBP', quality=90,
                        alpha_quality=100, method=6)
         print(out / f'{name}.webp')
 

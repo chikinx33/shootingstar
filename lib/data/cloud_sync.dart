@@ -73,7 +73,7 @@ class CloudSync extends ChangeNotifier {
     bool onlyIfClean = false,
   }) async {
     await _backup(boundId.isEmpty ? 'guest' : boundId);
-    if (onlyIfClean && (dirty || inBattle || profile.hasSuspendedBattle)) {
+    if (onlyIfClean && (dirty || inBattle)) {
       return false;
     }
     await profile.replaceProgress(
@@ -95,12 +95,11 @@ class CloudSync extends ChangeNotifier {
       final next = Map<String, dynamic>.from(result['account']);
       final same = boundId == next['id'];
       if (!same) await _backup(boundId.isEmpty ? 'guest' : boundId);
-      if (!same && profile.hasSuspendedBattle) await profile.discardBattle();
       account = next;
       if (result['token'] is String) await api.setToken(result['token']);
       recoveryCode = result['recoveryCode'] as String? ?? '';
       final remote = result['profile'];
-      if (same && (dirty || profile.hasSuspendedBattle)) {
+      if (same && dirty) {
         if (result['revision'] != revision) {
           conflict = result;
           status = '저장 충돌 · 진행 선택 필요';
@@ -132,9 +131,6 @@ class CloudSync extends ChangeNotifier {
   }) async {
     if (busy || inBattle) return;
     if (!ready) throw StateError('연결 확인이 끝난 뒤 다시 시도하세요.');
-    if (profile.hasSuspendedBattle) {
-      throw StateError('중단한 출격을 먼저 이어서 정산하거나 포기한 뒤 계정을 바꿔 주세요.');
-    }
     busy = true;
     notifyListeners();
     try {
@@ -167,14 +163,6 @@ class CloudSync extends ChangeNotifier {
   }
 
   Future<void> sync() async {
-    if (profile.hasSuspendedBattle && !inBattle && !busy) {
-      const message = '중단 출격 보관 · 이어하기/정산 후 동기화';
-      if (status != message) {
-        status = message;
-        notifyListeners();
-      }
-      return;
-    }
     if (!inBattle && !busy && deferredSession != null) {
       final value = deferredSession!;
       deferredSession = null;
@@ -184,8 +172,7 @@ class CloudSync extends ChangeNotifier {
     if (!signedIn ||
         busy ||
         inBattle ||
-        conflict != null ||
-        profile.hasSuspendedBattle) {
+        conflict != null) {
       return;
     }
     busy = true;
@@ -279,9 +266,6 @@ class CloudSync extends ChangeNotifier {
   }
 
   Future<void> logout({bool all = false}) async {
-    if (profile.hasSuspendedBattle) {
-      throw StateError('중단한 출격을 먼저 이어서 정산하거나 포기한 뒤 로그아웃해 주세요.');
-    }
     await sync();
     if (dirty || conflict != null || busy) {
       throw StateError('진행 저장 또는 충돌 해결 후 로그아웃해 주세요.');

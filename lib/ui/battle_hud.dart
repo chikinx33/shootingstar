@@ -22,12 +22,10 @@ class BattleHud extends StatelessWidget {
     required this.timer,
     required this.onPause,
     required this.onDetails,
-    this.saveWarning = false,
   });
   final GameEngine game;
   final String title, timer;
   final VoidCallback? onPause, onDetails;
-  final bool saveWarning;
   static const accent = Color(0xFFFFD43D);
   @override
   Widget build(BuildContext context) {
@@ -86,12 +84,10 @@ class BattleHud extends StatelessWidget {
                     style: IconButton.styleFrom(
                       minimumSize: const Size(48, 48),
                     ),
-                    icon: Icon(
-                      saveWarning ? Icons.warning_amber : Icons.info_outline,
+                    icon: const Icon(
+                      Icons.info_outline,
                       size: 26,
-                      color: saveWarning
-                          ? Colors.orange
-                          : const Color(0xFF9FCCD9),
+                      color: Color(0xFF9FCCD9),
                     ),
                   ),
                   IconButton(

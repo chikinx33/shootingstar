@@ -3,9 +3,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/aircraft_assembly.dart';
-import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/data/ship_modules.dart';
 import 'package:shootingstar/game/engine.dart';
 
@@ -17,43 +15,6 @@ void advance(GameEngine g, int frames) {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  test(
-    'create isolated current-balance boss fixtures for production web play',
-    () async {
-      final folder = Directory('.local/module-v68/browser-fixtures')
-        ..createSync(recursive: true);
-      for (final entry in {'gun_vulcan': 'W2', 'drone_wasp': 'W4'}.entries) {
-        SharedPreferences.setMockInitialValues({});
-        final p = await Profile.load();
-        final fleet = p.shipModules;
-        fleet.owned.clear();
-        fleet.loadouts.clear();
-        fleet.airframeLevels.clear();
-        for (final id in bench.weapons)
-          fleet.add(id, level: 10, id: 'review-$id');
-        fleet.loadouts[0] = {'W1': 'review-${entry.key}'};
-        fleet.airframeLevels[0] = 1;
-        p.onboarded = true;
-        final g = bench.arena(
-          entry.key,
-          entry.value,
-          10,
-          42,
-          'boss-front',
-          parts: {
-            entry.value: OwnedModulePart('review-${entry.key}', entry.key, 10),
-          },
-        );
-        g.developerInvincible = false;
-        g.position = g.boss!.position + const Offset(0, 180);
-        expect(await p.checkpointBattle('v68-boss-${entry.key}', g), isTrue);
-        final prefs = await SharedPreferences.getInstance();
-        File('${folder.path}/${entry.key}-${entry.value}.json')
-            .writeAsStringSync(prefs.getString(Profile.storageKey)!);
-        p.dispose();
-      }
-    },
-  );
   test(
     'piercing blast damages overlapping enemies once, including after resume',
     () {

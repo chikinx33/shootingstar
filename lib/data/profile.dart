@@ -29,7 +29,6 @@ import 'ship_modules.dart';
 
 part 'module_profile.dart';
 part 'developer_profile.dart';
-part 'battle_save.dart';
 
 class Profile extends ChangeNotifier with ContentSystems {
   @override
@@ -64,8 +63,6 @@ class Profile extends ChangeNotifier with ContentSystems {
     .._presentationOnly = true;
 
   bool _presentationOnly = false;
-  Map<String, dynamic>? _suspendedBattle;
-  String? battleSaveNotice;
   final List<FlightRecord> _flightRecords = [];
   List<FlightRecord> get flightHistory => List.unmodifiable(_flightRecords);
   void recordFlight(String runId, GameEngine game) {
@@ -120,8 +117,13 @@ class Profile extends ChangeNotifier with ContentSystems {
     return copy.exportProgress();
   }
 
+  /// Normal play with device storage (not developer or presentation mode):
+  /// runs are recorded and progress can be restored.
+  bool get persistsProgress =>
+      !developerMode && !_presentationOnly && _prefs != null;
+
   String? get backupRestoreBlock {
-    if (!supportsBattleSave) return '일반 진행의 저장소를 사용할 수 있어야 복원할 수 있습니다.';
+    if (!persistsProgress) return '일반 진행의 저장소를 사용할 수 있어야 복원할 수 있습니다.';
     if (online != null &&
         (!online!.ready ||
             online!.signedIn ||
@@ -131,7 +133,6 @@ class Profile extends ChangeNotifier with ContentSystems {
             online!.conflict != null)) {
       return '계정 진행을 보호하기 위해 연결·동기화를 마치고 로그아웃한 게스트 상태에서 복원하세요.';
     }
-    if (hasSuspendedBattle) return '중단한 전투를 먼저 이어서 정산하거나 포기한 뒤 복원하세요.';
     if (restoringBackup) return '진행 복원이 끝날 때까지 기다려 주세요.';
     return null;
   }
@@ -158,7 +159,7 @@ class Profile extends ChangeNotifier with ContentSystems {
     bool attemptedWrite = false;
     try {
       await _pendingSave;
-      final original = jsonEncode(_snapshot(includeBattle: true));
+      final original = jsonEncode(_snapshot(includeLocal: true));
       previous = original;
       final next = normalizeBackupProgress(progress);
       if (!await _prefs!.setString(manualBackupKey, original)) {
@@ -169,14 +170,13 @@ class Profile extends ChangeNotifier with ContentSystems {
       restoringBackup = false;
       final moved =
           backupRestoreBlock != null ||
-          original != jsonEncode(_snapshot(includeBattle: true));
+          original != jsonEncode(_snapshot(includeLocal: true));
       restoringBackup = true;
       if (moved) throw StateError('현재 진행이 바뀌었습니다. 다시 확인해 주세요.');
       attemptedWrite = true;
       if (!await _prefs.setString(storageKey, jsonEncode(next))) {
         throw StateError('기기 저장에 실패해 복원을 중단했습니다.');
       }
-      _suspendedBattle = null;
       _flightRecords.clear();
       claimedMissions.clear();
       clearedChallenges.clear();
@@ -238,7 +238,6 @@ class Profile extends ChangeNotifier with ContentSystems {
     Map<String, dynamic> value, {
     bool preserveFlightHistory = false,
   }) async {
-    _suspendedBattle = null;
     if (!preserveFlightHistory) _flightRecords.clear();
     claimedMissions.clear();
     clearedChallenges.clear();
@@ -638,9 +637,6 @@ class Profile extends ChangeNotifier with ContentSystems {
             }
           }
         }
-        if (decoded['_battle'] is Map<String, dynamic>) {
-          profile._suspendedBattle = decoded['_battle'] as Map<String, dynamic>;
-        }
         if (decoded['armamentProgressionVersion'] != 1) {
           final backupKey = '$storageKey.beforeArmamentProgression';
           if (!prefs.containsKey(backupKey)) {
@@ -668,7 +664,6 @@ class Profile extends ChangeNotifier with ContentSystems {
       profile.saveError = '저장 데이터를 읽지 못해 기본 상태로 시작합니다.';
     }
     profile.refreshContentClock(DateTime.now());
-    if (profile.hasSuspendedBattle) profile.restoreBattle();
     if (migrated) await profile.save();
     return profile;
   }
@@ -817,9 +812,8 @@ class Profile extends ChangeNotifier with ContentSystems {
     }
   }
 
-  Map<String, dynamic> _snapshot({bool includeBattle = false}) => {
-    if (includeBattle && _suspendedBattle != null) '_battle': _suspendedBattle,
-    if (includeBattle && _flightRecords.isNotEmpty)
+  Map<String, dynamic> _snapshot({bool includeLocal = false}) => {
+    if (includeLocal && _flightRecords.isNotEmpty)
       '_flights': _flightRecords.map((r) => r.toJson()).toList(),
     'version': 4,
     'campaignVersion': 1,
@@ -873,7 +867,7 @@ class Profile extends ChangeNotifier with ContentSystems {
   Future<void> save() {
     if (_presentationOnly) return Future<void>.value();
     if (developerMode) return _saveDeveloperSession();
-    final encoded = jsonEncode(_snapshot(includeBattle: true));
+    final encoded = jsonEncode(_snapshot(includeLocal: true));
     _pendingSave = _pendingSave.then((_) async {
       try {
         if (_prefs == null) {
@@ -1002,7 +996,6 @@ class Profile extends ChangeNotifier with ContentSystems {
       return 0;
     }
     refreshContentClock(DateTime.now());
-    if (_suspendedBattle?['runId'] == runId) _suspendedBattle = null;
     _processedRunIds.add(runId);
     if (_processedRunIds.length > 100) {
       _processedRunIds.remove(_processedRunIds.first);
@@ -1063,8 +1056,7 @@ class Profile extends ChangeNotifier with ContentSystems {
           _processedRunIds.contains(runId)) {
         return 0;
       }
-      if (_suspendedBattle?['runId'] == runId) _suspendedBattle = null;
-      _processedRunIds.add(runId);
+        _processedRunIds.add(runId);
       if (_processedRunIds.length > 100) {
         _processedRunIds.remove(_processedRunIds.first);
       }

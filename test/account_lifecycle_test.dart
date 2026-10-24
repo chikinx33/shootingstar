@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/data/cloud_sync.dart';
 import 'package:shootingstar/data/online_api.dart';
-import 'package:shootingstar/game/engine.dart';
 import 'package:shootingstar/ui/components.dart';
 import 'package:shootingstar/ui/storage_help_screen.dart';
 import 'package:shootingstar/ui/delete_account_screen.dart';
@@ -58,36 +57,9 @@ class DeletionUiCloud extends CloudSync {
   }
 }
 
-GameEngine arena() => GameEngine(
-  stageIndex: 0,
-  shipIndex: 0,
-  attackLevel: 0,
-  hullLevel: 0,
-  magnetLevel: 0,
-  equipmentIndex: 0,
-);
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() => SharedPreferences.setMockInitialValues({}));
-  test('pending sortie explains sync and blocks account switching/logout without a request', () async {
-    final p = await Profile.load(), api = AccountApi();
-    final c = CloudSync(p, api: api)
-      ..ready = true
-      ..account = {'id': 'one', 'username': 'qa_user'}
-      ..boundId = 'one';
-    await p.checkpointBattle('pending', arena());
-    await c.sync();
-    expect(c.status, contains('중단 출격 보관'));
-    await expectLater(
-      c.login('another', 'local-test-password'),
-      throwsStateError,
-    );
-    await expectLater(c.logout(), throwsStateError);
-    expect(api.writes, 0);
-    expect(p.hasSuspendedBattle, true);
-    c.dispose();
-    p.dispose();
-  });
   test('wrong deletion password preserves state; confirmed deletion clears local progress/backups and never uploads it', () async {
     final p = await Profile.load(), api = AccountApi();
     final prefs = await SharedPreferences.getInstance();
@@ -98,7 +70,6 @@ void main() {
       ..boundId = 'one'
       ..dirty = true;
     p.credits = 950;
-    await p.checkpointBattle('pending', arena());
     await prefs.setString('online.backup.one', 'old progress');
     await prefs.setString('online.backup.guest', 'guest progress');
     await prefs.setString(
@@ -111,7 +82,6 @@ void main() {
       throwsA(isA<OnlineError>()),
     );
     expect(p.credits, 950);
-    expect(p.hasSuspendedBattle, true);
     expect(c.signedIn, true);
     api.reject = false;
     await c.deleteAccount('local-test-password', username: 'qa_user');
@@ -119,7 +89,6 @@ void main() {
     expect(c.boundId, '');
     expect(c.dirty, false);
     expect(p.credits, 150);
-    expect(p.hasSuspendedBattle, false);
     expect(
       prefs.getKeys().where((k) => k.startsWith('online.backup.')),
       isEmpty,
@@ -128,7 +97,6 @@ void main() {
     expect(prefs.containsKey('${Profile.storageKey}.beforeCampaign'), false);
     final r = await Profile.load();
     expect(r.credits, 150);
-    expect(r.hasSuspendedBattle, false);
     r.dispose();
     c.dispose();
     p.dispose();

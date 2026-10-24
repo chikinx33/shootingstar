@@ -219,7 +219,6 @@ class CommerceController extends ChangeNotifier with WidgetsBindingObserver {
     if (!canAdvertise ||
         rewardedRun(runId) ||
         online.inBattle ||
-        profile.hasSuspendedBattle ||
         seconds < 30 ||
         kills < 10) {
       return;

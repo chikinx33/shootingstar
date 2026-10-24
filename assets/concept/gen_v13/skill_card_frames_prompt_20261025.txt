@@ -1,0 +1,18 @@
+Mode: built-in image_gen
+Reference: assets/concept/gen_v13/menu_icons_raw.png
+Output: concept sprite sheet; not integrated into the game bundle.
+
+Use case: style-transfer.
+Asset type: one sprite sheet of 6 collectible skill CARD FRAMES for a cute cat shooter mobile game.
+Input image 1 is a STYLE REFERENCE: preserve its chunky proportions, thick dark navy outlines, glossy highlights and clean colorful cel shading. Replace the menu icon subjects and layout with the requested card frames.
+Composition: strict 3 columns x 2 rows grid on a perfectly flat pure white (#FFFFFF) background, wide empty white space between every cell and generous outer margins. Exactly six complete frames, no cropping, no overlap. Order left to right on top row then left to right on bottom row.
+Geometry: every frame has the SAME portrait 3:4 rounded-rectangle card body, SAME size, parallel vertical sides, front-facing orthographic view, no perspective. All six large inner windows have identical geometry and are filled with one perfectly flat solid dark navy color. Windows are completely empty: no art, texture, stars, gradients, symbols or highlights inside. Thick dark navy outer outline, decorated border, a gem centered at the top. All embellishments stay outside the inner window.
+The frames get clearly richer and more precious from 1 to 6:
+Top left: plain gray stone frame, simple, small gray gem.
+Top middle: blue steel frame with a small blue gem.
+Top right: green emerald frame with leaf curls and small green gem.
+Bottom left: orange-red flame frame with fiery corners and a ruby.
+Bottom middle: gold royal frame with small wings and a big yellow gem, shining.
+Bottom right: legendary purple cosmic frame with stars ON THE BORDER, crystal spikes, a crown on top and a glowing violet gem, the most luxurious.
+Style: same cute chunky cel-shaded illustration as the reference; strong clean outlines, readable shapes and hard-edged highlights. Controlled glow confined to the precious border elements; background stays flat white.
+Constraints: no text, no letters, no numbers, no watermark, no additional icons or characters. Keep all six base card bodies and inner windows uniform in size; increasing ornamentation only changes the borders.

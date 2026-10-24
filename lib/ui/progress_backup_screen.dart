@@ -163,7 +163,7 @@ class _ProgressBackupScreenState extends State<ProgressBackupScreen> {
     children: const [
       GameSectionTitle('백업 보관'),
       gap8,
-      InfoText('백업에는 영구 진행만 담습니다. 계정 인증·후원 소유권·중단 전투·최근 출격 기록은 포함하지 않습니다.'),
+      InfoText('백업에는 영구 진행만 담습니다. 계정 인증·후원 소유권·최근 출격 기록은 포함하지 않습니다.'),
       gap8,
       InfoText(
         '백업은 암호화되지 않은 게임 데이터입니다. 공유하면 진행 수치가 노출될 수 있으므로 개인 보관 장소에 저장하세요.',
@@ -174,7 +174,7 @@ class _ProgressBackupScreenState extends State<ProgressBackupScreen> {
       InfoText('게스트에서만 복원합니다. 선택·내용 검증·현재 진행 비교 후 직접 승인해야 적용됩니다.'),
       gap8,
       InfoText(
-        '후원 외형은 계정의 구매 복원으로 확인합니다. 중단 전투는 같은 기기의 이어하기로 복구하세요. 앱 데이터를 지우면 기기에 보관한 복원 전 진행도 지워집니다.',
+        '후원 외형은 계정의 구매 복원으로 확인합니다. 앱 데이터를 지우면 기기에 보관한 복원 전 진행도 지워집니다.',
       ),
     ],
   );

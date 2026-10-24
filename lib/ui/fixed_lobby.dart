@@ -270,16 +270,12 @@ class FixedLobby extends StatelessWidget {
                         child: Center(
                           child: GameActionButton(
                             key: const Key('launch'),
-                            displayLabel: profile.hasSuspendedBattle
-                                ? '이어하기'
-                                : '출격',
+                            displayLabel: '출격',
                             primary: true,
                             image: 'assets/art/menu_v13/launch.webp',
                             panelColor: const Color(0xFFFFCC47),
                             onPressed: audible(onLaunch),
-                            label: profile.hasSuspendedBattle
-                                ? '저장된 전투 이어하기'
-                                : '${stages[profile.selectedStage].name} · 출격',
+                            label: '${stages[profile.selectedStage].name} · 출격',
                           ),
                         ),
                       ),

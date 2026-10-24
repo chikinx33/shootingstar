@@ -59,7 +59,8 @@ void main() {
         await tester.pump();
         expect(tester.getSize(branch).height, greaterThanOrEqualTo(88));
         await tester.tap(branch);
-        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 2100));
         await tester.tap(find.byTooltip('전투 정보'));
         await tester.pump(const Duration(milliseconds: 300));
         expect(find.text('주포 특화 · 축전 레일'), findsOneWidget);
