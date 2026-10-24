@@ -8,6 +8,8 @@ import 'prologue_screen.dart';
 
 import '../art/refit_art.dart';
 import '../art/lobby_art.dart';
+import '../art/flight_scene_art.dart';
+import '../art/raster_assets.dart';
 import '../data/profile.dart';
 import '../data/content.dart';
 import '../main.dart';
@@ -46,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     p.addListener(_refresh);
     p.online?.addListener(_refresh);
     p.commerce?.addListener(_refresh);
+    _warmBattleArt();
     // First launch: the guardian cats' story (never inside widget tests,
     // which drive the lobby directly).
     final testing = WidgetsBinding.instance.runtimeType.toString().contains(
@@ -69,6 +72,18 @@ class _HomeScreenState extends State<HomeScreen> {
           SnackBar(content: Text(tr(notice), textAlign: TextAlign.center)),
         );
       });
+    }
+  }
+
+  /// Decodes the next sortie's pictures while the player is in the lobby,
+  /// then the other worlds' grounds; launching then rarely waits.
+  Future<void> _warmBattleArt() async {
+    try {
+      await RasterAssets.load();
+      await BattleScreen.warmArt(p.selectedStage);
+      await FlightSceneArt.preloadWorlds();
+    } catch (_) {
+      // The battle screen loads (and reports) whatever is still missing.
     }
   }
 

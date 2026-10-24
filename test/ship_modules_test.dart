@@ -10,6 +10,7 @@ import 'package:shootingstar/data/aircraft_assembly.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/data/hangar_preset.dart';
 import 'package:shootingstar/game/engine.dart';
+import 'package:shootingstar/game/experience_crystals.dart';
 import 'package:shootingstar/art/module_aircraft_art.dart';
 import 'package:shootingstar/ui/module_workshop.dart';
 import 'package:shootingstar/ui/item_slots.dart';
@@ -146,7 +147,7 @@ void main() {
     expect(() => BattleCheckpoint.restore(invalid), throwsFormatException);
     g.xpNeeded = 1;
     g.xp = 1;
-    g.nextGrowthAt = 0;
+    g.crystals.add(ExperienceCrystal.at(g.position, 1));
     g.update(.02);
     expect(g.choices, isNotEmpty);
     final decision = BattleCheckpoint.restore(

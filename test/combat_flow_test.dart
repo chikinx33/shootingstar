@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/game/engine.dart';
+import 'package:shootingstar/game/experience_crystals.dart';
 import 'package:shootingstar/game/battle_painter.dart';
 import 'package:shootingstar/game/survival_skills.dart';
 import 'package:shootingstar/ui/battle.dart';
@@ -22,6 +23,7 @@ void main() {
     'skill selection gives a short contact grace period, then damage returns',
     () {
       final g = createGame()..xp = 18;
+      g.crystals.add(ExperienceCrystal.at(g.position, 1));
       g.update(.01);
       g.chooseUpgrade(g.choices.first.id);
       final hp = g.hp;
@@ -113,6 +115,7 @@ void main() {
   test('early random skill sets always include an attack option without duplicates', () {
     for (int seed = 0; seed < 80; seed++) {
       final g = createGame(seed: seed)..xp = 18;
+      g.crystals.add(ExperienceCrystal.at(g.position, 1));
       g.update(.01);
       expect(g.choices.length, 3);
       expect(g.choices.map((c) => c.id).toSet().length, 3);

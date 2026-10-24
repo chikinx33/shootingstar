@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shootingstar/game/experience_crystals.dart';
 import 'package:shootingstar/game/engine.dart';
 
 GameEngine quietArena({int world = 0}) {
@@ -31,34 +32,29 @@ GameEngine quietArena({int world = 0}) {
 }
 
 void main() {
-  test('banked XP cannot chain drafts, including after pause and resume', () {
+  test('a full gauge keeps opening drafts and survives pause and resume', () {
     final g = quietArena()..xp = 1000;
+    g.crystals.add(ExperienceCrystal.at(g.position, 1));
     g.update(.025);
     expect(g.level, 2);
     g.chooseUpgrade(g.choices.first.id);
-    expect(g.choices, isEmpty);
+    // Still a full bar: the next draft opens right after the choice.
+    expect(g.level, 3);
+    expect(g.choices, isNotEmpty);
     final saved = BattleCheckpoint.restore(
       jsonDecode(jsonEncode(g.checkpoint())),
     );
-    expect(saved.nextGrowthAt, g.nextGrowthAt);
+    expect(saved.choices.map((c) => c.id), g.choices.map((c) => c.id));
     saved.setPaused(true);
-    for (var i = 0; i < 400; i++) {
-      saved.update(.025);
-    }
-    expect(saved.level, 2);
-    saved.setPaused(false);
-    for (var i = 0; i < 310; i++) {
-      saved.update(.025);
-    }
-    expect(saved.level, 2);
-    for (var i = 0; i < 12; i++) {
+    for (var i = 0; i < 40; i++) {
       saved.update(.025);
     }
     expect(saved.level, 3);
     expect(saved.xp, greaterThan(900)); // Excess XP stays banked.
+    // Saves from before v12.5.2 still carry the retired growth clock.
     final legacy = g.checkpoint();
-    (legacy['state'] as Map).remove('nextGrowthAt');
-    expect(BattleCheckpoint.restore(legacy).nextGrowthAt, 0);
+    (legacy['state'] as Map)['nextGrowthAt'] = 42.0;
+    expect(BattleCheckpoint.restore(legacy).level, 3);
   });
 
   test(

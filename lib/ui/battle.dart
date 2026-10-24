@@ -35,6 +35,15 @@ import 'star_cannon_button.dart';
 import '../data/control_preferences.dart';
 
 class BattleScreen extends StatefulWidget {
+  /// Battle pictures for [stageIndex]: enemies, the house stage and its
+  /// world. The lobby starts this in the background, so launching usually
+  /// finds everything decoded; the battle screen awaits the same futures.
+  static Future<void> warmArt(int stageIndex) => Future.wait([
+    GameArt.loadBattle(),
+    FlightSceneArt.ensureHouse(stageIndex),
+    FlightSceneArt.ensureWorld(stages[stageIndex].worldIndex),
+  ]);
+
   const BattleScreen({
     super.key,
     required this.profile,
@@ -190,11 +199,7 @@ class _BattleScreenState extends State<BattleScreen>
   Future<void> _loadArt() async {
     await RasterAssets.load();
     try {
-      await Future.wait([
-        GameArt.loadBattle(),
-        FlightSceneArt.ensureWorld(game.worldIndex),
-        FlightSceneArt.ensureHouse(game.stageIndex),
-      ]);
+      await BattleScreen.warmArt(game.stageIndex);
     } catch (_) {
       if (mounted) setState(() => _artError = true);
     } finally {

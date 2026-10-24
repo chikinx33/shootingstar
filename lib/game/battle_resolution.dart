@@ -162,6 +162,7 @@ extension BattleResolution on GameEngine {
     if (!scene.finalBoss && scene.time >= 3.4) {
       bossResolution = null;
       _hurt = math.max(_hurt, 1);
+      _checkLevel();
     } else if (scene.finalBoss && scene.time >= BossResolution.endAt) {
       _finishVictory();
     }

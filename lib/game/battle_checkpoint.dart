@@ -181,7 +181,6 @@ extension BattleCheckpointWriter on GameEngine {
         'maxHp': maxHp,
         'xp': xp,
         'xpNeeded': xpNeeded,
-        'nextGrowthAt': nextGrowthAt,
         if (legacyArena) 'legacyArena': true,
         'combatTime': combatTime,
         'laserLife': laserLife,
@@ -502,10 +501,7 @@ abstract final class BattleCheckpoint {
     game.maxHp = _d(v['maxHp']);
     game.xp = _d(v['xp']);
     game.xpNeeded = _d(v['xpNeeded']);
-    game.nextGrowthAt = v['nextGrowthAt'] == null ? 0 : _d(v['nextGrowthAt']);
     game.legacyArena = v['legacyArena'] == true;
-    if (game.nextGrowthAt < 0)
-      throw const FormatException('Invalid growth clock');
     game.combatTime = _d(v['combatTime']);
     game.laserLife = _d(v['laserLife']);
     game._laser = _d(v['_laser']);

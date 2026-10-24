@@ -182,40 +182,30 @@ abstract final class FlightSceneArt {
   static Future<void> ensureHouse(int stageIndex) {
     final h = houseArt(stageIndex), n = neighborhoodOf(stageIndex);
     return _houseLoads[h] ??= () async {
+      // Every picture is fetched and decoded at once: one by one, each
+      // network round trip queued behind the last and launch took seconds.
+      Future<void> part(int slot, String asset, int width) async =>
+          _parts[slot] ??= await _decodeAsset(asset, width);
       try {
-        streets[n] ??= await _decodeAsset(streetMap(stageIndex), 720);
-        _parts[1] ??= await _decodeAsset(
-          'assets/art/houses_v12/part_turret.webp',
-          200,
-        );
-        _parts[2] ??= await _decodeAsset(
-          'assets/art/houses_v12/part_shield.webp',
-          200,
-        );
-        _parts[3] ??= await _decodeAsset(
-          'assets/art/houses_v12/boss_barrage.webp',
-          360,
-        );
-        _parts[4] ??= await _decodeAsset(
-          'assets/art/houses_v12/boss_duelist.webp',
-          360,
-        );
-        for (final name in growthSprites) {
-          _sprites[name] ??= await _decodeAsset(
-            'assets/art/icons_v12/$name.webp',
-            160,
-          );
-        }
-        _parts[5] ??= await _decodeAsset(
-          'assets/art/houses_v12/missile_fish.webp',
-          96,
-        );
-        _parts[6] ??= await _decodeAsset(
-          'assets/art/houses_v12/missile_spray.webp',
-          96,
-        );
-        houseImages[h] = await _decodeAsset(houseMap(stageIndex), 720);
-        clouds ??= await _decodeAsset('${worldRoot}clouds.webp', 720);
+        await Future.wait([
+          () async =>
+              streets[n] ??= await _decodeAsset(streetMap(stageIndex), 720),
+          () async =>
+              houseImages[h] = await _decodeAsset(houseMap(stageIndex), 720),
+          () async =>
+              clouds ??= await _decodeAsset('${worldRoot}clouds.webp', 720),
+          () => part(1, 'assets/art/houses_v12/part_turret.webp', 200),
+          () => part(2, 'assets/art/houses_v12/part_shield.webp', 200),
+          () => part(3, 'assets/art/houses_v12/boss_barrage.webp', 360),
+          () => part(4, 'assets/art/houses_v12/boss_duelist.webp', 360),
+          () => part(5, 'assets/art/houses_v12/missile_fish.webp', 96),
+          () => part(6, 'assets/art/houses_v12/missile_spray.webp', 96),
+          for (final name in growthSprites)
+            () async => _sprites[name] ??= await _decodeAsset(
+              'assets/art/icons_v12/$name.webp',
+              160,
+            ),
+        ].map((load) => load()));
       } catch (_) {
         _houseLoads.remove(h);
       }

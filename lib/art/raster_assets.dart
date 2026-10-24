@@ -51,9 +51,6 @@ class RasterAssets {
       } catch (_) {
         // The authored ship is optional at boot; the module art still draws.
       }
-      // World grounds stream in behind the lobby; battles wait only for
-      // their own world (see BattleScreen).
-      unawaited(FlightSceneArt.preloadWorlds());
       revision.value++;
     } catch (_) {
       _loading = null; // Allow an explicit retry after a failed network load.

@@ -371,7 +371,6 @@ class GameEngine {
       maxHp = 100,
       xp = 0,
       xpNeeded = 18;
-  double nextGrowthAt = 8;
   static double growthCost(int level) =>
       18 + level * 10 + math.pow(math.max(0, level - 8), 2) * 1.5;
   int level = 1, kills = 0;
@@ -1413,20 +1412,20 @@ class GameEngine {
     _ => '탄막이 겹치면 손을 떼어 판단하세요. 옆으로 이동하거나 방호·항성포를 활용하세요.',
   };
 
-  /// Opens the level-up cards. Called only on the frame a gem reaches the
-  /// cat (user 2026-10-24): banked XP never pops a draft by itself after the
-  /// 8-second gap, a boss scene or another draft; it waits for the next gem.
+  /// Opens the level-up cards the moment the gauge is full (user
+  /// 2026-10-25: a full bar that still asked for more gems felt broken).
+  /// Runs when a gem reaches the cat, when the magnet's gems land, when a
+  /// boss scene ends and after a choice, so a bar left full by any of those
+  /// opens the next draft at once instead of waiting for another gem.
   void _checkLevel() {
     if (xp >= xpNeeded &&
         !finished &&
         choices.isEmpty &&
         !collectingMagnet &&
-        !resolvingBoss &&
-        combatTime >= nextGrowthAt) {
+        !resolvingBoss) {
       xp -= xpNeeded;
       level++;
       xpNeeded = growthCost(level);
-      nextGrowthAt = combatTime + 8;
       _offerChoices();
       _event('level');
     }
@@ -2125,6 +2124,8 @@ class GameEngine {
     input = Offset.zero;
     // Allow a thumb to return to the battlefield after making a choice.
     _decisionGrace();
+    // Experience banked beyond this level still shows a full gauge.
+    _checkLevel();
   }
 
   void _updateSupplies(double dt) {

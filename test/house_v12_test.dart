@@ -260,27 +260,31 @@ void main() {
       },
     );
 
-    test('the draft opens only when a gem reaches the cat', () async {
+    test('a full gauge opens the draft at once, never one gem later', () async {
       final g = await safeRun();
       g
         ..xpNeeded = 10
-        ..xp = 50
-        ..nextGrowthAt = 0;
+        ..xp = 9;
       g.enemies.clear();
       g.crystals.clear();
-      for (var i = 0; i < 80; i++) {
-        g.update(.025);
-      }
-      expect(g.choices, isEmpty, reason: 'banked XP waits for a gem');
+      // The gem that fills the bar opens the draft on that frame, even in
+      // the first seconds of a run (no hidden cooldown behind a full bar).
       g.crystals.add(ExperienceCrystal.at(g.position, 1));
       g.update(.025);
       expect(g.choices, isNotEmpty);
+      expect(g.level, 2);
+      // Experience banked past the next level still shows a full bar, so
+      // the next draft follows the choice instead of waiting for a gem.
+      g.xp = g.xpNeeded + 1;
       g.chooseUpgrade(g.choices.first.id);
-      g.nextGrowthAt = 0;
+      expect(g.choices, isNotEmpty);
+      expect(g.level, 3);
+      expect(g.xp, lessThan(g.xpNeeded));
+      g.chooseUpgrade(g.choices.first.id);
       for (var i = 0; i < 80; i++) {
         g.update(.025);
       }
-      expect(g.choices, isEmpty, reason: 'no chained draft without a gem');
+      expect(g.choices, isEmpty, reason: 'a bar that is not full opens nothing');
     });
 
     test(
