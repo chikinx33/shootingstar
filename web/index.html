@@ -20,7 +20,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="Shootingstar — 잔광의 항로. 이동하고, 성장하고, 우주의 신호를 지키세요.">
-  <meta name="theme-color" content="#ff8c0c">
+  <meta name="theme-color" content="#f08a3c">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -29,16 +29,15 @@
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="assets/assets/art/lobby_v9/hero.png"/>
+  <link rel="icon" type="image/png" href="favicon.png"/>
 
   <title>Shootingstar · 잔광의 항로</title>
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <div id="art-loading" style="position:fixed;inset:0;background:#ff8c0c;color:#171a21;display:flex;flex-direction:column;align-items:center;justify-content:center;font:bold 18px sans-serif">
-    <img src="assets/assets/art/lobby_v9/hero.png" alt="슈팅스타" style="width:min(55vw,220px);max-height:36vh;object-fit:contain">
-    <p id="loading-message">출격을 준비하는 중…</p>
-    <p id="loading-version" style="position:absolute;bottom:max(12px,env(safe-area-inset-bottom));font-size:14px"><!-- build-version:start -->v12.4.3<!-- build-version:end --></p>
+  <div id="art-loading" role="img" aria-label="슈팅스타" style="position:fixed;inset:0;background:#f08a3c url(splash.webp) center/cover no-repeat;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;font:bold 18px sans-serif;text-shadow:0 2px 4px rgba(40,16,40,.8)">
+    <p id="loading-message" style="margin:0 0 max(64px,calc(env(safe-area-inset-bottom) + 52px));padding:10px 22px;border-radius:999px;background:rgba(40,20,48,.55)">출격을 준비하는 중…</p>
+    <p id="loading-version" style="position:absolute;bottom:max(12px,env(safe-area-inset-bottom));margin:0;font-size:14px"><!-- build-version:start -->v12.5.0<!-- build-version:end --></p>
   </div>
   <script>
     try {
@@ -47,7 +46,7 @@
         document.documentElement.lang = 'en';
         document.title = 'Shootingstar · Starlight Routes';
         document.getElementById('loading-message').textContent = 'Preparing for launch…';
-        document.querySelector('#art-loading img').alt = 'Shootingstar';
+        document.getElementById('art-loading').setAttribute('aria-label', 'Shootingstar');
       }
     } catch (_) { /* Device storage may be unavailable. Korean remains the default. */ }
   </script>

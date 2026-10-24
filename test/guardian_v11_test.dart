@@ -21,7 +21,7 @@ void main() {
     );
     expect(
       gear.layerAssets['wing_l'],
-      'assets/art/ship_parts/sunshine/wing_left.png',
+      'assets/art/ship_parts/sunshine/wing_left.webp',
     );
   });
 
@@ -31,7 +31,7 @@ void main() {
     gear.equipped[CatGearSlot.wings] = wing.id;
     expect(
       gear.layerAssets['wing_l'],
-      'assets/art/ship_parts/night/wing_left.png',
+      'assets/art/ship_parts/night/wing_left.webp',
     );
     expect(gear.setCounts['sunshine'], 4);
     expect(

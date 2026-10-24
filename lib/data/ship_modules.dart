@@ -339,7 +339,7 @@ const moduleParts = <ModulePart>[
 
 /// v12: the rear self-propelled gun's own sprite on the cat airframes'
 /// 'rear_gun' layer (stored upside down because that layer turns 180°).
-const mortarMountAsset = 'assets/art/icons_v12/mortar_mount.png';
+const mortarMountAsset = 'assets/art/icons_v12/mortar_mount.webp';
 
 ModulePart modulePart(String id) => moduleParts.firstWhere((p) => p.id == id);
 

@@ -2,7 +2,6 @@ import '../l10n/app_language.dart';
 
 import 'audio_feedback.dart';
 
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -94,12 +93,6 @@ class _BattleScreenState extends State<BattleScreen>
   bool _artLoading = false;
   bool _artError = false;
   String? _adStatus;
-  ui.Image? _shipImage,
-      _enemyImage,
-      _bossImage,
-      _terrainImage,
-      _petImage,
-      _cloudImage;
   Profile get p => widget.profile;
   bool get controlsLocked => blocked || game.resolvingBoss;
   bool get blocked =>
@@ -194,60 +187,19 @@ class _BattleScreenState extends State<BattleScreen>
     }
   }
 
-  Future<ui.Image?> _decodeSprite(String asset, int width) async {
-    try {
-      final bytes = await rootBundle.load(asset);
-      final codec = await ui.instantiateImageCodec(
-        bytes.buffer.asUint8List(),
-        targetWidth: width,
-      );
-      final frame = await codec.getNextFrame();
-      codec.dispose();
-      return frame.image;
-    } catch (error) {
-      debugPrint('Could not load sprite $asset: $error');
-      return null;
-    }
-  }
-
   Future<void> _loadArt() async {
     await RasterAssets.load();
-    if (GameArt.ready) {
-      try {
-        await Future.wait([
-          GameArt.loadBattle(),
-          FlightSceneArt.ensureWorld(game.worldIndex),
-          FlightSceneArt.ensureHouse(game.stageIndex),
-        ]);
-      } catch (_) {
-        if (mounted) setState(() => _artError = true);
-      } finally {
-        if (mounted) setState(() => _artLoading = false);
-      }
-      return;
+    try {
+      await Future.wait([
+        GameArt.loadBattle(),
+        FlightSceneArt.ensureWorld(game.worldIndex),
+        FlightSceneArt.ensureHouse(game.stageIndex),
+      ]);
+    } catch (_) {
+      if (mounted) setState(() => _artError = true);
+    } finally {
+      if (mounted) setState(() => _artLoading = false);
     }
-    final images = await Future.wait([
-      _decodeSprite(ships[game.shipIndex].asset, 192),
-      _decodeSprite('assets/art/survival_enemy.png', 128),
-      _decodeSprite('assets/art/survival_boss.png', 320),
-      _decodeSprite('assets/art/ruined_city_ground.png', 1024),
-      _decodeSprite('assets/art/content_pet.png', 128),
-      _decodeSprite('assets/art/cloud_layer.png', 768),
-    ]);
-    if (!mounted) {
-      for (final image in images) {
-        image?.dispose();
-      }
-      return;
-    }
-    setState(() {
-      _shipImage = images[0];
-      _enemyImage = images[1];
-      _bossImage = images[2];
-      _terrainImage = images[3];
-      _petImage = images[4];
-      _cloudImage = images[5];
-    });
   }
 
   void _tick(Duration time) {
@@ -525,12 +477,6 @@ class _BattleScreenState extends State<BattleScreen>
     p.commerce?.removeListener(_commerceChanged);
     _ticker.dispose();
     sound.dispose();
-    _shipImage?.dispose();
-    _enemyImage?.dispose();
-    _bossImage?.dispose();
-    _terrainImage?.dispose();
-    _petImage?.dispose();
-    _cloudImage?.dispose();
     _focus.dispose();
     super.dispose();
   }
@@ -714,12 +660,6 @@ class _BattleScreenState extends State<BattleScreen>
                                             child: CustomPaint(
                                               painter: BattlePainter(
                                                 game,
-                                                shipImage: _shipImage,
-                                                enemyImage: _enemyImage,
-                                                bossImage: _bossImage,
-                                                terrainImage: _terrainImage,
-                                                cloudImage: _cloudImage,
-                                                petImage: _petImage,
                                                 reducedEffects:
                                                     p.reducedEffects,
                                               ),
@@ -1335,7 +1275,7 @@ class _BattleScreenState extends State<BattleScreen>
                             children: [
                               if (win)
                                 Image.asset(
-                                  'assets/art/fx_v11/level_burst.png',
+                                  'assets/art/fx_v11/level_burst.webp',
                                   width: 96,
                                   height: 96,
                                 ),

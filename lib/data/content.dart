@@ -15,9 +15,8 @@ class ShipSpec {
     required this.health,
     required this.speed,
     required this.damage,
-    required this.asset,
   });
-  final String name, tagline, detail, asset;
+  final String name, tagline, detail;
   final Color color;
   final int unlockCost;
   final double health, speed, damage;
@@ -33,7 +32,6 @@ const ships = <ShipSpec>[
     health: 120,
     speed: 200,
     damage: 1,
-    asset: 'assets/art/survival_ship.png',
   ),
   ShipSpec(
     name: '구름 · 클라우드',
@@ -44,7 +42,6 @@ const ships = <ShipSpec>[
     health: 90,
     speed: 245,
     damage: 1.2,
-    asset: 'assets/art/shootingstar_scout.png',
   ),
   ShipSpec(
     name: '까미 · 나이트폴',
@@ -55,7 +52,6 @@ const ships = <ShipSpec>[
     health: 175,
     speed: 165,
     damage: 1.15,
-    asset: 'assets/art/shootingstar_bastion.png',
   ),
 ];
 

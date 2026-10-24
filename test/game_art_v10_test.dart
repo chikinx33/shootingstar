@@ -12,13 +12,19 @@ import 'package:shootingstar/art/raster_assets.dart';
 import 'package:shootingstar/art/toon_assets.dart';
 
 void main() {
-  test('all gameplay and UI image addresses have a separate new PNG or control glyph', () {
+  test('all gameplay and UI image addresses have a separate picture or control glyph', () {
     final game = jsonDecode(
       File('assets/art/game_v10/manifest.json').readAsStringSync(),
     ) as Map;
-    final lobby = jsonDecode(
-      File('assets/art/lobby_v9/manifest.json').readAsStringSync(),
-    ) as Map;
+    // refit_v16 replaces most v9 lobby pictures; v9 keeps the other icons.
+    final lobby = {
+      ...jsonDecode(
+        File('assets/art/lobby_v9/manifest.json').readAsStringSync(),
+      ) as Map,
+      ...jsonDecode(
+        File('assets/art/refit_v16/manifest.json').readAsStringSync(),
+      ) as Map,
+    };
     expect(game.length, 51);
     for (final group in {
       'ships': 6,

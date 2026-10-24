@@ -81,7 +81,7 @@ abstract final class GameArt {
   static Future<void> _decode(String name, Map meta) async {
     final key = 'game/$name';
     if (MenuArt.images.containsKey(key)) return;
-    final data = await rootBundle.load('$root$name.png');
+    final data = await rootBundle.load('$root$name.webp');
     final codec = await ui.instantiateImageCodec(
       data.buffer.asUint8List(),
       targetWidth: name.startsWith('boss-') ? 384 : 256,
@@ -349,20 +349,6 @@ abstract final class GameArt {
       );
       c.restore();
       return;
-    }
-    final art = FlightSceneArt.image;
-    if (art != null) {
-      final side = art.width.toDouble();
-      c.drawImageRect(
-        art,
-        Rect.fromCenter(
-          center: Offset(side / 2, art.height * .42),
-          width: side,
-          height: side,
-        ),
-        target,
-        Paint()..filterQuality = FilterQuality.low,
-      );
     }
     c.drawRect(
       target,

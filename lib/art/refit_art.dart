@@ -3,8 +3,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/scheduler.dart';
 
 import 'menu_art.dart';
 import 'flight_scene_art.dart';
@@ -20,7 +18,7 @@ abstract final class RefitArt {
     await Future.wait(
       map.entries.map((entry) async {
         final meta = entry.value as Map;
-        final bytes = await rootBundle.load('$root${entry.key}.png');
+        final bytes = await rootBundle.load('$root${entry.key}.webp');
         final codec = await ui.instantiateImageCodec(
           bytes.buffer.asUint8List(),
           targetWidth: meta['background'] == true ? 900 : 512,
@@ -46,91 +44,12 @@ abstract final class RefitArt {
   }
 }
 
-/// A paint-only lobby clock; foreground controls are retained between frames.
-class RefitBackdrop extends StatefulWidget {
-  const RefitBackdrop({
-    super.key,
-    required this.child,
-    this.launch = false,
-    this.motionEnabled = true,
-  });
+/// The lobby backdrop: the cats' living room, a still picture under fixed
+/// controls. It repaints once, when the picture finishes decoding.
+class RefitBackdrop extends StatelessWidget {
+  const RefitBackdrop({super.key, required this.child, this.launch = false});
   final Widget child;
-  final bool launch, motionEnabled;
-  @override
-  State<RefitBackdrop> createState() => _RefitBackdropState();
-}
-
-class _RefitBackdropState extends State<RefitBackdrop>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  final _clock = ValueNotifier<double>(0);
-  late final Ticker _ticker;
-  Duration? _lastTick;
-  bool _foreground = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _foreground =
-        WidgetsBinding.instance.lifecycleState == null ||
-        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
-    _ticker = createTicker(_tick);
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  void _tick(Duration elapsed) {
-    final previous = _lastTick;
-    _lastTick = elapsed;
-    if (previous == null) return;
-    // 0.35 scene seconds/second: far 1.4, middle 4.2, near 8.4 px/s.
-    // A resumed or heavily delayed frame never catches up with a large jump.
-    final dt = ((elapsed - previous).inMicroseconds / 1000000).clamp(0.0, .05);
-    _clock.value += dt * .35;
-  }
-
-  void _sync() {
-    // The v11 living room is a still picture: no clock needed under it.
-    final enabled =
-        widget.launch &&
-        FlightSceneArt.lobbyHome == null &&
-        widget.motionEnabled &&
-        _foreground &&
-        TickerMode.valuesOf(context).enabled &&
-        !MediaQuery.disableAnimationsOf(context) &&
-        (ModalRoute.isCurrentOf(context) ?? true);
-    if (enabled && !_ticker.isActive) {
-      _lastTick = null;
-      _ticker.start();
-    } else if (!enabled && _ticker.isActive) {
-      _ticker.stop();
-      _lastTick = null;
-    }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _sync();
-  }
-
-  @override
-  void didUpdateWidget(RefitBackdrop oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _sync();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    _foreground = state == AppLifecycleState.resumed;
-    _sync();
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _ticker.dispose();
-    _clock.dispose();
-    super.dispose();
-  }
+  final bool launch;
 
   @override
   Widget build(BuildContext context) => Stack(
@@ -140,33 +59,31 @@ class _RefitBackdropState extends State<RefitBackdrop>
         child: IgnorePointer(
           child: RepaintBoundary(
             child: CustomPaint(
-              key: const Key('lobby-drifting-background'),
-              painter: RefitBackdropPainter(widget.launch, clock: _clock),
+              key: const Key('lobby-background'),
+              painter: RefitBackdropPainter(launch),
             ),
           ),
         ),
       ),
-      widget.child,
+      child,
     ],
   );
 }
 
 class RefitBackdropPainter extends CustomPainter {
-  const RefitBackdropPainter(this.launch, {this.clock}) : super(repaint: clock);
+  RefitBackdropPainter(this.launch)
+    : super(repaint: FlightSceneArt.lobbyRevision);
   final bool launch;
-  final ValueListenable<double>? clock;
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
+    canvas.save();
+    canvas.clipRect(rect);
     canvas.drawRect(rect, Paint()..color = const Color(0xFF142236));
     final home = FlightSceneArt.lobbyHome;
-    if (launch && home != null) {
-      // v11: the main lobby is the cats' living room.
-      FlightSceneArt.paintCover(canvas, size, home);
-      return;
-    }
-    FlightSceneArt.paint(canvas, size, lobby: true, time: clock?.value ?? 0);
+    if (home != null) FlightSceneArt.paintCover(canvas, size, home);
     if (!launch) {
+      // Other tabs keep the room only as a faint glow behind their panels.
       canvas.drawRect(
         rect,
         Paint()
@@ -177,9 +94,9 @@ class RefitBackdropPainter extends CustomPainter {
           ).createShader(rect),
       );
     }
+    canvas.restore();
   }
 
   @override
-  bool shouldRepaint(RefitBackdropPainter old) =>
-      old.launch != launch || old.clock != clock;
+  bool shouldRepaint(RefitBackdropPainter old) => old.launch != launch;
 }

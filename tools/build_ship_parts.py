@@ -106,7 +106,8 @@ def canopy_from(base):
 def save(im, name, concept_width):
     w = max(8, round(concept_width * EXPORT))
     h = max(8, round(im.height * w / im.width))
-    im.resize((w, h), Image.LANCZOS).save(OUT / name, optimize=True)
+    im.resize((w, h), Image.LANCZOS).save(
+        OUT / name.replace('.png', '.webp'), 'WEBP', quality=90, alpha_quality=100, method=6)
     return h / w
 
 
@@ -137,14 +138,14 @@ def main():
         pad = Image.new('RGBA', (flame_w, max(fr.height for fr in flames)), (0, 0, 0, 0))
         pad.alpha_composite(f, ((flame_w - f.width) // 2, 0))
         flame_aspect = save(pad, f'flame_{i + 1}.png', 90)
-    frames = [f'assets/art/ship_parts/sunshine/flame_{i + 1}.png' for i in range(len(flames))]
+    frames = [f'assets/art/ship_parts/sunshine/flame_{i + 1}.webp' for i in range(len(flames))]
     P = 'assets/art/ship_parts/sunshine/'
 
     # Pairs: only the left piece is drawn; the right layer mirrors it
     # (mirrorOf), so the editor moves both sides together.
     cx, cy, w = fit(wing, (90, 520, 590, 870))
-    layer('wing_l', '날개', P + 'wing_left.png', cx, cy, w, save(wing, 'wing_left.png', w), 1)
-    layer('wing_r', '날개 (오른쪽)', P + 'wing_left.png', N - cx, cy, w, wing.height / wing.width, 1,
+    layer('wing_l', '날개', P + 'wing_left.webp', cx, cy, w, save(wing, 'wing_left.png', w), 1)
+    layer('wing_r', '날개 (오른쪽)', P + 'wing_left.webp', N - cx, cy, w, wing.height / wing.width, 1,
           flipX=True, mirrorOf='wing_l')
 
     # engines: split the twin housing into its left thruster + a mirror,
@@ -158,8 +159,8 @@ def main():
     ly0 = ecy - ew * engines.height / engines.width / 2 + lbox[1] * es
     lw = left.width * es
     lcx, lcy = lx0 + lw / 2, ly0 + left.height * es / 2
-    layer('engine_l', '추진기', P + 'engine_left.png', lcx, lcy, lw, save(left, 'engine_left.png', lw), 2)
-    layer('engine_r', '추진기 (오른쪽)', P + 'engine_left.png', N - lcx, lcy, lw, left.height / left.width, 2,
+    layer('engine_l', '추진기', P + 'engine_left.webp', lcx, lcy, lw, save(left, 'engine_left.png', lw), 2)
+    layer('engine_r', '추진기 (오른쪽)', P + 'engine_left.webp', N - lcx, lcy, lw, left.height / left.width, 2,
           flipX=True, mirrorOf='engine_l')
     nx, nw, ny = nozzles(left, es, lx0, ly0)[0]
     # pivot at the flame's top centre, so x/y is the nozzle mouth
@@ -170,13 +171,13 @@ def main():
     # base pod + its own nozzle flame + canopy layer
     bcx, bcy, bw = fit(base, (380, 130, 875, 1060))
     bh = bw * base.height / base.width
-    layer('base', '기본 기체', P + 'base.png', bcx, bcy, bw, save(base, 'base.png', bw), 4)
+    layer('base', '기본 기체', P + 'base.webp', bcx, bcy, bw, save(base, 'base.png', bw), 4)
     for nx, nw, ny in nozzles(base, bw / base.width, bcx - bw / 2, bcy - bh / 2, .975)[:1]:
         layer('flame_base', '기본 기체 불꽃', frames[0], nx, ny - nw * .45, nw * 1.25, flame_aspect, 3,
               pivotY=0.0, frames=frames, fps=14, attachTo='base')
     canopy, (x0, y0, x1, y1) = canopy_from(base)
     s = bw / base.width
-    layer('canopy', '조종석 유리 (고양이)', P + 'canopy.png',
+    layer('canopy', '조종석 유리 (고양이)', P + 'canopy.webp',
           bcx - bw / 2 + (x0 + x1) / 2 * s, bcy - bh / 2 + (y0 + y1) / 2 * s, (x1 - x0) * s,
           save(canopy, 'canopy.png', (x1 - x0) * s), 7, attachTo='base')
 
@@ -187,20 +188,20 @@ def main():
     ]:
         im = load(name)
         cx, cy, w = fit(im, box if box[3] else (box[0], box[1], box[2], 0), width_only=box[3] is None)
-        layer(id_, label, P + name.replace('part_', ''), cx, cy, w, save(im, name.replace('part_', ''), w), z, **extra)
+        layer(id_, label, P + name.replace('part_', '').replace('.png', '.webp'), cx, cy, w, save(im, name.replace('part_', ''), w), z, **extra)
 
     missile, gun, rear = load('part_missile.png'), load('part_winggun.png'), load('part_reargun.png')
     cx, cy, w = fit(missile, (245, 545, 380, 750))
-    layer('missile_l', '미사일', P + 'missile.png', cx, cy, w, save(missile, 'missile.png', w), 9)
-    layer('missile_r', '미사일 (오른쪽)', P + 'missile.png', N - cx, cy, w, missile.height / missile.width, 9,
+    layer('missile_l', '미사일', P + 'missile.webp', cx, cy, w, save(missile, 'missile.png', w), 9)
+    layer('missile_r', '미사일 (오른쪽)', P + 'missile.webp', N - cx, cy, w, missile.height / missile.width, 9,
           flipX=True, mirrorOf='missile_l')
     cx, cy, w = fit(gun, (95, 545, 215, 745))
-    layer('gun_l', '윙건', P + 'winggun.png', cx, cy, w, save(gun, 'winggun.png', w), 10)
-    layer('gun_r', '윙건 (오른쪽)', P + 'winggun.png', N - cx, cy, w, gun.height / gun.width, 10,
+    layer('gun_l', '윙건', P + 'winggun.webp', cx, cy, w, save(gun, 'winggun.png', w), 10)
+    layer('gun_r', '윙건 (오른쪽)', P + 'winggun.webp', N - cx, cy, w, gun.height / gun.width, 10,
           flipX=True, mirrorOf='gun_l')
     rotated = rear.rotate(180, expand=True)
     cx, cy, w = fit(rotated, (560, 845, 695, 1135))
-    layer('rear_gun', '후방 자주포', P + 'reargun.png', cx, cy, w, save(rear, 'reargun.png', w), 11, rotation=180.0)
+    layer('rear_gun', '후방 자주포', P + 'reargun.webp', cx, cy, w, save(rear, 'reargun.png', w), 11, rotation=180.0)
 
     layers.sort(key=lambda e: (e['z'], e['id']))
     data = {'revision': 1, 'ships': {'sunshine': {'label': '선샤인', 'layers': layers}}}

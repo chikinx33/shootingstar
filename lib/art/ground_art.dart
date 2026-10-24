@@ -12,7 +12,7 @@ abstract final class GroundArt {
   static final cells = <Rect>[];
   static Future<void> load() async {
     if (image != null) return;
-    final bytes = await rootBundle.load('assets/art/airframe_v51/ground.png');
+    final bytes = await rootBundle.load('assets/art/airframe_v51/ground.webp');
     final codec = await ui.instantiateImageCodec(
       bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
       targetWidth: 1024,
@@ -68,7 +68,7 @@ abstract final class GroundArt {
         MenuArt.images[name] = art;
         MenuArt.bounds[name] = const Rect.fromLTWH(0, 0, 1, 1);
       }
-      // v11: pets are the chick companions again (game_v10/pet-*.png);
+      // v11: pets are the chick companions again (game_v10/pet-*.webp);
       // the v51 support-device override is retired.
     }
     const parts = {

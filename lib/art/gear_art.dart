@@ -27,7 +27,7 @@ abstract final class GearArt {
     final loaded = <ui.Image>[], rects = <Rect>[];
     try {
       for (final name in ['basic', 'boss']) {
-        final data = await rootBundle.load('$root$name.png');
+        final data = await rootBundle.load('$root$name.webp');
         final codec = await ui.instantiateImageCodec(
           data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
           targetWidth: 1024,

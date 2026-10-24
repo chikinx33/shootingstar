@@ -1,4 +1,0 @@
-Produce a single clean game sprite of the hero fighter in image 1 for the mobile shooter Shootingstar.
-Keep exactly the same design: top-down view, nose pointing straight up, chubby SD jet with orange and yellow color blocks, blue cockpit dome, two gray wing guns with yellow muzzles, three gray engine nozzles, thick even dark navy outline, flat colors with one cel-shade step and small white highlights, lighting from top-left.
-Clean up any blur, make it perfectly bilaterally symmetric, crisp edges suitable for a game sprite.
-Output: square image, the ship centered and filling about 80 percent of the frame, fully transparent background (PNG alpha), no shadow, no ground, no text, no watermark.

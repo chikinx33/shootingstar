@@ -66,7 +66,7 @@ HouseSpec houseOf(int stageIndex) =>
 String houseMap(int stageIndex) =>
     '${houseRoot}house_${houseArt(stageIndex)}.jpg';
 String houseOwner(int stageIndex) =>
-    '${houseRoot}owner_${houseArt(stageIndex)}.png';
+    '${houseRoot}owner_${houseArt(stageIndex)}.webp';
 String streetMap(int stageIndex) => neighborhoodOf(stageIndex) == 0
     ? '${houseRoot}street.jpg'
     : '${houseRoot}street_${neighborhoodOf(stageIndex)}.jpg';

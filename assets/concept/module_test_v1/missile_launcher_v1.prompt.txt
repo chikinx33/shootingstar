@@ -1,9 +1,0 @@
-Mode: built-in image_gen
-Use case: style-transfer
-Asset type: single detachable missile launcher sprite for the vertical shooter Shootingstar.
-Input image 1: visual style reference. Preserve its thick even dark navy outline, bold saturated palette, small white highlights, simple cel shading, and compact chunky readability. Replace the spaceship subject with the requested weapon part; do not include the spaceship.
-Subject: one small gray armored rack holding exactly two red-and-white missiles side by side. Both long missile bodies are parallel, with pointed red noses pointing straight toward the top edge and yellow fins. A single connected compact weapon part.
-Composition: square canvas, strict orthographic top-down view looking straight down, no perspective and no visible side faces. Missiles are long rectangles with pointed nose silhouettes, never end-on circular shapes. Center the complete part around the exact image center, its rotation/mount pivot at image center. Part fills approximately 75 percent of image height with balanced transparent margins.
-Style: exactly the casual mobile shooter art language of reference image, Survivor.io family, thick uniform dark navy contours, flat saturated red, white, yellow, and gray, one simple cel-shade step, lighting from top-left, small white highlights, a few angular panel lines and tiny rivet dots. Readable at 40 pixels, no realistic complexity.
-Background: genuinely fully transparent PNG alpha, including all empty space around the part.
-Avoid: any visible round muzzle opening, perspective, side faces, additional weapons, spaceship body, flame, drop shadow, ground shadow, background color, checkerboard drawn into image, text, watermark.

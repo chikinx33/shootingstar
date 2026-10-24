@@ -23,7 +23,6 @@ import 'ground_art.dart';
 
 /// Shared decoded atlases. Battle exits never dispose these app-owned images.
 class RasterAssets {
-  static const root = 'assets/art/raster_v6/';
   static const grids = <String, (int, int)>{
     'enemies': (4, 3),
     'bosses': (4, 3),
@@ -39,7 +38,8 @@ class RasterAssets {
   static Future<void> load() => _loading ??= _load();
   static Future<void> _load() async {
     try {
-      await FlightSceneArt.load();
+      // The living room comes first: it is the lobby's whole background.
+      await FlightSceneArt.loadLobbyHome();
       await RefitArt.load();
       await LobbyArt.load();
       await GameArt.load();
@@ -608,7 +608,7 @@ class RasterSkillIcon extends StatelessWidget {
     if (id.startsWith('icon:')) {
       // v12 weapon growth art (mortar, ultimate forms)
       return Image.asset(
-        'assets/art/icons_v12/${id.substring(5)}.png',
+        'assets/art/icons_v12/${id.substring(5)}.webp',
         width: size,
         height: size,
         filterQuality: FilterQuality.medium,
@@ -617,7 +617,7 @@ class RasterSkillIcon extends StatelessWidget {
     if (id.startsWith('paw:')) {
       // v12 paw weapons have their own painted icons
       return Image.asset(
-        'assets/art/icons_v12/paw_${id.substring(4)}.png',
+        'assets/art/icons_v12/paw_${id.substring(4)}.webp',
         width: size,
         height: size,
         filterQuality: FilterQuality.medium,

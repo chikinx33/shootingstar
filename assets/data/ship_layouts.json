@@ -7,7 +7,7 @@
         {
           "id": "flame_l",
           "label": "추진기 불꽃",
-          "asset": "assets/art/ship_parts/sunshine/flame_1.png",
+          "asset": "assets/art/ship_parts/sunshine/flame_1.webp",
           "aspect": 1.3636,
           "x": -0.1243,
           "y": 0.374,
@@ -20,17 +20,17 @@
           "visible": true,
           "attachTo": "engine_l",
           "frames": [
-            "assets/art/ship_parts/sunshine/flame_1.png",
-            "assets/art/ship_parts/sunshine/flame_2.png",
-            "assets/art/ship_parts/sunshine/flame_3.png",
-            "assets/art/ship_parts/sunshine/flame_4.png"
+            "assets/art/ship_parts/sunshine/flame_1.webp",
+            "assets/art/ship_parts/sunshine/flame_2.webp",
+            "assets/art/ship_parts/sunshine/flame_3.webp",
+            "assets/art/ship_parts/sunshine/flame_4.webp"
           ],
           "fps": 14
         },
         {
           "id": "flame_r",
           "label": "추진기 불꽃 (오른쪽)",
-          "asset": "assets/art/ship_parts/sunshine/flame_1.png",
+          "asset": "assets/art/ship_parts/sunshine/flame_1.webp",
           "aspect": 1.3636,
           "x": 0.1243,
           "y": 0.3174,
@@ -43,17 +43,17 @@
           "visible": true,
           "mirrorOf": "flame_l",
           "frames": [
-            "assets/art/ship_parts/sunshine/flame_1.png",
-            "assets/art/ship_parts/sunshine/flame_2.png",
-            "assets/art/ship_parts/sunshine/flame_3.png",
-            "assets/art/ship_parts/sunshine/flame_4.png"
+            "assets/art/ship_parts/sunshine/flame_1.webp",
+            "assets/art/ship_parts/sunshine/flame_2.webp",
+            "assets/art/ship_parts/sunshine/flame_3.webp",
+            "assets/art/ship_parts/sunshine/flame_4.webp"
           ],
           "fps": 14
         },
         {
           "id": "wing_l",
           "label": "날개",
-          "asset": "assets/art/ship_parts/sunshine/wing_left.png",
+          "asset": "assets/art/ship_parts/sunshine/wing_left.webp",
           "aspect": 0.7313,
           "x": -0.1879,
           "y": 0.07,
@@ -68,7 +68,7 @@
         {
           "id": "wing_r",
           "label": "날개 (오른쪽)",
-          "asset": "assets/art/ship_parts/sunshine/wing_left.png",
+          "asset": "assets/art/ship_parts/sunshine/wing_left.webp",
           "aspect": 0.7296,
           "x": 0.2289,
           "y": 0.0542,
@@ -84,7 +84,7 @@
         {
           "id": "engine_l",
           "label": "추진기",
-          "asset": "assets/art/ship_parts/sunshine/engine_left.png",
+          "asset": "assets/art/ship_parts/sunshine/engine_left.webp",
           "aspect": 1.2662,
           "x": -0.1341,
           "y": 0.2737,
@@ -99,7 +99,7 @@
         {
           "id": "engine_r",
           "label": "추진기 (오른쪽)",
-          "asset": "assets/art/ship_parts/sunshine/engine_left.png",
+          "asset": "assets/art/ship_parts/sunshine/engine_left.webp",
           "aspect": 1.2687,
           "x": 0.1341,
           "y": 0.2337,
@@ -115,7 +115,7 @@
         {
           "id": "flame_base",
           "label": "기본 기체 불꽃",
-          "asset": "assets/art/ship_parts/sunshine/flame_1.png",
+          "asset": "assets/art/ship_parts/sunshine/flame_1.webp",
           "aspect": 1.3636,
           "x": 0.0004,
           "y": 0.3402,
@@ -128,17 +128,17 @@
           "visible": true,
           "attachTo": "base",
           "frames": [
-            "assets/art/ship_parts/sunshine/flame_1.png",
-            "assets/art/ship_parts/sunshine/flame_2.png",
-            "assets/art/ship_parts/sunshine/flame_3.png",
-            "assets/art/ship_parts/sunshine/flame_4.png"
+            "assets/art/ship_parts/sunshine/flame_1.webp",
+            "assets/art/ship_parts/sunshine/flame_2.webp",
+            "assets/art/ship_parts/sunshine/flame_3.webp",
+            "assets/art/ship_parts/sunshine/flame_4.webp"
           ],
           "fps": 14
         },
         {
           "id": "base",
           "label": "기본 기체",
-          "asset": "assets/art/ship_parts/sunshine/base.png",
+          "asset": "assets/art/ship_parts/sunshine/base.webp",
           "aspect": 1.8152,
           "x": 0.0004,
           "y": -0.0255,
@@ -153,7 +153,7 @@
         {
           "id": "armor",
           "label": "동체 장갑",
-          "asset": "assets/art/ship_parts/sunshine/armor.png",
+          "asset": "assets/art/ship_parts/sunshine/armor.webp",
           "aspect": 1.1967,
           "x": 0.0024,
           "y": 0.0447,
@@ -168,7 +168,7 @@
         {
           "id": "nose",
           "label": "기수 덮개",
-          "asset": "assets/art/ship_parts/sunshine/nose.png",
+          "asset": "assets/art/ship_parts/sunshine/nose.webp",
           "aspect": 0.7576,
           "x": 0.0024,
           "y": -0.2428,
@@ -183,7 +183,7 @@
         {
           "id": "canopy",
           "label": "조종석 유리 (고양이)",
-          "asset": "assets/art/ship_parts/sunshine/canopy.png",
+          "asset": "assets/art/ship_parts/sunshine/canopy.webp",
           "aspect": 1.0396,
           "x": -0.0003,
           "y": -0.0531,
@@ -199,7 +199,7 @@
         {
           "id": "shield",
           "label": "보호막 장치",
-          "asset": "assets/art/ship_parts/sunshine/shield.png",
+          "asset": "assets/art/ship_parts/sunshine/shield.webp",
           "aspect": 1.0349,
           "x": 0.0004,
           "y": 0.1439,
@@ -214,7 +214,7 @@
         {
           "id": "missile_l",
           "label": "미사일",
-          "asset": "assets/art/ship_parts/sunshine/missile.png",
+          "asset": "assets/art/ship_parts/sunshine/missile.webp",
           "aspect": 1.4699,
           "x": -0.3308,
           "y": 0.0363,
@@ -229,7 +229,7 @@
         {
           "id": "missile_r",
           "label": "미사일 (오른쪽)",
-          "asset": "assets/art/ship_parts/sunshine/missile.png",
+          "asset": "assets/art/ship_parts/sunshine/missile.webp",
           "aspect": 1.47,
           "x": 0.2508,
           "y": 0.0163,
@@ -245,7 +245,7 @@
         {
           "id": "gun_l",
           "label": "윙건",
-          "asset": "assets/art/ship_parts/sunshine/winggun.png",
+          "asset": "assets/art/ship_parts/sunshine/winggun.webp",
           "aspect": 2.0678,
           "x": -0.5164,
           "y": 0.1586,
@@ -260,7 +260,7 @@
         {
           "id": "gun_r",
           "label": "윙건 (오른쪽)",
-          "asset": "assets/art/ship_parts/sunshine/winggun.png",
+          "asset": "assets/art/ship_parts/sunshine/winggun.webp",
           "aspect": 2.0669,
           "x": 0.3764,
           "y": 0.0144,
@@ -276,7 +276,7 @@
         {
           "id": "rear_gun",
           "label": "후방 자주포",
-          "asset": "assets/art/ship_parts/sunshine/reargun.png",
+          "asset": "assets/art/ship_parts/sunshine/reargun.webp",
           "aspect": 1.8434,
           "x": 0.0004,
           "y": 0.2824,
@@ -296,7 +296,7 @@
         {
           "id": "flame_l",
           "label": "추진기 불꽃",
-          "asset": "assets/art/ship_parts/sunshine/flame_1.png",
+          "asset": "assets/art/ship_parts/sunshine/flame_1.webp",
           "aspect": 1.3636,
           "x": -0.1243,
           "y": 0.374,
@@ -309,17 +309,17 @@
           "visible": true,
           "attachTo": "engine_l",
           "frames": [
-            "assets/art/ship_parts/sunshine/flame_1.png",
-            "assets/art/ship_parts/sunshine/flame_2.png",
-            "assets/art/ship_parts/sunshine/flame_3.png",
-            "assets/art/ship_parts/sunshine/flame_4.png"
+            "assets/art/ship_parts/sunshine/flame_1.webp",
+            "assets/art/ship_parts/sunshine/flame_2.webp",
+            "assets/art/ship_parts/sunshine/flame_3.webp",
+            "assets/art/ship_parts/sunshine/flame_4.webp"
           ],
           "fps": 14
         },
         {
           "id": "flame_r",
           "label": "추진기 불꽃 (오른쪽)",
-          "asset": "assets/art/ship_parts/sunshine/flame_1.png",
+          "asset": "assets/art/ship_parts/sunshine/flame_1.webp",
           "aspect": 1.3636,
           "x": 0.1243,
           "y": 0.3174,
@@ -332,17 +332,17 @@
           "visible": true,
           "mirrorOf": "flame_l",
           "frames": [
-            "assets/art/ship_parts/sunshine/flame_1.png",
-            "assets/art/ship_parts/sunshine/flame_2.png",
-            "assets/art/ship_parts/sunshine/flame_3.png",
-            "assets/art/ship_parts/sunshine/flame_4.png"
+            "assets/art/ship_parts/sunshine/flame_1.webp",
+            "assets/art/ship_parts/sunshine/flame_2.webp",
+            "assets/art/ship_parts/sunshine/flame_3.webp",
+            "assets/art/ship_parts/sunshine/flame_4.webp"
           ],
           "fps": 14
         },
         {
           "id": "wing_l",
           "label": "날개",
-          "asset": "assets/art/ship_parts/sunshine/wing_left.png",
+          "asset": "assets/art/ship_parts/sunshine/wing_left.webp",
           "aspect": 0.7313,
           "x": -0.1879,
           "y": 0.07,
@@ -357,7 +357,7 @@
         {
           "id": "wing_r",
           "label": "날개 (오른쪽)",
-          "asset": "assets/art/ship_parts/sunshine/wing_left.png",
+          "asset": "assets/art/ship_parts/sunshine/wing_left.webp",
           "aspect": 0.7296,
           "x": 0.2289,
           "y": 0.0542,
@@ -373,7 +373,7 @@
         {
           "id": "engine_l",
           "label": "추진기",
-          "asset": "assets/art/ship_parts/sunshine/engine_left.png",
+          "asset": "assets/art/ship_parts/sunshine/engine_left.webp",
           "aspect": 1.2662,
           "x": -0.1341,
           "y": 0.2737,
@@ -388,7 +388,7 @@
         {
           "id": "engine_r",
           "label": "추진기 (오른쪽)",
-          "asset": "assets/art/ship_parts/sunshine/engine_left.png",
+          "asset": "assets/art/ship_parts/sunshine/engine_left.webp",
           "aspect": 1.2687,
           "x": 0.1341,
           "y": 0.2337,
@@ -404,7 +404,7 @@
         {
           "id": "flame_base",
           "label": "기본 기체 불꽃",
-          "asset": "assets/art/ship_parts/sunshine/flame_1.png",
+          "asset": "assets/art/ship_parts/sunshine/flame_1.webp",
           "aspect": 1.3636,
           "x": 0.0001,
           "y": 0.2632,
@@ -417,17 +417,17 @@
           "visible": true,
           "attachTo": "base",
           "frames": [
-            "assets/art/ship_parts/sunshine/flame_1.png",
-            "assets/art/ship_parts/sunshine/flame_2.png",
-            "assets/art/ship_parts/sunshine/flame_3.png",
-            "assets/art/ship_parts/sunshine/flame_4.png"
+            "assets/art/ship_parts/sunshine/flame_1.webp",
+            "assets/art/ship_parts/sunshine/flame_2.webp",
+            "assets/art/ship_parts/sunshine/flame_3.webp",
+            "assets/art/ship_parts/sunshine/flame_4.webp"
           ],
           "fps": 14
         },
         {
           "id": "base",
           "label": "기본 기체",
-          "asset": "assets/art/ship_parts/nightfall/base.png",
+          "asset": "assets/art/ship_parts/nightfall/base.webp",
           "aspect": 1.6017,
           "x": 0.0004,
           "y": -0.0255,
@@ -442,7 +442,7 @@
         {
           "id": "armor",
           "label": "동체 장갑",
-          "asset": "assets/art/ship_parts/sunshine/armor.png",
+          "asset": "assets/art/ship_parts/sunshine/armor.webp",
           "aspect": 1.1967,
           "x": 0.0024,
           "y": 0.0447,
@@ -457,7 +457,7 @@
         {
           "id": "nose",
           "label": "기수 덮개",
-          "asset": "assets/art/ship_parts/sunshine/nose.png",
+          "asset": "assets/art/ship_parts/sunshine/nose.webp",
           "aspect": 0.7576,
           "x": 0.0024,
           "y": -0.2428,
@@ -472,7 +472,7 @@
         {
           "id": "canopy",
           "label": "조종석 유리 (고양이)",
-          "asset": "assets/art/ship_parts/nightfall/canopy.png",
+          "asset": "assets/art/ship_parts/nightfall/canopy.webp",
           "aspect": 1.0039,
           "x": -0.0002,
           "y": -0.055,
@@ -488,7 +488,7 @@
         {
           "id": "shield",
           "label": "보호막 장치",
-          "asset": "assets/art/ship_parts/sunshine/shield.png",
+          "asset": "assets/art/ship_parts/sunshine/shield.webp",
           "aspect": 1.0349,
           "x": 0.0004,
           "y": 0.1439,
@@ -503,7 +503,7 @@
         {
           "id": "missile_l",
           "label": "미사일",
-          "asset": "assets/art/ship_parts/sunshine/missile.png",
+          "asset": "assets/art/ship_parts/sunshine/missile.webp",
           "aspect": 1.4699,
           "x": -0.3308,
           "y": 0.0363,
@@ -518,7 +518,7 @@
         {
           "id": "missile_r",
           "label": "미사일 (오른쪽)",
-          "asset": "assets/art/ship_parts/sunshine/missile.png",
+          "asset": "assets/art/ship_parts/sunshine/missile.webp",
           "aspect": 1.47,
           "x": 0.2508,
           "y": 0.0163,
@@ -534,7 +534,7 @@
         {
           "id": "gun_l",
           "label": "윙건",
-          "asset": "assets/art/ship_parts/sunshine/winggun.png",
+          "asset": "assets/art/ship_parts/sunshine/winggun.webp",
           "aspect": 2.0678,
           "x": -0.5164,
           "y": 0.1586,
@@ -549,7 +549,7 @@
         {
           "id": "gun_r",
           "label": "윙건 (오른쪽)",
-          "asset": "assets/art/ship_parts/sunshine/winggun.png",
+          "asset": "assets/art/ship_parts/sunshine/winggun.webp",
           "aspect": 2.0669,
           "x": 0.3764,
           "y": 0.0144,
@@ -565,7 +565,7 @@
         {
           "id": "rear_gun",
           "label": "후방 자주포",
-          "asset": "assets/art/ship_parts/sunshine/reargun.png",
+          "asset": "assets/art/ship_parts/sunshine/reargun.webp",
           "aspect": 1.8434,
           "x": 0.0004,
           "y": 0.2824,
@@ -585,7 +585,7 @@
         {
           "id": "flame_l",
           "label": "추진기 불꽃",
-          "asset": "assets/art/ship_parts/sunshine/flame_1.png",
+          "asset": "assets/art/ship_parts/sunshine/flame_1.webp",
           "aspect": 1.3636,
           "x": -0.1243,
           "y": 0.374,
@@ -598,17 +598,17 @@
           "visible": true,
           "attachTo": "engine_l",
           "frames": [
-            "assets/art/ship_parts/sunshine/flame_1.png",
-            "assets/art/ship_parts/sunshine/flame_2.png",
-            "assets/art/ship_parts/sunshine/flame_3.png",
-            "assets/art/ship_parts/sunshine/flame_4.png"
+            "assets/art/ship_parts/sunshine/flame_1.webp",
+            "assets/art/ship_parts/sunshine/flame_2.webp",
+            "assets/art/ship_parts/sunshine/flame_3.webp",
+            "assets/art/ship_parts/sunshine/flame_4.webp"
           ],
           "fps": 14
         },
         {
           "id": "flame_r",
           "label": "추진기 불꽃 (오른쪽)",
-          "asset": "assets/art/ship_parts/sunshine/flame_1.png",
+          "asset": "assets/art/ship_parts/sunshine/flame_1.webp",
           "aspect": 1.3636,
           "x": 0.1243,
           "y": 0.3174,
@@ -621,17 +621,17 @@
           "visible": true,
           "mirrorOf": "flame_l",
           "frames": [
-            "assets/art/ship_parts/sunshine/flame_1.png",
-            "assets/art/ship_parts/sunshine/flame_2.png",
-            "assets/art/ship_parts/sunshine/flame_3.png",
-            "assets/art/ship_parts/sunshine/flame_4.png"
+            "assets/art/ship_parts/sunshine/flame_1.webp",
+            "assets/art/ship_parts/sunshine/flame_2.webp",
+            "assets/art/ship_parts/sunshine/flame_3.webp",
+            "assets/art/ship_parts/sunshine/flame_4.webp"
           ],
           "fps": 14
         },
         {
           "id": "wing_l",
           "label": "날개",
-          "asset": "assets/art/ship_parts/sunshine/wing_left.png",
+          "asset": "assets/art/ship_parts/sunshine/wing_left.webp",
           "aspect": 0.7313,
           "x": -0.1879,
           "y": 0.07,
@@ -646,7 +646,7 @@
         {
           "id": "wing_r",
           "label": "날개 (오른쪽)",
-          "asset": "assets/art/ship_parts/sunshine/wing_left.png",
+          "asset": "assets/art/ship_parts/sunshine/wing_left.webp",
           "aspect": 0.7296,
           "x": 0.2289,
           "y": 0.0542,
@@ -662,7 +662,7 @@
         {
           "id": "engine_l",
           "label": "추진기",
-          "asset": "assets/art/ship_parts/sunshine/engine_left.png",
+          "asset": "assets/art/ship_parts/sunshine/engine_left.webp",
           "aspect": 1.2662,
           "x": -0.1341,
           "y": 0.2737,
@@ -677,7 +677,7 @@
         {
           "id": "engine_r",
           "label": "추진기 (오른쪽)",
-          "asset": "assets/art/ship_parts/sunshine/engine_left.png",
+          "asset": "assets/art/ship_parts/sunshine/engine_left.webp",
           "aspect": 1.2687,
           "x": 0.1341,
           "y": 0.2337,
@@ -693,7 +693,7 @@
         {
           "id": "flame_base",
           "label": "기본 기체 불꽃",
-          "asset": "assets/art/ship_parts/sunshine/flame_1.png",
+          "asset": "assets/art/ship_parts/sunshine/flame_1.webp",
           "aspect": 1.3636,
           "x": -0.0003,
           "y": 0.2649,
@@ -706,17 +706,17 @@
           "visible": true,
           "attachTo": "base",
           "frames": [
-            "assets/art/ship_parts/sunshine/flame_1.png",
-            "assets/art/ship_parts/sunshine/flame_2.png",
-            "assets/art/ship_parts/sunshine/flame_3.png",
-            "assets/art/ship_parts/sunshine/flame_4.png"
+            "assets/art/ship_parts/sunshine/flame_1.webp",
+            "assets/art/ship_parts/sunshine/flame_2.webp",
+            "assets/art/ship_parts/sunshine/flame_3.webp",
+            "assets/art/ship_parts/sunshine/flame_4.webp"
           ],
           "fps": 14
         },
         {
           "id": "base",
           "label": "기본 기체",
-          "asset": "assets/art/ship_parts/cloud/base.png",
+          "asset": "assets/art/ship_parts/cloud/base.webp",
           "aspect": 1.7912,
           "x": 0.0004,
           "y": -0.0255,
@@ -731,7 +731,7 @@
         {
           "id": "armor",
           "label": "동체 장갑",
-          "asset": "assets/art/ship_parts/sunshine/armor.png",
+          "asset": "assets/art/ship_parts/sunshine/armor.webp",
           "aspect": 1.1967,
           "x": 0.0024,
           "y": 0.0447,
@@ -746,7 +746,7 @@
         {
           "id": "nose",
           "label": "기수 덮개",
-          "asset": "assets/art/ship_parts/sunshine/nose.png",
+          "asset": "assets/art/ship_parts/sunshine/nose.webp",
           "aspect": 0.7576,
           "x": 0.0024,
           "y": -0.2428,
@@ -761,7 +761,7 @@
         {
           "id": "canopy",
           "label": "조종석 유리 (고양이)",
-          "asset": "assets/art/ship_parts/cloud/canopy.png",
+          "asset": "assets/art/ship_parts/cloud/canopy.webp",
           "aspect": 1.6296,
           "x": 0.0004,
           "y": -0.0578,
@@ -777,7 +777,7 @@
         {
           "id": "shield",
           "label": "보호막 장치",
-          "asset": "assets/art/ship_parts/sunshine/shield.png",
+          "asset": "assets/art/ship_parts/sunshine/shield.webp",
           "aspect": 1.0349,
           "x": 0.0004,
           "y": 0.1439,
@@ -792,7 +792,7 @@
         {
           "id": "missile_l",
           "label": "미사일",
-          "asset": "assets/art/ship_parts/sunshine/missile.png",
+          "asset": "assets/art/ship_parts/sunshine/missile.webp",
           "aspect": 1.4699,
           "x": -0.3308,
           "y": 0.0363,
@@ -807,7 +807,7 @@
         {
           "id": "missile_r",
           "label": "미사일 (오른쪽)",
-          "asset": "assets/art/ship_parts/sunshine/missile.png",
+          "asset": "assets/art/ship_parts/sunshine/missile.webp",
           "aspect": 1.47,
           "x": 0.2508,
           "y": 0.0163,
@@ -823,7 +823,7 @@
         {
           "id": "gun_l",
           "label": "윙건",
-          "asset": "assets/art/ship_parts/sunshine/winggun.png",
+          "asset": "assets/art/ship_parts/sunshine/winggun.webp",
           "aspect": 2.0678,
           "x": -0.5164,
           "y": 0.1586,
@@ -838,7 +838,7 @@
         {
           "id": "gun_r",
           "label": "윙건 (오른쪽)",
-          "asset": "assets/art/ship_parts/sunshine/winggun.png",
+          "asset": "assets/art/ship_parts/sunshine/winggun.webp",
           "aspect": 2.0669,
           "x": 0.3764,
           "y": 0.0144,
@@ -854,7 +854,7 @@
         {
           "id": "rear_gun",
           "label": "후방 자주포",
-          "asset": "assets/art/ship_parts/sunshine/reargun.png",
+          "asset": "assets/art/ship_parts/sunshine/reargun.webp",
           "aspect": 1.8434,
           "x": 0.0004,
           "y": 0.2824,

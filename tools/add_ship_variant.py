@@ -35,8 +35,8 @@ def main():
     width = height * base.width / base.height
     px = 768 / 1  # export resolution per canvas unit
     w_px = max(8, round(width * px))
-    base.resize((w_px, round(base.height * w_px / base.width)), Image.LANCZOS).save(out_dir / 'base.png', optimize=True)
-    by_id['base'].update(asset=f'assets/art/ship_parts/{ship_id}/base.png',
+    base.resize((w_px, round(base.height * w_px / base.width)), Image.LANCZOS).save(out_dir / 'base.webp', 'WEBP', quality=90, alpha_quality=100, method=6)
+    by_id['base'].update(asset=f'assets/art/ship_parts/{ship_id}/base.webp',
                          aspect=round(base.height / base.width, 4), width=round(width, 4))
 
     canopy, (x0, y0, x1, y1) = bsp.canopy_from(base)
@@ -45,8 +45,8 @@ def main():
     top = sun_base['y'] - height * sun_base['pivotY']
     cw = (x1 - x0) * s
     c_px = max(8, round(cw * px))
-    canopy.resize((c_px, round(canopy.height * c_px / canopy.width)), Image.LANCZOS).save(out_dir / 'canopy.png', optimize=True)
-    by_id['canopy'].update(asset=f'assets/art/ship_parts/{ship_id}/canopy.png',
+    canopy.resize((c_px, round(canopy.height * c_px / canopy.width)), Image.LANCZOS).save(out_dir / 'canopy.webp', 'WEBP', quality=90, alpha_quality=100, method=6)
+    by_id['canopy'].update(asset=f'assets/art/ship_parts/{ship_id}/canopy.webp',
                            aspect=round(canopy.height / canopy.width, 4), width=round(cw, 4),
                            x=round(left + (x0 + x1) / 2 * s, 4), y=round(top + (y0 + y1) / 2 * s, 4),
                            pivotX=.5, pivotY=.5)

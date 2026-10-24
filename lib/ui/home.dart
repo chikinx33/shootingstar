@@ -269,7 +269,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: RefitBackdrop(
                     launch: tab == 0,
-                    motionEnabled: !p.reducedEffects,
                     child: switch (tab) {
                       0 => _bridge(),
                       1 => _hangar(),

@@ -111,7 +111,7 @@ abstract final class AircraftAssemblyArt {
     final loaded = <ui.Image>[];
     try {
       for (final name in ['aurora', 'vector', 'monolith', 'modules']) {
-        final bytes = await rootBundle.load('$root$name.png');
+        final bytes = await rootBundle.load('$root$name.webp');
         final codec = await ui.instantiateImageCodec(
           bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
           targetWidth: name == 'modules' ? 1024 : 768,

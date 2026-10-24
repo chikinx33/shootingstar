@@ -8,39 +8,8 @@ import 'package:shootingstar/art/flight_scene_art.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   test(
-    'three depth planes have real alpha and continuous world-space parallax',
+    'depth planes scroll continuously in world space',
     () async {
-      await FlightSceneArt.load();
-      final real = [
-        for (final layer in FlightSceneArt.layers)
-          FlightSceneArt.imageFor(layer.depth)!,
-      ];
-      expect(real.toSet(), hasLength(3));
-      for (var i = 0; i < real.length; i++) {
-        final image = real[i];
-        final data = (await image.toByteData(
-          format: ui.ImageByteFormat.rawRgba,
-        ))!.buffer.asUint8List();
-        final center =
-            ((image.height ~/ 2) * image.width + image.width ~/ 2) * 4;
-        expect(
-          data[center + 3],
-          i == 0 ? 255 : 0,
-          reason:
-              'The sky is opaque; both scenery layers have transparent centers',
-        );
-        if (i > 0) {
-          var solid = 0;
-          for (var n = 3; n < data.length; n += 4) {
-            if (data[n] > 245) solid++;
-          }
-          expect(
-            solid,
-            greaterThan(1000),
-            reason: 'Scenery is solid art, not ghost UI sprites',
-          );
-        }
-      }
       // Deliberately asymmetric image catches parity flips hidden by symmetric art.
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder);

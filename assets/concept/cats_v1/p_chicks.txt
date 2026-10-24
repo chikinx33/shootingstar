@@ -1,7 +1,0 @@
-Character design sheet of three chick companion pets for the casual mobile shooter Shootingstar (friends of the guardian cats, hatched from star eggs). Very simple chubby round yellow chicks with tiny dot eyes and small orange beaks, each with one clear feature:
-1) fire chick (attack): a small flame tuft on its head, slightly orange-red tint,
-2) nurse chick (healing): a small white nurse cap with a red cross,
-3) pot-lid chick (defense): holding a round metal pot lid like a shield.
-Each chick sits inside a tiny round glass flying capsule with a small thruster underneath, three-quarter view from slightly above.
-Rendering style like image 1: Survivor.io-family casual mobile game art, thick even dark navy outline, bold flat saturated colors, one simple cel-shade step, small white highlights, lighting from top-left, readable at small size.
-Layout: wide image about 2:1, the three chicks in one row with wide spacing, fully transparent background (PNG alpha), no text, no labels, no shadow, no watermark.

@@ -278,7 +278,7 @@ class ModulePartIcon extends StatelessWidget {
   Widget build(BuildContext context) => SizedBox.square(
     dimension: size,
     child: part.id == 'mortar_cat'
-        ? Image.asset('assets/art/icons_v12/mortar.png')
+        ? Image.asset('assets/art/icons_v12/mortar.webp')
         : CustomPaint(painter: _PartPainter(part)),
   );
 }

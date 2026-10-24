@@ -6,7 +6,8 @@ import 'package:flutter/services.dart';
 
 import 'menu_art.dart';
 
-/// Original player craft and menu icons shared by gameplay and progression.
+/// v9 menu icons that refit_v16 does not replace (mission, radar, guild,
+/// coin, blueprint, key). Entries already decoded by [RefitArt] are skipped.
 abstract final class LobbyArt {
   static const root = 'assets/art/lobby_v9/';
   static Future<void>? _loading;
@@ -19,7 +20,7 @@ abstract final class LobbyArt {
         // Replacement art is already decoded; do not fetch both generations.
         if (MenuArt.images.containsKey('lobby/${entry.key}')) return;
         final meta = entry.value as Map;
-        final bytes = await rootBundle.load('$root${entry.key}.png');
+        final bytes = await rootBundle.load('$root${entry.key}.webp');
         final codec = await ui.instantiateImageCodec(
           bytes.buffer.asUint8List(),
           targetWidth: meta['background'] == true ? 768 : 512,

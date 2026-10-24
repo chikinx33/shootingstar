@@ -106,7 +106,7 @@ abstract final class ShipSpriteArt {
     return null;
   }
 
-  static const droneAsset = 'assets/art/ship_parts/sunshine/drone.png';
+  static const droneAsset = 'assets/art/ship_parts/sunshine/drone.webp';
 
   static const fxNames = [
     'enemy_orb',
@@ -118,7 +118,7 @@ abstract final class ShipSpriteArt {
     'churu_pickup',
     'level_burst',
   ];
-  static String fxAsset(String name) => 'assets/art/fx_v11/$name.png';
+  static String fxAsset(String name) => 'assets/art/fx_v11/$name.webp';
 
   /// Draws an fx_v11 sprite [size] px across at [at], turned by [rotation].
   static bool paintFx(

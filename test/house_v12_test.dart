@@ -42,7 +42,7 @@ void main() {
     expect(stages[19].name, '고양이 카페');
     expect(stages[10].description, contains('츄르'));
     expect(houseMap(10), endsWith('house_10.jpg'));
-    expect(houseOwner(19), endsWith('owner_19.png'));
+    expect(houseOwner(19), endsWith('owner_19.webp'));
     expect(streetMap(10), endsWith('street_1.jpg'));
     expect(streetMap(3), endsWith('street.jpg'));
     // worlds beyond the drawn neighbourhoods revisit them

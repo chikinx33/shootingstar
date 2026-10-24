@@ -56,7 +56,7 @@ class GuardianQuestScreen extends StatelessWidget {
           : Column(
               children: [
                 Image.asset(
-                  'assets/art/story_v11/momo.png',
+                  'assets/art/story_v11/momo.webp',
                   key: const Key('story-quest-momo'),
                   width: 84,
                   height: 84,
@@ -155,7 +155,7 @@ class GuardianQuestScreen extends StatelessWidget {
                         selected: p.achievementReady(stat),
                         rarity: p.achievementReady(stat) ? 5 : 0,
                         image: Image.asset(
-                          'assets/art/icons_v11/trophy.png',
+                          'assets/art/icons_v11/trophy.webp',
                           width: 44,
                           height: 44,
                         ),

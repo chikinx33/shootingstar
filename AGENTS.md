@@ -17,6 +17,8 @@ UI·그래픽 작업 전에 `docs/UI_DESIGN_SYSTEM.md`와 `lib/ui/game_ui.dart`�
 
 리스트 항목 이외에는 스크롤을 허용하지 않는다. 메인 로비는 모든 주요 조작이 한 화면에 들어가는 고정 구성이다. 긴 상세·설명·확인·폼·전투 결정은 `GamePages`로 나누고 글자를 줄이지 않는다. 상품·보상·우편·장비 등 반복 항목만 목록 안에서 이동할 수 있다. 이 규칙은 `docs/UI_DESIGN_SYSTEM.md`와 `check_ui_contract.py`의 허용 목록 및 모바일 웹 휠·터치 검증에 함께 반영한다.
 
+사용자 확정(2026-10-25, 용량): 번들 그림(`assets/art/`)은 WebP로만 넣는다. 생성 PNG는 `python tools/png_to_webp.py assets/art/<폴더>`로 변환하고(화면 디코딩 크기 이상은 축소), 원본 PNG·생성 기록은 번들 밖 `assets/concept/`에 둔다. 그림을 새것으로 바꾸면 옛 그림·로더 코드·pubspec 항목을 같은 패치에서 삭제한다. `test/assets_test.dart`가 `assets/art`의 PNG를 막는다.
+
 게임이 완성될 때까지 Android APK 빌드를 하지 않는다. 사용자가 명시적으로 변경하기 전까지 개발·검증은 Flutter 웹으로 진행한다.
 
 스토어 출시 준비 작업은 `docs/STORE_RELEASE_CHECKLIST.md`를 확인한다. 실제 과금·광고 연동과 검증은 스토어 출시 전 필수이며, 미완료 상태로 출시하지 않는다.

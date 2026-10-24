@@ -1,16 +1,13 @@
-import 'dart:convert';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'game_art.dart';
 import 'refit_art.dart';
 
-/// Generated PNG artwork. The original reference screenshots are never loaded
-/// by the game; sources and complete prompts live beside these project assets.
+/// Legacy atlas slots. No atlas is bundled any more: [images] stays empty and
+/// every call resolves through [GameArt] or reports that nothing was drawn.
 abstract final class ToonAssets {
-  static const root = 'assets/art/toon_v7/';
   static const grids = <String, (int, int)>{
     'ships': (3, 2),
     'enemies': (4, 3),
@@ -23,45 +20,9 @@ abstract final class ToonAssets {
     'effects': (4, 4),
   };
   static final images = <String, ui.Image>{};
-  static List<Rect> _iconRegions = [];
-  static Future<void>? _loading;
-  static Future<void> load() => _loading ??= _load();
-  static Future<void> _load() async {
-    try {
-      await Future.wait(
-        grids.keys.map((name) async {
-          if (images.containsKey(name)) return;
-          final bytes = await rootBundle.load('$root$name.png');
-          final codec = await ui.instantiateImageCodec(
-            bytes.buffer.asUint8List(),
-          );
-          final frame = await codec.getNextFrame();
-          codec.dispose();
-          images[name] = frame.image;
-        }),
-      );
-      final regions = jsonDecode(
-        await rootBundle.loadString('assets/art/ui_icon_regions.json'),
-      ) as Map;
-      _iconRegions = [
-        for (final row in regions['regions'] as List)
-          Rect.fromLTRB(
-            (row[0] as num).toDouble(),
-            (row[1] as num).toDouble(),
-            (row[2] as num).toDouble(),
-            (row[3] as num).toDouble(),
-          ),
-      ];
-    } catch (_) {
-      _loading = null;
-      rethrow;
-    }
-  }
-
   static Rect source(String name, int index) {
     final im = images[name]!, grid = grids[name]!;
     final id = index.clamp(0, grid.$1 * grid.$2 - 1);
-    if (name == 'icons' && _iconRegions.length == 64) return _iconRegions[id];
     final w = im.width / grid.$1, h = im.height / grid.$2;
     return Rect.fromLTWH(id % grid.$1 * w, id ~/ grid.$1 * h, w, h).deflate(.7);
   }
@@ -77,16 +38,10 @@ abstract final class ToonAssets {
     final im = images[name];
     if (im == null || dst.isEmpty) return false;
     final src = source(name, id);
-    final target = name == 'icons' && _iconRegions.length == 64
-        ? Alignment.center.inscribe(
-            applyBoxFit(BoxFit.contain, src.size, dst.size).destination,
-            dst,
-          )
-        : dst;
     c.drawImageRect(
       im,
       src,
-      target,
+      dst,
       Paint()
         ..filterQuality = FilterQuality.medium
         ..color = Colors.white.withValues(alpha: opacity.clamp(0, 1)),

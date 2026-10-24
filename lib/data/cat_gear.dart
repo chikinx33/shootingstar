@@ -24,11 +24,11 @@ const catGearLayers = {
 
 /// File name of each slot's sprite inside a set folder.
 const catGearFiles = {
-  CatGearSlot.nose: 'nose.png',
-  CatGearSlot.armor: 'armor.png',
-  CatGearSlot.wings: 'wing_left.png',
-  CatGearSlot.engines: 'engine_left.png',
-  CatGearSlot.shield: 'shield.png',
+  CatGearSlot.nose: 'nose.webp',
+  CatGearSlot.armor: 'armor.webp',
+  CatGearSlot.wings: 'wing_left.webp',
+  CatGearSlot.engines: 'engine_left.webp',
+  CatGearSlot.shield: 'shield.webp',
 };
 
 class CatGearSet {

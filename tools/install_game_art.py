@@ -2,7 +2,7 @@
 
 Each object on the transparent sheet is found (pieces closer than --join
 pixels count as one object), ordered row by row, trimmed, padded and saved as
-assets/art/game_v10/<name>.png; manifest.json gets fresh size/bounds/sha256.
+assets/art/game_v10/<name>.webp; manifest.json gets fresh size/bounds/sha256.
 The previous PNG is kept once in .local/game_v10_before/.
 
   python tools/install_game_art.py sheet.png enemy-0 enemy-1 ... [--size 512]
@@ -86,12 +86,12 @@ def square(sprite, size, margin=.06):
 
 
 def install(name, sprite, size):
-    out = ART / f'{name}.png'
+    out = ART / f'{name}.webp'
     if out.exists() and not (BACKUP / out.name).exists():
         BACKUP.mkdir(parents=True, exist_ok=True)
         shutil.copy(out, BACKUP / out.name)
     im = square(sprite, size)
-    im.save(out, optimize=True)
+    im.save(out, 'WEBP', quality=90, alpha_quality=100, method=6)
     a = im.getchannel('A')
     box = a.point(lambda v: 255 if v > 16 else 0).getbbox()
     manifest_path = ART / 'manifest.json'

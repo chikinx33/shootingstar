@@ -213,7 +213,7 @@ class _VacuumKingTransmissionState extends State<VacuumKingTransmission>
                 Opacity(
                   opacity: .85,
                   child: Image.asset(
-                    'assets/art/story_v11/vacuum_king.png',
+                    'assets/art/story_v11/vacuum_king.webp',
                     width: 64,
                     height: 64,
                   ),

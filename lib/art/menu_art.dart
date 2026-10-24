@@ -1,12 +1,9 @@
-import 'dart:convert';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-/// Each generated object has its own PNG. No atlas or sliced texture is used.
+/// Shared registry of decoded lobby/game pictures, filled by the art loaders.
 abstract final class MenuArt {
-  static const root = 'assets/art/menu_v8/';
   static final images = <String, ui.Image>{};
   static final bounds = <String, Rect>{};
   static final aliases = <String, String>{};
@@ -32,32 +29,6 @@ abstract final class MenuArt {
     1.04,
     -8,
   ]);
-  static Future<void>? _loading;
-  static Future<void> load() => _loading ??= _load();
-  static Future<void> _load() async {
-    final map =
-        jsonDecode(await rootBundle.loadString('${root}manifest.json')) as Map;
-    await Future.wait(
-      map.entries.map((entry) async {
-        final name = entry.key as String, meta = entry.value as Map;
-        final bytes = await rootBundle.load('$root$name.png');
-        final codec = await ui.instantiateImageCodec(
-          bytes.buffer.asUint8List(),
-          targetWidth: meta['background'] == true ? 768 : 512,
-        );
-        images[name] = (await codec.getNextFrame()).image;
-        codec.dispose();
-        final b = meta['bounds'] as List;
-        bounds[name] = Rect.fromLTRB(
-          (b[0] as num).toDouble(),
-          (b[1] as num).toDouble(),
-          (b[2] as num).toDouble(),
-          (b[3] as num).toDouble(),
-        );
-      }),
-    );
-  }
-
   static bool paint(
     Canvas canvas,
     String name,

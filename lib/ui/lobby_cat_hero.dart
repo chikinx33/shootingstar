@@ -24,9 +24,9 @@ class LobbyCatHero extends StatefulWidget {
   final VoidCallback onSelectShip;
 
   static const portraits = [
-    'assets/art/cats_v11/cheese_side.png',
-    'assets/art/cats_v11/gureum_side.png',
-    'assets/art/cats_v11/kami_side.png',
+    'assets/art/cats_v11/cheese_side.webp',
+    'assets/art/cats_v11/gureum_side.webp',
+    'assets/art/cats_v11/kami_side.webp',
   ];
 
   @override

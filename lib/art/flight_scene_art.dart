@@ -28,40 +28,6 @@ abstract final class FlightSceneArt {
     FlightSceneLayer(FlightDepth.middle, 'middle', .28, 12),
     FlightSceneLayer(FlightDepth.near, 'near', .55, 24),
   ];
-  static const root = 'assets/art/parallax_v49/';
-  static ui.Image? image, middleImage, nearImage;
-  static ui.Image? imageFor(FlightDepth depth) => switch (depth) {
-    FlightDepth.far => image,
-    FlightDepth.middle => middleImage,
-    FlightDepth.near => nearImage,
-  };
-
-  static Future<void> load() async {
-    if (image != null && middleImage != null && nearImage != null) return;
-    final loaded = <ui.Image>[];
-    try {
-      for (final layer in layers) {
-        final data = await rootBundle.load('$root${layer.asset}.png');
-        final codec = await ui.instantiateImageCodec(
-          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
-          targetWidth: 768,
-        );
-        try {
-          loaded.add((await codec.getNextFrame()).image);
-        } finally {
-          codec.dispose();
-        }
-      }
-    } catch (_) {
-      for (final art in loaded) {
-        art.dispose();
-      }
-      rethrow;
-    }
-    image = loaded[0];
-    middleImage = loaded[1];
-    nearImage = loaded[2];
-  }
 
   /// All three planes tile in both axes. A two-tile mirror period preserves
   /// parity at wrap, even at negative world coordinates and over long runs.
@@ -118,21 +84,25 @@ abstract final class FlightSceneArt {
   }
 
   /// v11 per-world ground (far plane) and a shared cloud overlay (near
-  /// plane). Loaded lazily; until one is ready the v49 planes still draw.
+  /// plane). Loaded lazily; until one is ready a plain tinted sky draws.
   static const worldRoot = 'assets/art/worlds_v11/';
   static const worldCount = 10;
   static final worldImages = <int, ui.Image>{};
   static ui.Image? clouds;
 
-  /// v11 lobby: the cats' living room at dusk (loaded with the worlds).
+  /// v11 lobby: the cats' living room at dusk, loaded first at boot.
   static ui.Image? lobbyHome;
+
+  /// Bumped once the living room is decoded so the lobby repaints.
+  static final lobbyRevision = ValueNotifier<int>(0);
 
   static Future<void> loadLobbyHome() async {
     if (lobbyHome != null) return;
     try {
       lobbyHome = await _decodeAsset('assets/art/lobby_v11/home.jpg', 720);
+      lobbyRevision.value++;
     } catch (_) {
-      // keep the drifting sky
+      // keep the plain lobby colour
     }
   }
 
@@ -168,9 +138,9 @@ abstract final class FlightSceneArt {
     return _worldLoads[w] ??= () async {
       try {
         worldImages[w] = await _decodeAsset('${worldRoot}world_$w.jpg', 720);
-        clouds ??= await _decodeAsset('${worldRoot}clouds.png', 720);
+        clouds ??= await _decodeAsset('${worldRoot}clouds.webp', 720);
       } catch (_) {
-        _worldLoads.remove(w); // missing art keeps the v49 planes
+        _worldLoads.remove(w); // missing art keeps the plain sky
       }
     }();
   }
@@ -189,7 +159,7 @@ abstract final class FlightSceneArt {
   /// missiles (5 the cats' mackerel missile, 6 the empire's spray rocket).
   static ui.Image? partArt(int kind) => _parts[kind];
 
-  /// v12 weapon ultimate sprites (assets/art/icons_v12/<name>.png).
+  /// v12 weapon ultimate sprites (assets/art/icons_v12/<name>.webp).
   static const growthSprites = [
     'mothership',
     'para',
@@ -215,37 +185,37 @@ abstract final class FlightSceneArt {
       try {
         streets[n] ??= await _decodeAsset(streetMap(stageIndex), 720);
         _parts[1] ??= await _decodeAsset(
-          'assets/art/houses_v12/part_turret.png',
+          'assets/art/houses_v12/part_turret.webp',
           200,
         );
         _parts[2] ??= await _decodeAsset(
-          'assets/art/houses_v12/part_shield.png',
+          'assets/art/houses_v12/part_shield.webp',
           200,
         );
         _parts[3] ??= await _decodeAsset(
-          'assets/art/houses_v12/boss_barrage.png',
+          'assets/art/houses_v12/boss_barrage.webp',
           360,
         );
         _parts[4] ??= await _decodeAsset(
-          'assets/art/houses_v12/boss_duelist.png',
+          'assets/art/houses_v12/boss_duelist.webp',
           360,
         );
         for (final name in growthSprites) {
           _sprites[name] ??= await _decodeAsset(
-            'assets/art/icons_v12/$name.png',
+            'assets/art/icons_v12/$name.webp',
             160,
           );
         }
         _parts[5] ??= await _decodeAsset(
-          'assets/art/houses_v12/missile_fish.png',
+          'assets/art/houses_v12/missile_fish.webp',
           96,
         );
         _parts[6] ??= await _decodeAsset(
-          'assets/art/houses_v12/missile_spray.png',
+          'assets/art/houses_v12/missile_spray.webp',
           96,
         );
         houseImages[h] = await _decodeAsset(houseMap(stageIndex), 720);
-        clouds ??= await _decodeAsset('${worldRoot}clouds.png', 720);
+        clouds ??= await _decodeAsset('${worldRoot}clouds.webp', 720);
       } catch (_) {
         _houseLoads.remove(h);
       }
@@ -418,13 +388,6 @@ abstract final class FlightSceneArt {
           camera: camera,
           opacity: .38,
         );
-      }
-    } else {
-      for (final layer in layers) {
-        final art = imageFor(layer.depth);
-        if (art != null) {
-          paintLayer(c, size, layer, art, time: time, camera: camera);
-        }
       }
     }
     // Tint and a quiet contrast veil sit below all combat cues, not above them.

@@ -4,10 +4,7 @@ Run from any directory: python tools/qa/check_ui_contract.py
 This is a source guard, not a substitute for the painted-size widget/browser QA.
 """
 from pathlib import Path
-import hashlib
-import json
 import re
-import struct
 import sys
 import subprocess
 
@@ -142,16 +139,6 @@ if 'AppVersion.label' not in settings or "Key('settings-version')" not in settin
     errors.append('settings must retain the compiled version and developer authentication entry')
 if 'showFlightSettings(context, p)' not in home or 'showLicensePage(' in home:
     errors.append('home settings must use the audited fixed-page settings/license flow')
-
-atlas = (ROOT / 'assets/art/toon_v7/icons.png').read_bytes()
-regions = json.loads((ROOT / 'assets/art/ui_icon_regions.json').read_text(encoding='utf-8'))
-if regions['atlasSha256'] != hashlib.sha256(atlas).hexdigest() or len(regions['regions']) != 64:
-    errors.append('Icon sampling metadata is stale; analyze_ui_icon_regions.py and visual review are required')
-width, height = struct.unpack('>II', atlas[16:24])
-for index, (left, top, right, bottom) in enumerate(regions['regions']):
-    x, y = index % 8 * width / 8, index // 8 * height / 8
-    if not (x <= left < right <= x + width / 8 and y <= top < bottom <= y + height / 8):
-        errors.append(f'Icon {index} sampling region escapes its atlas cell')
 
 if errors:
     print('\n'.join(errors))

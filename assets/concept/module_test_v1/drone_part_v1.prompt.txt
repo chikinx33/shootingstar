@@ -1,8 +1,0 @@
-Mode: built-in image_gen
-Use case: style-transfer
-Asset type: single detachable combat drone weapon-part sprite for the vertical shooter Shootingstar.
-Input image 1: style reference; replace the full spaceship subject with the requested small combat drone. Preserve its graphic rendering style and palette; the requested drone geometry supersedes the original ship geometry.
-Subject: one compact angular attack drone, white and orange body, cyan glowing core exactly at the image center, two short side rotor housings, one short rectangular cannon bar pointing straight up. Rotor housings are viewed directly from above. Forward is the top of the image. The cannon is seen from above as a solid rectangular top surface; absolutely no visible round muzzle opening.
-Composition: square canvas, strict orthographic top-down view looking straight down, zero perspective and no side faces. Center the drone and its rotation/mount pivot at the exact center of the image, with balanced compact chunky silhouette occupying about 75 percent of image height. Readable when shrunk to 40 pixels.
-Style: exactly match image 1's casual mobile shooter art in the Survivor.io family: thick even dark navy outlines, bold flat saturated colors, one simple cel-shade step, small white highlights, lighting from top-left, a few angular panel lines and tiny rivet dots, no realistic complexity.
-Output: PNG with genuine transparent alpha background, including all empty gaps around the silhouette. No black backdrop, no checkerboard drawn into the image, no shadow, no text, no watermark, no additional objects.

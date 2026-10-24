@@ -31,23 +31,11 @@ import 'resolution_vfx.dart';
 
 class BattlePainter extends CustomPainter {
   final GameEngine game;
-  final ui.Image? shipImage,
-      enemyImage,
-      bossImage,
-      terrainImage,
-      petImage,
-      cloudImage;
   final bool reducedEffects;
   // The reference path is retained for pixel comparison and CPU diagnosis.
   final bool cacheProjectiles;
   BattlePainter(
     this.game, {
-    this.shipImage,
-    this.enemyImage,
-    this.bossImage,
-    this.terrainImage,
-    this.petImage,
-    this.cloudImage,
     this.reducedEffects = false,
     this.cacheProjectiles = true,
   }) : super(repaint: RasterAssets.revision);

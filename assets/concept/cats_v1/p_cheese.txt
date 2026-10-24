@@ -1,5 +1,0 @@
-Character design of CHEESE, the hero pilot cat of the casual mobile shooter Shootingstar: a pet cat who is secretly a guardian protecting Earth.
-VERY SIMPLE design with the same simplicity level as the hero in image 2 (a few big shapes, tiny dot eyes, almost no detail): chubby super-deformed orange cheese-tabby cat, big round head about half of the body height, two triangle ears with pink inner, small black dot eyes, tiny 'w' mouth, three simple darker orange stripes on the forehead, cream white muzzle and belly, short stubby legs, curled tail. Pilot identity: small round aviator goggles pushed up on the forehead and a short red scarf. No weapons, no armor.
-Pose: standing proudly in three-quarter (half side) view facing right, like a hero on an equipment screen.
-Rendering style like image 1: Survivor.io-family casual mobile game art, thick even dark navy outline, bold flat saturated colors, one simple cel-shade step, small white highlights, lighting from top-left, readable at small size.
-Output: square image, character centered filling about 80 percent of the height, fully transparent background (PNG alpha), no shadow, no text, no watermark.
