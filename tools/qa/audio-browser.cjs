@@ -58,7 +58,7 @@ const errors=[],stages=[];
   await clickLocator(p.getByRole('switch',{name:'음악·효과음',exact:true}).first());await waitTrack('lobby-groove');
   await click('음량 높이기');assert(Math.abs((await read()).volume-.7)<.001);
   await click('닫기');await click('보급');await click('장비 보급 상세');await click('장비 보급 열기');
-  await p.waitForTimeout(400);s=await snap('reward');assert(s.events.some(e=>e.src.includes('/reward.wav')));
+  await p.waitForTimeout(400);s=await snap('reward');assert(s.events.some(e=>e.src.includes('/reward.ogg')));
   await click('확인');await click('닫기');await click('출격');
   const launch=p.getByRole('button',{name:/ · 출격$/}).first();await clickLocator(launch);
   await button('일시정지').waitFor();await waitTrack('battle-drive');

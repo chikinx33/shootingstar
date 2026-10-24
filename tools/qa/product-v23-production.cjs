@@ -12,7 +12,7 @@ const out=path.join(__dirname,'evidence','product-v23');fs.mkdirSync(out,{recurs
  p.on('response',r=>{
   if(r.url().includes('/assets/')&&r.status()>=400)bad.push(r.url());
   if(/\.png(?:\?|$)/.test(r.url()))images.add(r.url());
-  if(/\.wav(?:\?|$)/.test(r.url()))audio.add(r.url());
+  if(/\.ogg(?:\?|$)/.test(r.url()))audio.add(r.url());
  });
  try{
   await p.goto(process.env.QA_URL);
@@ -41,8 +41,8 @@ const out=path.join(__dirname,'evidence','product-v23');fs.mkdirSync(out,{recurs
   await p.screenshot({path:path.join(out,'coach-production-320.png')});
   await p.getByRole('button',{name:'일시정지',exact:true}).click();
   await p.getByRole('button',{name:'계속 비행',exact:true}).waitFor();
-  assert([...audio].some(x=>x.includes('orbit-loop.wav')),'ambient loop not requested');
-  assert([...audio].some(x=>x.includes('weapon-pulse.wav')),'weapon sound not requested');
+  assert([...audio].some(x=>x.includes('orbit-loop.ogg')),'ambient loop not requested');
+  assert([...audio].some(x=>x.includes('weapon-pulse.ogg')),'weapon sound not requested');
   assert.deepEqual(bad,[]);assert.deepEqual(errors,[]);
   fs.writeFileSync(path.join(out,'production.json'),JSON.stringify({version:'v10.0.23',bootImages,
    enemyImagesAfterLaunch:11,coachHoldReleaseMove:true,audio:[...audio].map(x=>x.split('/').pop()),

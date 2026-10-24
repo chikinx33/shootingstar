@@ -54,3 +54,7 @@
 ## 웹 적용
 
 최종 배포 `.local/quick-web/20261024-205257-027854/report.json`: 같은 정식 빌드를 재사용했고 320px 스모크 통과, 전체 30.77초. Worker `b6da7273-ec61-4e4e-9785-26af41bbb2f7` 활성 100%, health `ok:true/version:12.3.0/storage:D1`, 실제 결제/광고 flags false. 공개 정적 화면은 이전 Cloudflare Access 차단 증거를 재사용했고 보호 설정은 바꾸지 않았다. 첫 배포 시도는 권한 확인으로 막혔고, 사용자 허락 뒤 배포했다.
+
+## v12.5.1 용량 정리
+
+게임에는 WAV 대신 Ogg Vorbis(`tools/wav_to_ogg.py`: 음악 품질 수준 .3, 효과음 최고 품질 0, 샘플 수 그대로)만 넣는다. 60개 9.8MB → 1.7MB. WAV 원본은 `compose_audio.py`가 `.local/audio-v12.3/wav/`에 쓰고 `tools/qa/check_audio.py`가 그 원본을 검사한다. `audio_clip_levels.dart`는 실제로 재생되는 Ogg에서 다시 계산했다.

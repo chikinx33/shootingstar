@@ -37,13 +37,13 @@ const errors=[],checks=[];
    const state=await read();if(!state._battle&&state.runs===11)break;
   }
   await p.mouse.up();const settled=await read();assert.equal(settled.runs,11,'real boss/result settlement');
-  const battle=await report('battle-victory');assert(battle.events.some(e=>e.file==='victory.wav'));
+  const battle=await report('battle-victory');assert(battle.events.some(e=>e.file==='victory.ogg'));
   await p.waitForTimeout(1400);const result=await report('result');assert(!result.applicationMedia.some(m=>m.loop));
   await p.evaluate(()=>window.mixMark());await click('다음 항로 출격');await hold();await p.waitForTimeout(1400);await p.mouse.up();
   await click('일시정지');await p.waitForTimeout(800);const paused=await report('paused');assert(!paused.applicationMedia.some(m=>m.loop));
   await click('계속 비행');await hold();await p.waitForTimeout(900);await p.mouse.up();
   await click('일시정지');await click('저장 후 로비');await ready();await p.waitForTimeout(1200);
-  const returned=await report('returned');assert(returned.applicationMedia.some(m=>m.file==='lobby-groove.wav'&&m.loop));assert(!returned.applicationMedia.some(m=>m.file==='battle-drive.wav'));
+  const returned=await report('returned');assert(returned.applicationMedia.some(m=>m.file==='lobby-groove.ogg'&&m.loop));assert(!returned.applicationMedia.some(m=>m.file==='battle-drive.ogg'));
   }
   if(process.env.QA_SETTINGS_ONLY){
    await click('설정');for(let i=0;i<5;i++)await click('음량 줄이기');
@@ -56,7 +56,7 @@ const errors=[],checks=[];
    await clickL(toggle,30);await clickL(toggle,300);
    muted=await report('mute-during-fade');assert.equal((await read()).soundEnabled,false);assert.equal(muted.applicationMedia.length,0);
    await clickL(toggle,300);await click('닫기');
-   const restored=await report('settings-return');assert(restored.applicationMedia.some(m=>m.loop&&m.file==='lobby-groove.wav'));
+   const restored=await report('settings-return');assert(restored.applicationMedia.some(m=>m.loop&&m.file==='lobby-groove.ogg'));
   }
   await p.screenshot({path:path.join(out,`${tag}-lobby.png`)});
   assert.deepEqual(errors,[]);fs.writeFileSync(path.join(out,`${tag}-checks.json`),JSON.stringify({version,checks,errors},null,2));console.log(tag,'playthrough passed',checks);

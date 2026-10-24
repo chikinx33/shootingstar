@@ -73,7 +73,7 @@ class PlayerAudioPort implements AudioPort {
       }
       if (epoch != _musicEpoch) return;
       await player.setReleaseMode(ReleaseMode.loop);
-      await player.play(AssetSource('audio/$asset.wav'), volume: 0);
+      await player.play(AssetSource('audio/$asset.ogg'), volume: 0);
       if (epoch != _musicEpoch) {
         await player.pause();
         return;
@@ -97,7 +97,7 @@ class PlayerAudioPort implements AudioPort {
   Future<void> effect(int voice, String asset, double volume) async {
     final player = _voices.putIfAbsent(voice, _player);
     await player.setReleaseMode(ReleaseMode.stop);
-    await player.play(AssetSource('audio/$asset.wav'), volume: volume);
+    await player.play(AssetSource('audio/$asset.ogg'), volume: volume);
   }
 
   @override

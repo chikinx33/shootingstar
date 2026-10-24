@@ -6,7 +6,10 @@ chicks are short sine chirps. Instruments are music box / pizzicato / kalimba /
 soft chip lead / brush kit. Music loops are mixed circularly (note tails, echo
 and room reverb cross the loop boundary) so the seam is inaudible.
 
-Run `python tools/compose_audio.py` then `python tools/audio_mix_catalog.py`.
+WAV masters go to .local/audio-v12.3/wav/ (outside the bundle); the game
+ships Ogg Vorbis made from them by tools/wav_to_ogg.py.
+Run `PYTHONPATH=D:/Programs/pylib python tools/compose_audio.py` then
+`PYTHONPATH=D:/Programs/pylib python tools/audio_mix_catalog.py`.
 """
 import json
 import math
@@ -17,6 +20,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'assets/audio'
+MASTERS = ROOT / '.local/audio-v12.3/wav'
 RATE = 24000
 NYQ = RATE / 2
 rng = np.random.default_rng(12_300)
@@ -324,7 +328,7 @@ def write(name, data, music=False, **meta):
         loud = np.nonzero(np.abs(data) > .008 * .64)[0]
         data = fade(data[:loud[-1] + int(.02 * RATE)], .002, .02)
     pcm = np.round(data * 32767).astype('<i2')
-    with wave.open(str(OUT / f'{name}.wav'), 'wb') as f:
+    with wave.open(str(MASTERS / f'{name}.wav'), 'wb') as f:
         f.setnchannels(2 if data.ndim == 2 else 1)
         f.setsampwidth(2)
         f.setframerate(RATE)
@@ -769,7 +773,8 @@ def effects():
 
 def main():
     OUT.mkdir(exist_ok=True)
-    for old in OUT.glob('*.wav'):
+    MASTERS.mkdir(parents=True, exist_ok=True)
+    for old in [*OUT.glob('*.ogg'), *OUT.glob('*.wav'), *MASTERS.glob('*.wav')]:
         old.unlink()
     lobby()
     battle()
@@ -778,7 +783,11 @@ def main():
     folder = ROOT / '.local/audio-v12.3'
     folder.mkdir(parents=True, exist_ok=True)
     (folder / 'assets.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf8')
-    print(f'Composed {len(report)} original WAV assets; stats: {folder / "assets.json"}')
+    from wav_to_ogg import encode
+    for master in sorted(MASTERS.glob('*.wav')):
+        encode(master, OUT / f'{master.stem}.ogg')
+    print(f'Composed {len(report)} original clips (Ogg in {OUT}, WAV masters in {MASTERS}); '
+          f'stats: {folder / "assets.json"}')
 
 
 if __name__ == '__main__':

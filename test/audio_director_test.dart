@@ -349,8 +349,8 @@ void main() {
         'boss-theme',
       };
       for (final asset in assets) {
-        final bytes = File('assets/audio/$asset.wav').readAsBytesSync();
-        expect(String.fromCharCodes(bytes.take(4)), 'RIFF', reason: asset);
+        final bytes = File('assets/audio/$asset.ogg').readAsBytesSync();
+        expect(String.fromCharCodes(bytes.take(4)), 'OggS', reason: asset);
         expect(bytes.length, greaterThan(1000));
       }
       expect(

@@ -1,4 +1,7 @@
-"""Check generated audio, finite headroom, seams and mono compatibility."""
+"""Check generated audio masters: finite headroom, seams and mono compatibility.
+
+Reads the WAV masters that tools/compose_audio.py keeps in .local/audio-v12.3/wav.
+"""
 import json
 from pathlib import Path
 import wave
@@ -7,7 +10,7 @@ import numpy as np
 root=Path(__file__).resolve().parents[2]
 stats=json.loads((root/'.local/audio-v12.3/assets.json').read_text())
 for name,spec in stats.items():
-    with wave.open(str(root/f'assets/audio/{name}.wav')) as f:
+    with wave.open(str(root/f'.local/audio-v12.3/wav/{name}.wav')) as f:
         assert f.getframerate()==24000 and f.getsampwidth()==2,name
         data=np.frombuffer(f.readframes(f.getnframes()),dtype='<i2')/32768
         if f.getnchannels()==2: data=data.reshape(-1,2)
