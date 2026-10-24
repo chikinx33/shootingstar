@@ -1,0 +1,1 @@
+{"name":"shootingstar-online","private":true,"type":"module","scripts":{"dev":"wrangler dev --port 8789","predeploy":"python ../tools/verify_web_release.py","deploy":"wrangler deploy","test":"node --test test/*.test.mjs"},"devDependencies":{"wrangler":"^4.149.0"}}

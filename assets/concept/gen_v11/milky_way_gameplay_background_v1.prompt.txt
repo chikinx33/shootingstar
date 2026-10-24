@@ -1,0 +1,10 @@
+Mode: built-in image_gen
+Reference: ref_style.png
+Use case: style-transfer
+Asset type: seamless-looking vertical scrolling gameplay background for a casual mobile top-down shooter.
+Input image 1 is a STYLE REFERENCE ONLY. The requested new background replaces its subjects, framing and geometry; do not retain the sprite sheet objects.
+Create a portrait 2:3 image, ideally 1024x1536, full bleed, viewed strictly directly above as a flat orthographic map, with no horizon or perspective.
+Scene: the edge of the Milky Way, a softly glittering river of tiny muted stars and pale milky nebula flowing through deep violet space, with faint ancient glowing seal-rune circles distributed throughout. Seal markings must be abstract geometric ornament, not letters or readable writing.
+Style: the reference's friendly cartoon visual language, simple flat color areas, soft cel shading and thin soft outlines, deliberately LOW CONTRAST and slightly desaturated. Use subdued dusty lavender, deep violet, muted lilac and dim milky violet; no bright white highlights. Simplified gently layered nebula shapes, not photographic clouds.
+Composition: evenly spread detail over the entire frame with no single focal point, no dominant central circle or bright central band. The star river should softly meander vertically through the field without overpowering gameplay. Small quiet stars and extremely subtle circular seals remain background details. Keep similar brightness and detail density at top and bottom. All edges continue naturally when mirrored and tiled; avoid borders, vignettes, obvious cutoffs and directional lighting at the edges. Aim for an unobtrusive repeatable scrolling field that leaves bright characters, bullets and pickups very readable on top.
+No characters, spacecraft, vehicles, creatures, planets, bullets, pickups, UI, text, letters, numbers, logos or watermark. Background only.

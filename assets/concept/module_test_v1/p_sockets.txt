@@ -1,0 +1,7 @@
+Game sprite sheet of four EMPTY weapon mount sockets for the vertical shooter Shootingstar, redrawn in the rendering style of image 1 and using the empty-socket shapes in the left column of image 2 (do not copy any text from image 2):
+1) wingtip socket: a diamond-shaped mechanical box with small yellow triangle tabs,
+2) belly socket: a horizontal long rectangular rail slot with 4 corner bolts,
+3) tail socket: a round module with a thick ring border and three black holes,
+4) top socket: a hexagonal rotating base with a center axle and rim holes.
+Steel gray with blue and yellow accents matching an orange-yellow airframe. Arrange the four sockets in a single horizontal row, evenly spaced with wide gaps, each about the same visual size. Rendering style exactly like image 1: casual mobile shooter art in the Survivor.io family, thick even dark navy outline, bold flat saturated colors, one simple cel-shade step, small white highlights, lighting from top-left, a few angular panel lines and tiny rivet dots but no realistic complexity, silhouette readable at small size. Strict orthographic top-down view (straight down), no perspective, no side faces visible.
+Output: wide image about 2:1, fully transparent background (PNG alpha), no text, no labels, no numbers, no shadow, no watermark.

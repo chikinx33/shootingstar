@@ -1,0 +1,33 @@
+{
+  "name": "shootingstar-online",
+  "main": "src/worker.mjs",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": true,
+  "assets": {
+    "directory": "../build/web",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/*"
+    ]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "shootingstar-online",
+      "database_id": "23e84574-ab75-4689-9f78-22a7ee6623d7",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "APP_VERSION": "12.4.3",
+    "ALLOW_LOCAL_ORIGIN": "false"
+  },
+  "triggers": {
+    "crons": [
+      "17 * * * *"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+Generation mode: built-in image_gen
+Reference: ref_style_sheet.png
+Output: chick_companions_v1.png
+
+Use case: style-transfer
+Asset type: Shootingstar companion-pet character design sheet, transparent PNG.
+Input image 1 is the visual style reference. Replace the subjects and layout as requested below; retain its thick even dark navy outlines, bold flat saturated colors, one simple cel-shade step and small white highlights. Do not reproduce the ships, icons or cream background.
+Create exactly THREE very simple chubby round yellow chick companion pets, friends of guardian cats, hatched from star eggs. Tiny dot eyes, small orange beaks. Each sits INSIDE a tiny round glass flying capsule with a small thruster directly underneath. Consistent three-quarter view from slightly above, equal scale.
+Left: attack fire chick, small flame tuft on its head, warm yellow body with slightly orange-red tint.
+Center: healing nurse chick, small white nurse cap with a red cross.
+Right: defense pot-lid chick, visibly holding a round metal cooking-pot lid as a shield, with simple central handle, face visible.
+Style: Survivor.io-family casual mobile game art like reference, extremely simple cute round silhouettes readable at small size. Minimal capsule mechanics, light cyan glass with sparse white highlights that do not obscure the chicks. Top-left lighting. One clean cel shadow step, no elaborate gradients or realistic textures.
+Composition: wide approximately 2:1 sheet, three chicks in ONE horizontal row with wide clear gaps and generous outer margins, all complete capsules and thrusters visible. No extra characters or objects.
+Background: genuinely fully transparent PNG alpha outside the characters; no solid background, no checkerboard painted into the image. No ground shadows, no text, no labels, no watermark.

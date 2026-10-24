@@ -1,0 +1,45 @@
+{
+  "tool": "Built-in image_gen",
+  "records": [
+    {
+      "name": "hero",
+      "prompt": "Use case: stylized-concept. Asset type: ONE production-ready transparent PNG player spacecraft sprite for a polished premium casual mobile shoot-em-up named Shootingstar. Create an ORIGINAL balanced interceptor aircraft named Aurora. Orthographic top-down view, nose pointing straight up, perfectly readable symmetric silhouette, short swept wings, two compact armored engines, visible barrel tips and believable mechanical armor segmentation. Warm ivory ceramic armor and saturated tangerine orange panels, deep cobalt-blue metal recesses, luminous cyan glass cockpit and tiny cyan engine cores. Bold confident dark navy outer outline, slightly thinner internal linework, controlled crisp two-step cel shading, carefully placed small broad highlights, excellent shape design and charming compact proportions, sophisticated hand-drawn game illustration quality, smooth antialiased edges. This is an actual usable game sprite, not a poster or icon badge. Center entire aircraft in a square 1024px image, occupy 80 percent of square, leave transparent padding on every side. Keep nose and silhouette distinct from a toy rocket. Short tidy cyan exhaust only, no long flames, no soft bloom, no floating sparkles, no ground shadow, no circle, no frame, no UI, no text, no letters, no symbols, no watermark. No photorealism, no plastic 3D rendering, no sketchy linework, no extreme microdetail. Production quality must remain excellent at 48px and at 220px.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a14d98-2b14-7fa1-bac3-70be79d9ae56\\exec-2b125793-fc3d-4300-8a4a-f4013caa57cb.png"
+    },
+    {
+      "name": "vector",
+      "prompt": "Create a NEW variant of the supplied spacecraft sprite while preserving the exact polished cel-painted illustration style and orthographic top-down camera. A high-speed interceptor called Vector: noticeably narrower angular dart silhouette, small swept back wings, lightweight twin engine design, mint green and deep teal armor with ivory accents, cyan cockpit and compact cyan thrusters. Nose straight up, symmetric, beautifully designed mechanical plates, bold DARK NAVY OUTER CONTOUR appreciably thicker than internal seams, crisp controlled hard shading and highlights, confident cute compact casual mobile game proportions. Entire sprite isolated, centered, transparent padding all sides. No text, no badge, no symbols, no ground shadow, no frame, no glow cloud, no background. Actual production PNG, not a UI mockup.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a14d98-2b14-7fa1-bac3-70be79d9ae56\\exec-153b76d1-71a5-405a-bee2-eadd34a33716.png"
+    },
+    {
+      "name": "monolith",
+      "prompt": "Create a NEW variant of the supplied spacecraft sprite while preserving the polished cel-painted illustration style and orthographic top-down camera. A heavy armored aircraft called Monolith: wide sturdy compact silhouette, blunt hexagonal nose, layered violet and plum armor with ivory plating, bright amber accent plates, cyan armored glass cockpit, two large mechanically segmented engine nacelles, clearly visible twin shoulder cannons. It must look like a powerful charming heavy fighter, not a toy rocket. Nose straight up, symmetric, sophisticated bold DARK NAVY outer contour thicker than internal seams, crisp hard cel shadows and limited broad highlights. Center entire craft with transparent padding all sides. Short clean cyan exhaust. No text, no badge, no symbols, no background, no frame, no ground shadow, no soft glow. Actual production PNG game sprite.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a14d98-2b14-7fa1-bac3-70be79d9ae56\\exec-85487da9-e044-4765-a4de-b1456d5c9451.png"
+    },
+    {
+      "name": "backdrop",
+      "prompt": "Use case: stylized-concept. Production game BACKGROUND, portrait 1024x1536. A premium playful sci-fi carrier hangar launch bay, strictly top-down graphic illustration with warm amber golden orange floor and a quiet cream-gold broad illumination in the middle, deep desaturated navy structural rails ONLY along far left and right edges, tiny restrained cyan indicator accents, a subtle circular hexagonal docking-deck marking in the lower middle. Large clean central 70% area supports an overlaid aircraft and UI, upper third calm amber without objects. Low contrast background, elegantly restrained comic halftone texture ONLY near outer corners, crisp dark outlined mechanical edge panels, sophisticated hard cel shading, carefully arranged and visually calm. NOT an industrial photographic hangar. No spaceship, no cockpit, no characters, no UI panels, no text or letters, no numbers, no gears, no symbols or logos, no high contrast stripes in central area, no buttons, no glow clouds. Full bleed opaque portrait background. Color harmony honey amber #edaa35, pale apricot #ffdf93, desaturated navy #243349 and cyan accent. Original artwork.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a14d98-2b14-7fa1-bac3-70be79d9ae56\\exec-65d838ad-dade-4572-8bf3-b59b6bbbf455.png"
+    },
+    {
+      "name": "chest",
+      "prompt": "Use case: stylized-concept. ONE transparent mobile game inventory/supply chest icon, centered 80% of square. Premium sci-fi supply container, compact sturdy broad rectangular chest in three-quarter view, dark navy metal case, warm orange-gold armored corner plates, ivory metal lid, brilliant small faceted cyan energy lock set in a dark socket, clean mechanical segmented design, tasteful crisp bevel highlight, bold navy outline thicker than internal seams. Polished charming casual game cel-painted illustration, bright readable silhouette at 44px, dimensional hard shadows and limited broad highlights, not plastic 3D. Entire icon with transparent padding. NO coins spilling out, no badge, no circle, no frame, no ground shadow, no text, no logo, no watermark.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a14d98-2b14-7fa1-bac3-70be79d9ae56\\exec-61fdd006-1368-40c4-b4fd-7ac9c93f94e7.png"
+    },
+    {
+      "name": "growth",
+      "prompt": "Use case: stylized-concept. ONE transparent mobile game engineering/upgrade menu icon. A beautifully designed orange-and-ivory mechanical wrench crossing behind a compact hexagonal cobalt-blue reactor with small cyan core, coherent single compact emblem with polished bold dark navy outlines, crisp hard cel shading, readable broad silhouette at 44px, production-ready premium casual sci-fi illustration. Two related parts form ONE emblem, not an icon sheet. Centered entire object, 80% of square, transparent padding all sides. No text, no letters, no circles, no background, no ground shadow, no frame, no sparkles, no glossy 3D rendering.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a14d98-2b14-7fa1-bac3-70be79d9ae56\\exec-0bd68d06-baf9-4747-a17f-d7683ff6fd9a.png"
+    },
+    {
+      "name": "challenge",
+      "prompt": "Use case: stylized-concept. ONE transparent premium casual mobile game challenge/tournament icon, a compact winged gold star medal fixed over a navy shield, tiny cyan faceted center and ivory side wings, clean engineered sci-fi hardware rather than a sports cup. Large bold silhouette readable at 44px, confident thick navy contours, crisp hard cel shading and carefully placed cream highlights, original elegant playful game illustration. Centered full object, occupies 80% of square with transparent padding. No text, no letters, no frame, no circle, no ground shadow, no glow cloud, no background, no watermark.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a14d98-2b14-7fa1-bac3-70be79d9ae56\\exec-ff45ddd9-c4e0-4bfc-8304-4c68f6b2c668.png"
+    },
+    {
+      "name": "research",
+      "prompt": "Use case: stylized-concept. ONE transparent premium mobile game permanent evolution/research icon: a faceted mint-cyan energy crystal suspended in a compact open navy mechanical cradle with amber clamps and ivory base, symmetrical clear silhouette, thick dark navy outline and precise thinner seams, hard two-step cel shading, broad elegant highlights, beautiful engineered chunky form readable at 44px, original polished casual sci-fi game illustration. Entire centered object occupies 80% of square, transparent padding all sides. No labels, no text, no frame, no glow or bloom cloud, no ground shadow, no watermark, no UI.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a14d98-2b14-7fa1-bac3-70be79d9ae56\\exec-6a962696-4677-4caa-bd97-0558bc5c5d05.png"
+    }
+  ]
+}

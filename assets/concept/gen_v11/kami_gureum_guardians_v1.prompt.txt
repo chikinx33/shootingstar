@@ -1,0 +1,11 @@
+Mode: Built-in image_gen
+Use case: style-transfer
+Asset type: transparent PNG character sheet for Shootingstar mobile shooter.
+Input images: Image 1 (ref_style.png) and Image 2 (ref_battle.png) are rendering-style references only: preserve their thick even dark-navy outlines, bold flat colors, one cel-shade step and small white highlights. Image 3 (ref_cheese.png) is the exact character-design language and proportion reference: huge rounded head, extremely simple tiny dot eyes, small w-shaped mouth, tiny body, short stubby four-legged standing pose, chunky tail, minimal markings. Do not include the aircraft, robots, battle scenery or orange cat itself.
+Primary request: exactly TWO guardian cat pilots, one full-body view of each, side by side on a wide approximately 2:1 canvas. Both stand in three-quarter view facing RIGHT, like the pose and anatomy of Image 3. Match its very simple cute chunky toy-like design; no realistic anatomy or intricate fur.
+First character KAMI: black-and-white tuxedo cat, black body with white muzzle, white chest and white paws. Calm veteran expression while retaining tiny simple dot eyes and small w mouth. Small dark-blue pilot cap with goggles resting on cap, and navy scarf. Keep ears visible.
+Second character GUREUM: soft gray Russian Blue cat, tiny GREEN DOT eyes (not large detailed irises), sleepy relaxed expression and small w mouth, round white headphones and sky-blue scarf.
+Composition: same visual scale and baseline; each silhouette fully visible including ears, cap, tail and paws, comfortable outer margins, WIDE genuinely transparent gap between the two silhouettes so each is easily isolated. No overlap.
+Style: exactly the simple design language of Image 3 with the rendering of Images 1 and 2. Thick even dark navy outlines; bold flat colors with one crisp cel-shade step; sparing small white highlights; top-left lighting. Smooth broad shapes; minimal stripes/markings. No gradients, texture, elaborate eye details or extra costume details.
+Background: fully transparent PNG with real alpha, including gap. No ground, no cast shadow, no backdrop color, no checkerboard baked into the artwork.
+Constraints: no weapons, no armor, no text or labels (names are instructions only), no watermark, no extra characters or objects.

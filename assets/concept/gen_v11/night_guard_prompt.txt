@@ -1,0 +1,18 @@
+Use case: style-transfer.
+Asset type: production game sprite sheet, NIGHT GUARD detachable aircraft equipment, PNG with real alpha transparency.
+Use the three supplied images as references: Image 1 supplies the bold clean cartoon sprite rendering style; Image 2 supplies top-down game readability only, do not reproduce the scene; Image 3 supplies the orange equipment silhouette types, orientation and attachment footprints to preserve. Create a replacement equipment set in deep navy blue and black armor, silver trim, and cyan light accents, sleek and stealthy.
+Canvas: wide 2:1 image, preferably 2048x1024, fully transparent background. Exactly FOUR columns and TWO rows with broad completely transparent gutters and generous transparent outer margins. Eight equipment groups total, each fully isolated and centered in its cell. No dividing lines, labels, checkerboard, background color, or ground shadows.
+Exact order, left to right:
+TOP ROW:
+1. LEFT wing ONLY. Match Image 3's detachable left wing: broad swept triangular wedge, straight vertical attachment root edge at RIGHT, tapered outer wing tip at LEFT, silver inset panel and small cyan detail. No right wing, no gun attached.
+2. LEFT thruster ONLY: ONE compact engine housing matching the left engine in Image 3, its intake/housing above and open dark nozzle at bottom. NO flame, no exhaust.
+3. Body armor PAIR: TWO slim mirrored side armor plates as ONE equipment group, with a wide completely EMPTY transparent center gap for the cockpit. Match the Image 3 side armor shape and footprint. No central hull, no cockpit or cat, no connecting bridge.
+4. Nose cowl: the short upper nose armor cap from Image 3, with a clearly OPEN U-shaped slot at its FRONT CENTER (top edge) for a cannon. The slot must be transparent and unoccupied; no cannon installed in it.
+BOTTOM ROW:
+5. ONE round shield emitter device, circular silver/navy bezel with luminous cyan core matching the circular emitter in Image 3.
+6. ONE wing gun: slender dark gun housing, single barrel pointing straight UP.
+7. ONE compact missile pod holding missiles with tips pointing straight UP, matching Image 3's missile cluster footprint.
+8. ONE rear self-propelled gun turret: compact armored turret with ONE barrel pointing straight UP. Detachable aircraft equipment, not a tracked ground vehicle.
+All sprites strictly orthographic TOP-DOWN, zero perspective or isometric tilt. Preserve the counterpart silhouette types and relative proportions from Image 3 so each part can replace the orange counterpart. Thick even dark navy outlines, flat solid color panels with ONE cel-shading step, restrained cyan emissive accents, strong readability matching Image 1. Do not over-detail. No complete aircraft, no airframe, no pilot, no cat, no text, no numbering, no watermark, no extra loose objects. Preserve true PNG alpha in every background region and center gap.
+
+Generation mode: built-in image_gen.

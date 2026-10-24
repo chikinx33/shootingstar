@@ -1,0 +1,16 @@
+Use case: style-transfer.
+Asset type: game effect sprite sheet for a casual top-down mobile shooter.
+Input images: Image 1 (ref_style.png) is the exact cartoon art style reference and effect-shape reference. Image 2 (ref_battle.png) is a supporting reference for recognizable pink enemy orbs, yellow player projectiles, missiles and cartoon explosions as used in battle. Create a new isolated effects atlas; do not reproduce the battle background, ships, UI, or reference sheet.
+Output: one wide 2:1 PNG image, ideally 2048x1024, genuinely fully transparent background with PNG alpha. No painted checkerboard or colored background.
+Style: thick even dark navy outlines, flat saturated colors, exactly one cel-shade step, crisp white highlights, clean readable chunky cartoon silhouettes matching Image 1. Energy glows remain compact and do not bridge cells.
+Composition: EXACTLY EIGHT separate sprites in a regular 4-column by 2-row grid. Equal square cells. Center each sprite in its own cell, generous transparent outer margins and wide fully transparent gaps. Keep every sprite and its local particles entirely inside its cell. No dividing lines or frames.
+Exact order left to right, top row then bottom row:
+1. ENEMY BULLET: glowing hot-pink energy orb, white-pink core, thick dark navy outline, perfectly round.
+2. ENEMY BIG BULLET: larger magenta orb with a spiky glowing rim; visibly larger than sprite 1.
+3. PLAYER BULLET: short bright yellow energy capsule, oriented perfectly vertically pointing straight up, white core.
+4. PLAYER MISSILE: small red-nosed white missile, nose pointing straight up, tiny orange flame below.
+5. EXPLOSION: big orange-yellow cartoon fireball burst, white core, dark outline and chunky smoke puffs.
+6. HIT SPARK: small four-pointed white-yellow star spark.
+7. CHURU PICKUP: small pink cat-treat squeeze tube collectible with a clear paw print; one tube-shaped pickup icon.
+8. LEVEL UP BURST: circular golden ring burst with star sparkles grouped around the ring; transparent open center.
+No text, no letters, no numbers, no watermark, no extra sprites. Sprite labels above are instructions only and must not appear in the image. Preserve the references' visual identity and gameplay readability.

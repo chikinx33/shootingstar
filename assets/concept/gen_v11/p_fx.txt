@@ -1,0 +1,10 @@
+Game effect sprite sheet for a casual top-down mobile shooter, in the exact cartoon style of image 1 (thick even dark navy outlines, flat saturated colors, one cel-shade step, white highlights). EIGHT separate sprites arranged in a 4x2 grid with wide transparent gaps, in this exact order:
+1) ENEMY BULLET: a glowing hot-pink energy orb with a white-pink core and a thick dark outline, perfectly round,
+2) ENEMY BIG BULLET: a larger magenta orb with a spiky glowing rim,
+3) PLAYER BULLET: a short bright yellow energy capsule pointing straight up with a white core,
+4) PLAYER MISSILE: a small red-nosed white missile pointing straight up with a tiny orange flame,
+5) EXPLOSION: a big cartoon explosion burst, orange-yellow fireball with white core and dark outline, chunky smoke puffs,
+6) HIT SPARK: a small four-pointed white-yellow star spark,
+7) CHURU PICKUP: a small pink cat-treat tube coin with a paw print,
+8) LEVEL UP BURST: a circular golden ring burst with star sparkles.
+No text, no letters. Output: wide 2:1 image, fully transparent background (PNG alpha), no watermark.

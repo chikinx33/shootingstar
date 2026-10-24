@@ -1,0 +1,9 @@
+Game sprite sheet of SIX enemy drones for the vertical shooter Shootingstar, arranged in a 3-column x 2-row grid, each in its own cell, evenly spaced with wide fully transparent gaps, similar visual size:
+1) small round robot-vacuum scout drone with one glowing eye and tiny brush arms,
+2) zig-zag feather-duster drone with fluffy purple feather wings,
+3) heavy armored pet-carrier tank: a boxy plastic pet carrier with metal grille front and armor plates,
+4) hair-dryer artillery drone: a chunky hair dryer turret with a glowing hot nozzle facing forward,
+5) broom lance fighter: a sleek broom-shaped dart fighter with bristle thrusters at the back,
+6) spray-bottle orbiter: a spray bottle drone with a trigger nozzle and two small side rings.
+Art style exactly like image 1 and image 2: Survivor.io-family casual mobile shooter art, thick even dark navy outline, bold flat saturated colors with one simple cel-shade step, small white highlights, lighting from top-left, chunky readable silhouettes that read at 60 pixels. Strict orthographic TOP-DOWN view (seen from directly above), and every vehicle's FRONT points to the TOP of the image (it will be rotated in game). Theme: the Vacuum Empire, an alien empire whose war machines look like cute-but-menacing versions of household things cats hate; purple, magenta, dark gray and toxic green faction colors with glowing pink or red eyes/cores so they contrast with the orange-yellow hero. No cats, no humans, no text, no letters, no numbers, no watermark, no shadow, no background scenery.
+Output: wide image about 3:2, fully transparent background (PNG alpha).

@@ -1,0 +1,4 @@
+Produce a single clean game sprite of the robot fox drone pet in image 1 for the mobile shooter Shootingstar.
+Keep exactly the same design: round white-and-orange robot head with fox ears, dark visor with two glowing yellow eyes, two small orange side thrusters, a small flame under it, thick even dark navy outline, flat colors with one cel-shade step and small white highlights, lighting from top-left, front-facing slightly top-down.
+Clean up any blur, crisp edges suitable for a game sprite.
+Output: square image, the pet centered and filling about 75 percent of the frame, fully transparent background (PNG alpha), no shadow, no text, no watermark.

@@ -1,0 +1,12 @@
+# Copy to .dev.vars only for isolated integration verification. Never commit
+# credentials. These switches remain false in production until release gates.
+COMMERCE_BILLING_ENABLED=false
+COMMERCE_ADS_ENABLED=false
+PLAY_PACKAGE=com.shootingstar.shootingstar
+PLAY_SUPPORTER_PRODUCT=
+PLAY_SERVICE_ACCOUNT=
+PLAY_TOKEN_KEY=
+PLAY_RTDN_AUDIENCE=
+PLAY_RTDN_EMAIL=
+ADMOB_APP_ID=
+ADMOB_REWARDED_UNIT=

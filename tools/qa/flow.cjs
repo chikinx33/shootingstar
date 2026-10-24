@@ -1,0 +1,26 @@
+const {chromium}=require('playwright');
+const fs=require('fs'); const path=require('path');
+(async()=>{
+const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});
+const page=await browser.newPage({viewport:{width:1280,height:900},deviceScaleFactor:1});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));
+page.on('response',r=>{if(r.status()>=400)console.log('HTTP',r.status(),r.url());});
+await page.route('https://**',r=>r.abort());
+await page.goto('http://127.0.0.1:8787');await page.waitForTimeout(4000);
+await page.locator('flt-semantics-placeholder').evaluate(e=>e.click());await page.waitForTimeout(500);
+console.log('HOME',await page.locator('body').ariaSnapshot());
+await page.getByRole('button',{name:'잔광 외곽 · 출격',exact:true}).click();
+await page.getByRole('button',{name:'비행 준비 완료',exact:true}).click();
+await page.waitForTimeout(3500);
+console.log('BATTLE',await page.locator('body').ariaSnapshot());
+await page.screenshot({path:path.join(__dirname,'battle-desktop.png')});
+await page.getByRole('button',{name:'일시정지',exact:true}).click();
+await page.waitForTimeout(200);
+console.log('PAUSE',await page.locator('body').ariaSnapshot());
+await page.screenshot({path:path.join(__dirname,'pause.png')});
+await page.getByRole('button',{name:'계속 비행',exact:true}).click();
+await page.waitForTimeout(3500);
+console.log('AFTER',await page.locator('body').ariaSnapshot());
+console.log('ERRORS',errors);
+await browser.close();
+})();

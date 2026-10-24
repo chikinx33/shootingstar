@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Shootingstar — 잔광의 항로. 이동하고, 성장하고, 우주의 신호를 지키세요.">
+  <meta name="theme-color" content="#ff8c0c">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="shootingstar">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/assets/art/lobby_v9/hero.png"/>
+
+  <title>Shootingstar · 잔광의 항로</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <div id="art-loading" style="position:fixed;inset:0;background:#ff8c0c;color:#171a21;display:flex;flex-direction:column;align-items:center;justify-content:center;font:bold 18px sans-serif">
+    <img src="assets/assets/art/lobby_v9/hero.png" alt="슈팅스타" style="width:min(55vw,220px);max-height:36vh;object-fit:contain">
+    <p id="loading-message">출격을 준비하는 중…</p>
+    <p id="loading-version" style="position:absolute;bottom:max(12px,env(safe-area-inset-bottom));font-size:14px"><!-- build-version:start -->v12.4.3<!-- build-version:end --></p>
+  </div>
+  <script>
+    try {
+      const savedLanguage = localStorage.getItem('flutter.shootingstar.language.v1');
+      if (savedLanguage === 'en' || savedLanguage === '"en"') {
+        document.documentElement.lang = 'en';
+        document.title = 'Shootingstar · Starlight Routes';
+        document.getElementById('loading-message').textContent = 'Preparing for launch…';
+        document.querySelector('#art-loading img').alt = 'Shootingstar';
+      }
+    } catch (_) { /* Device storage may be unavailable. Korean remains the default. */ }
+  </script>
+  <script>window.addEventListener('flutter-first-frame', () => document.getElementById('art-loading')?.remove());</script>
+  <!--
+    You can customize the "flutter_bootstrap.js" script.
+    This is useful to provide a custom configuration to the Flutter loader
+    or to give the user feedback during the initialization process.
+
+    For more details:
+    * https://docs.flutter.dev/platform-integration/web/initialization
+  -->
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

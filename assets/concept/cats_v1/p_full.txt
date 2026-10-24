@@ -1,0 +1,13 @@
+Redraw image 1 (SUNSHINE, the base aircraft of Cheese the orange tabby guardian cat) as a FULLY EQUIPPED version, like a hero wearing a full set of RPG armor. Keep the same core pod, the same glass canopy with Cheese's orange striped head and ears visible from above, the same orange/yellow/cream color identity and the same built-in nose main cannon. Strict orthographic top-down view, nose pointing straight up, perfectly bilaterally symmetric.
+Add these five detachable equipment parts, each clearly reading as a separate bolted-on piece that changes the silhouette (use cream white and sky-blue armor panels with orange trim so they read as equipment over the base pod):
+1) nose cone: a bigger armored nose cowl wrapped around the main cannon,
+2) body armor: chunky armor plates on both sides of the fuselage,
+3) wings: large swept wings replacing the small stub wings,
+4) engines/thrusters: twin big rear thrusters with blue flame glow, replacing the single small one,
+5) shield device: a small round shield emitter on the spine behind the canopy with a faint cyan hexagon glow.
+Add three extra weapons at exactly these positions, drawn in steel gray with one red accent each so they stand out from the orange airframe:
+- wing guns: one compact gun on each wingtip, rectangular barrels pointing forward,
+- missiles: one small missile pod on the middle of each wing (between fuselage and wingtip), red-nosed missiles pointing forward,
+- rear self-propelled gun: a small artillery turret on the tail end, its rectangular barrel pointing backward (down).
+No round muzzle holes anywhere. Thick even dark navy outline, bold flat colors, one cel-shade step, small white highlights, Survivor.io-family casual style matching image 2.
+Output: square image, aircraft centered filling about 85 percent of the frame, fully transparent background (PNG alpha), no shadow, no text, no watermark.

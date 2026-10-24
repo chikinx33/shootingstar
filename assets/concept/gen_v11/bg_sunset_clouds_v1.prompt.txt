@@ -1,0 +1,7 @@
+Mode: built-in image_gen
+Use case: style-transfer
+Asset type: seamless-looking vertical scrolling gameplay background for a casual mobile top-down shooter.
+Input image 1: style reference only. Replace its subjects and sprite-sheet composition entirely with the requested cloud environment; retain the approachable cartoon visual language, adapting to thin soft outlines and low contrast.
+Primary request: A sunset sea of fluffy clouds seen strictly from directly above, orthographic map view. Warm peach, pink and lavender cloud tops with soft shadows. Flat colors and soft cel shading. Deliberately LOW CONTRAST and slightly desaturated, with a narrow gentle value range so bright characters, bullets and pickups remain readable over it.
+Composition: Portrait 2:3, full bleed environment. Even cloud detail spread across the WHOLE frame; consistent scale from top to bottom, no single focal point, no horizon, no perspective recession, no central opening or corridor. Edges continue naturally when mirrored and tiled for vertical scrolling, with gentle matching color and detail density around every edge. Rounded cloud masses seen from overhead, subtle layered lobes, thin low-contrast lavender-peach contour lines. Uniform ambient sunset coloration, no directional overall gradient or spotlight.
+Constraints: background only; no characters, vehicles, creatures, bullets, pickups, UI, text, letters, watermark, border, sun disc, stars or ocean water. No bold black outlines, harsh shadows, bright white highlights or photorealism.

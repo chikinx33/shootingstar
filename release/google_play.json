@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "platform": "android_google_play",
+  "platform_confirmed": true,
+  "package_id": "com.shootingstar.shootingstar",
+  "package_confirmed_in_console": false,
+  "native_build_authorized": false,
+  "products": [{
+    "product_id": null,
+    "kind": "non_consumable_cosmetic",
+    "display_name": "잔광 후원 외형",
+    "reference_price_krw": 4900,
+    "console_verified": false
+  }],
+  "ads": {
+    "provider": "admob",
+    "app_id": null,
+    "rewarded_unit_id": null,
+    "console_verified": false,
+    "placement": "eligible_sortie_result_optional",
+    "reward_credits": 20,
+    "per_sortie": 1,
+    "per_utc_day": 2
+  },
+  "support_email": null,
+  "publisher_name": null,
+  "privacy_url": null,
+  "deletion_url": null,
+  "verification": {
+    "billing_android": null,
+    "ads_android": null,
+    "device_soak": null,
+    "user_playtest": null
+  }
+}

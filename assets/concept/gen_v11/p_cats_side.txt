@@ -1,0 +1,5 @@
+Character sheet of TWO guardian cat pilots for the mobile shooter Shootingstar, in exactly the same very simple design language as the orange cat in image 3 (big round head, tiny dot eyes, small 'w' mouth, short stubby legs, minimal stripes), each standing in three-quarter view facing right, side by side with a wide transparent gap:
+1) KAMI: a black-and-white tuxedo cat (black body, white muzzle, chest and paws), calm veteran look, small dark-blue pilot cap with goggles and a navy scarf,
+2) GUREUM: a soft gray Russian Blue cat with green eyes drawn as tiny dots, sleepy relaxed look, round white headphones and a sky-blue scarf.
+No weapons, no armor. Rendering style exactly like image 1 and image 2: thick even dark navy outline, bold flat colors with one cel-shade step, small white highlights, lighting from top-left, chunky cute toy-like shapes.
+Output: wide image about 2:1, fully transparent background (PNG alpha), no text, no shadow, no watermark.

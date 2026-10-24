@@ -1,0 +1,23 @@
+[
+  {
+    "name": "roguelike-game-designer",
+    "repo": "Hanjo92/roguelike-game-designer-skill",
+    "commit": "3d08270df04770620a014a1fe1f4af962ec57e2d",
+    "sourcePath": ".",
+    "installedOn": "2026-10-15"
+  },
+  {
+    "name": "space-shooter",
+    "repo": "shipshitgames/skills",
+    "commit": "e4d7d2cf6907041df95f6b66964b94ea2ce6e61c",
+    "sourcePath": "skills/space-shooter",
+    "installedOn": "2026-10-15"
+  },
+  {
+    "name": "game-balance",
+    "repo": "rbergman/dark-matter-marketplace",
+    "commit": "fa130b63639d8e8dbb3ed2544971ec3e68c533ca",
+    "sourcePath": "plugins/game-dev/skills/game-balance",
+    "installedOn": "2026-10-15"
+  }
+]

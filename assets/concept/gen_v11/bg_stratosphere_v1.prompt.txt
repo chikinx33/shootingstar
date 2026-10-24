@@ -1,0 +1,10 @@
+Mode: built-in image_gen
+Reference: ref_style.png
+
+Use case: style-transfer
+Asset type: vertical scrolling gameplay background for a casual mobile top-down shooter.
+Input image 1: cartoon STYLE REFERENCE ONLY. Replace the sprite sheet subject and landscape composition entirely with the requested environment; do not carry over any objects or cream backdrop.
+Primary request: A seamless-looking stratosphere background high above Earth, thin wispy cloud streaks over a hazy deep-blue planet surface, viewed strictly straight down in orthographic map view. Portrait 2:3, full bleed.
+Style: match the reference's friendly flat-color cartoon illustration and soft cel shading, but use thin soft blue outlines, deliberately LOW CONTRAST and slightly desaturated cool blues. Simplified painted cloud streaks, restrained shapes, no photographic detail. Clouds are muted blue-gray, not bright white. Keep all background features subdued for bright characters, bullets and pickups to remain readable on top.
+Composition: even detail spread across the whole frame, no focal point, no central clearing, no dramatic gradients. The planet surface fills the entire frame; no horizon, planet limb, curvature or space view. Edges should continue naturally when mirrored and tiled for vertical scrolling, consistent colors and detail density at opposite edges, no border or vignette.
+Avoid: characters, vehicles, aircraft, creatures, bullets, pickups, UI, text, letters, watermark, stars, strong highlights, black outlines.

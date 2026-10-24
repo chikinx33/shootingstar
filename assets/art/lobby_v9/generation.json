@@ -1,0 +1,76 @@
+{
+  "tool": "built-in image_gen",
+  "style": "라인이 굵은 아기자기하고 캐주얼한 메카닉 디자인",
+  "records": [
+    {
+      "name": "hero",
+      "prompt": "Create ONE production game sprite PNG, transparent background. Original cute casual MECHA spaceship for a Korean mobile action game. Mandatory aesthetic: VERY THICK BLACK INK OUTLINES, CHUNKY CHIBI TOY MECHANIC, flat cartoon, simple large color blocks, TWO tones per material, no gradients. This is a tiny plump flying robot ship, not a slender fighter jet. Top-down view nose pointing up. Width roughly equals height. Fat rounded ivory capsule fuselage, enormous single blue oval canopy, stubby orange fins, two oversized round blue engine pods, two short cyan exhaust puffs. At most 10 large visible components, no tiny panel lines, no bolts, no textures, no metallic reflections, no realistic lighting, no complex facets. Strong black 12-18px outer ink at 1024px, bold internal ink. Friendly squat silhouette like a chunky cartoon toy, readable as a 48px icon. Subject centered with generous 15 percent clear padding on EVERY side. Whole ship fully visible including exhaust. No text, no UI frame, no ground shadow, no backdrop. Do not imitate any existing named character. Prioritize simple adorable mechanical forms.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a1492b-cba4-78a2-a77f-8036a5ebcde1\\exec-64e51aa5-7477-4975-ad10-b6619a7d4255.png"
+    },
+    {
+      "name": "backdrop",
+      "prompt": "Production mobile casual game background, portrait 2:3 aspect. Very simple flat orange comic paper backdrop. Solid warm tangerine orange, broad yellow orange patch in lower center, very subtle sparse lighter halftone dots and a few faint simple gear silhouettes at outer edges only. Center 70 percent almost empty solid orange. Flat two-dimensional screen-print graphic, no scenery, no platform, no characters, no objects, no text, no UI, no borders, no perspective, no gradients, no rendered lights, no metallic details. Warm cheerful toy mechanic game mood, background must be quiet so outlined chunky sprites and black edged yellow buttons placed later are legible. Fill the canvas completely, fully opaque.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a1492b-cba4-78a2-a77f-8036a5ebcde1\\exec-618e8ceb-af12-4433-80e6-317ab6601c73.png"
+    },
+    {
+      "name": "mission",
+      "prompt": "ONE standalone game UI icon PNG transparent. A cute chunky cream clipboard with a yellow metal clip, three large dark check marks, tiny orange corner tab. Icon nearly square, short thick proportions. VERY THICK smooth BLACK outlines, simple hand-inked flat cartoon, large clear two-tone color areas, maximum 7 large shapes, readable at 40px. Casual adorable mechanic game matching a plump ivory orange blue toy spaceship. No gradients, no texture, no small detail, no metallic rendering, no shine effects, no text, no background, no UI tile/frame. Entire object centered with 15 percent transparent safety margin on all sides. One object only.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a1492b-cba4-78a2-a77f-8036a5ebcde1\\exec-3308fe95-e801-468c-b491-01fbb11b3d29.png"
+    },
+    {
+      "name": "chest",
+      "prompt": "ONE standalone original mobile game UI icon, actual transparent PNG. Mandatory: very THICK BLACK OUTLINES, cute chunky casual MECHANIC toy style, squat rounded shapes, flat cartoon ink, only two tones per color, maximum 8 big components. Readable at 40px. No texture, no micro details, no metallic reflections, no realistic lighting, no gradients, no text, no UI frame, no ground shadow. Entire object centered with 15 percent transparent padding on EVERY edge. A squat plump orange-gold treasure supply chest with a big blue lid, very thick gold band and single large blue hexagonal latch. Friendly toy proportions.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a1492b-cba4-78a2-a77f-8036a5ebcde1\\exec-853975e1-a70f-4331-8a01-6395d719094e.png"
+    },
+    {
+      "name": "radar",
+      "prompt": "ONE standalone original mobile game UI icon, actual transparent PNG. Mandatory: very THICK BLACK OUTLINES, cute chunky casual MECHANIC toy style, squat rounded shapes, flat cartoon ink, only two tones per color, maximum 8 big components. Readable at 40px. No texture, no micro details, no metallic reflections, no realistic lighting, no gradients, no text, no UI frame, no ground shadow. Entire object centered with 15 percent transparent padding on EVERY edge. A cute squat green radar dish on a short ivory mechanical base, one thick green circular screen with one lime sweeping wedge and one orange contact dot. Strong simple silhouette.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a1492b-cba4-78a2-a77f-8036a5ebcde1\\exec-dbd7d4e8-bfd1-42e2-9303-54a5514c4087.png"
+    },
+    {
+      "name": "guild",
+      "prompt": "ONE standalone original mobile game UI icon, actual transparent PNG. Mandatory: very THICK BLACK OUTLINES, cute chunky casual MECHANIC toy style, squat rounded shapes, flat cartoon ink, only two tones per color, maximum 8 big components. Readable at 40px. No texture, no micro details, no metallic reflections, no realistic lighting, no gradients, no text, no UI frame, no ground shadow. Entire object centered with 15 percent transparent padding on EVERY edge. A tiny adorable mechanic guild clubhouse: blue squat workshop hut, oversized orange cog emblem over a large cream doorway, one short antenna. Only 6 big shapes; not a realistic building.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a1492b-cba4-78a2-a77f-8036a5ebcde1\\exec-a3075c89-70c5-4e26-a19f-03cb9fd71ba3.png"
+    },
+    {
+      "name": "growth",
+      "prompt": "ONE standalone original mobile game UI icon, actual transparent PNG. Mandatory: very THICK BLACK OUTLINES, cute chunky casual MECHANIC toy style, squat rounded shapes, flat cartoon ink, only two tones per color, maximum 8 big components. Readable at 40px. No texture, no micro details, no metallic reflections, no realistic lighting, no gradients, no text, no UI frame, no ground shadow. Entire object centered with 15 percent transparent padding on EVERY edge. A single big stubby orange mechanic wrench with a blue hexagonal nut at its open jaw. Diagonal, rounded ends, simple chunky toy tool; no crossed tools.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a1492b-cba4-78a2-a77f-8036a5ebcde1\\exec-10872e2b-9e1d-4883-ad54-d04b254d6615.png"
+    },
+    {
+      "name": "challenge",
+      "prompt": "ONE game UI icon only: a cute very squat gold trophy with two short handles, orange star on its face, blue foot. VERY THICK BLACK OUTLINES and flat two tone cartoon colors. Important: the entire object occupies ONLY the middle 55 percent of the square canvas width and height. Leave AT LEAST 22 percent genuinely transparent padding on all four edges, including handles. Small centered object surrounded by wide transparent space. No text, no shadows, no frame, no realistic detail, no texture. Transparent PNG.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a1492b-cba4-78a2-a77f-8036a5ebcde1\\exec-53646d25-9b10-4012-9aae-2ff9c916f44a.png"
+    },
+    {
+      "name": "research",
+      "prompt": "ONE standalone original mobile game UI icon, actual transparent PNG. Mandatory: very THICK BLACK OUTLINES, cute chunky casual MECHANIC toy style, squat rounded shapes, flat cartoon ink, only two tones per color, maximum 8 big components. Readable at 40px. No texture, no micro details, no metallic reflections, no realistic lighting, no gradients, no text, no UI frame, no ground shadow. Entire object centered with 15 percent transparent padding on EVERY edge. A squat chunky open cream engineering book with blue cover, one large simple orange gear symbol on the right page and one simple blue spaceship silhouette on the left page. No writing or small marks.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a1492b-cba4-78a2-a77f-8036a5ebcde1\\exec-ff8f2c92-71b2-4966-aed8-54bcd7366b1b.png"
+    },
+    {
+      "name": "coin",
+      "prompt": "ONE standalone original mobile game UI icon, actual transparent PNG. Mandatory: very THICK BLACK OUTLINES, cute chunky casual MECHANIC toy style, squat rounded shapes, flat cartoon ink, only two tones per color, maximum 8 big components. Readable at 40px. No texture, no micro details, no metallic reflections, no realistic lighting, no gradients, no text, no UI frame, no ground shadow. Entire object centered with 15 percent transparent padding on EVERY edge. A single thick squat bright gold coin with one big simple embossed orange star, almost front view tilted just a little to show thick orange edge. Flat two-tone yellow and orange.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a1492b-cba4-78a2-a77f-8036a5ebcde1\\exec-89ee3a41-1b99-43b8-98ae-01e5a7700ea3.png"
+    },
+    {
+      "name": "blueprint",
+      "prompt": "ONE standalone original mobile game UI icon, actual transparent PNG. Mandatory: very THICK BLACK OUTLINES, cute chunky casual MECHANIC toy style, squat rounded shapes, flat cartoon ink, only two tones per color, maximum 8 big components. Readable at 40px. No texture, no micro details, no metallic reflections, no realistic lighting, no gradients, no text, no UI frame, no ground shadow. Entire object centered with 15 percent transparent padding on EVERY edge. A short thick bright blue rolled engineering paper scroll with one enormous cream gear symbol on its face. Only two chunky rolled ends. No writing, no linework.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a1492b-cba4-78a2-a77f-8036a5ebcde1\\exec-db47001d-f1a5-4d04-8e4a-022811534246.png"
+    },
+    {
+      "name": "key",
+      "prompt": "ONE standalone original mobile game UI icon, actual transparent PNG. Mandatory: very THICK BLACK OUTLINES, cute chunky casual MECHANIC toy style, squat rounded shapes, flat cartoon ink, only two tones per color, maximum 8 big components. Readable at 40px. No texture, no micro details, no metallic reflections, no realistic lighting, no gradients, no text, no UI frame, no ground shadow. Entire object centered with 15 percent transparent padding on EVERY edge. One short chunky gold mechanical key, a big blue hexagonal ring bow and two oversized orange teeth. Diagonal toy key with very simple shape. No other objects.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a1492b-cba4-78a2-a77f-8036a5ebcde1\\exec-ad1c9f79-4bcf-4b79-a81e-d91524d281da.png"
+    },
+    {
+      "name": "vector",
+      "prompt": "Reference image is STYLE ONLY. Make a DIFFERENT original spacecraft sprite in exactly the same chunky inked casual toy style: top-down nose up, a squat turquoise green scout mecha spaceship with enormous round dark blue canopy, fat rounded capsule fuselage, two short white swept wings, two oversized round orange engine pods and short cyan exhaust puffs. Width equals height, plump friendly proportions. THICK BLACK outlines, simple big flat color blocks, no small panels or bolts, no realistic shading, no texture. Whole single ship centered, 15 percent transparent margin on every side. No UI, no text, transparent PNG.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a1492b-cba4-78a2-a77f-8036a5ebcde1\\exec-728dc142-ae24-49aa-bf2e-b4538a8a0580.png"
+    },
+    {
+      "name": "monolith",
+      "prompt": "Reference image is STYLE ONLY. Make a different original heavy spacecraft sprite in exactly the same cute chunky inked casual toy style: top-down nose up, a very squat purple armored mecha spaceship, huge single round gold canopy, fat rounded rectangular body, two very short cream stub wings, two enormous round orange engine pods and short cyan puffs. Width equals height. THICK BLACK OUTLINES, only 8 large components, simple 2-tone flat color blocks, plump friendly proportions. No small panels, no bolts, no texture, no realistic metallic shading. Whole single ship centered with 15 percent clear transparent padding on ALL sides. No UI, no text. Transparent PNG.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a1492b-cba4-78a2-a77f-8036a5ebcde1\\exec-72f92099-5066-42d3-9aa2-509289acbd9a.png"
+    }
+  ]
+}

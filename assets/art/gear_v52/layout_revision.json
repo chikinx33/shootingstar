@@ -1,0 +1,8 @@
+{
+  "file": "boss.png",
+  "mode": "built-in edit",
+  "source": "D:/Programs/codex-home/generated_images/01a15319-6843-7822-8403-8840ac8f7dd8/exec-10a247c9-f979-4949-8364-aefc84f7a94c.png",
+  "prompt": "Use case: precise-object-edit. Input image 1 is the EDIT TARGET, a 4-column by 5-row transparent sprite atlas. Keep ALL TWENTY existing equipment designs in EXACTLY the same order, same structural silhouettes, same colors, same bold casual mechanical rendering, same front-up/back-down orientation, same transparency. Correct ONLY the layout spacing and scale. The current art overlaps the implied cell edges. Re-layout into a mathematically even 4 by 5 grid, center one complete sprite precisely in every cell, and SHRINK EVERY ENTIRE COMPONENT to fit within the central 65 percent of its cell width AND height. Leave at least 17.5 percent of each cell empty on ALL FOUR SIDES, large actual transparent gutters. The largest armor panel must have this same EMPTY MARGIN too. Do NOT crop anything or enlarge any item to fill whitespace. Nothing whatsoever may cross its own cell. Keep entire mounting collars, armor tips and exhaust ports inside the central 65 percent. No new objects, no lost objects, no text, no labels, no visible grid, no background, no added shadow. This is a production sprite atlas that must be sliced with equal rectangles. Large empty transparency is intentional and required.",
+  "discardedSource": "D:/Programs/codex-home/generated_images/01a15319-6843-7822-8403-8840ac8f7dd8/exec-1e46553f-7126-4360-ab1d-e8f505e41c7c.png",
+  "reason": "Original boss silhouette bounding rectangles included a few pixels from adjacent rows. Built-in edit increased transparent gutters while preserving twenty designs."
+}

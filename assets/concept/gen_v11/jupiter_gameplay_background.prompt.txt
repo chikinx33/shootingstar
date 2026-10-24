@@ -1,0 +1,8 @@
+Mode: built-in image_gen
+Use case: style-transfer
+Asset type: seamless-looking vertical scrolling gameplay background for a casual mobile top-down shooter, portrait 2:3.
+Input image 1: style reference only. Replace the sprite-sheet subject and layout completely with the requested atmospheric map; do not reproduce any icons or objects.
+Primary request: Jupiter's stormy atmosphere seen strictly from directly above in orthographic map view, filling the entire canvas with swirling orange, cream and brown cloud bands and small storm eddies.
+Style: matching the reference's friendly cartoon visual language, flat colors and soft cel shading, but thin soft tonal outlines instead of bold black outlines. Deliberately LOW CONTRAST, slightly desaturated muted orange, cream and brown with a narrow luminance range, so bright gameplay characters, bullets and pickups remain readable on top.
+Composition: evenly spread detail across the whole frame, no single focal point, no dominant giant storm, no horizon, no spherical planet or space view, no perspective. Broad flowing cloud bands and distributed small eddies. Full bleed, no border. Edges should continue naturally when mirrored and tiled for vertical scrolling; calm edge transitions, no edge framing or vignette.
+Constraints: background only; no characters, vehicles, creatures, bullets, pickups, UI, text, letters or watermark. Output one portrait 2:3 image.

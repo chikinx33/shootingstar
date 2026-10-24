@@ -1,0 +1,8 @@
+Mode: built-in image_gen, image edit
+Use case: precise-object-edit
+Asset type: cute chibi game power-up item icon, square 512x512 PNG with true alpha transparency.
+Input image 1: edit target and subject/style reference, the blue mackerel fish missile.
+Primary request: Create a round glowing orange capsule badge containing the chubby blue mackerel fish missile from the reference, with a bold upward arrow sparkle indicating a power-up.
+Style: Match the reference sticker art exactly: thick dark outline, glossy cel shading, bright saturated colors.
+Composition: isolated single unified badge object centered, entire silhouette visible with comfortable transparent margins. The fish stays upright and prominently visible within the badge. Integrate one bold upward arrow and sparkle accent without obscuring the eyes or fish identity.
+Constraints: Preserve the fish's identity, big glossy eyes, round blue body, pale belly, orange nose and orange fins, its symmetry, proportions, pose and geometry as closely as possible; only add the requested surrounding orange capsule badge and upward arrow sparkle. Fully transparent background outside the object, not black or white and no checkerboard painted into the image. No text, letters, numbers, watermark, extra objects or scene.

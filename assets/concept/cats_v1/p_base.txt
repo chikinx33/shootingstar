@@ -1,0 +1,6 @@
+Game sprite of SUNSHINE, the unique base aircraft of Cheese the orange tabby guardian cat, for the vertical shooter Shootingstar. Strict orthographic top-down view, nose pointing straight up.
+This is the BASE frame before any equipment: a compact rounded core pod with a clear glass canopy in the center, and through the canopy we see Cheese from above (round orange tabby head with two triangle ears and forehead stripes). One built-in main cannon integrated into the nose tip (short rectangular bar seen from above, no round muzzle hole). Small simple stub wings and one small basic rear thruster.
+Absolutely no extra weapons: no wing guns, no missiles, no turrets, no armor plates, no attachments.
+Colors: orange and sunny yellow with cream white, blue-tinted glass, gray thruster. Cute, chunky, toy-like, perfectly bilaterally symmetric.
+Rendering style like image 1: Survivor.io-family casual mobile game art, thick even dark navy outline, bold flat saturated colors, one simple cel-shade step, small white highlights, lighting from top-left, readable at small size.
+Output: square image, aircraft centered filling about 75 percent of the frame, fully transparent background (PNG alpha), no shadow, no text, no watermark.

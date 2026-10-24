@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: casual mobile game communication-screen character portrait.
+Input image 1 is a style reference: match its thick near-black outlines, flat saturated colors, simple crisp cel-shaded highlights, chunky cute shapes and polished cartoon game-asset finish. The requested new subject and square framing replace the reference sheet's subjects and layout.
+Primary request: VACUUM KING, a living black-hole vortex villain. A swirling deep purple and black vortex face with exactly two glowing magenta angry eyes and a wide toothy grin made of swirling dust. Wearing a jagged oversized golden crown slightly tilted. Small sparkles of sucked-in debris spiral around the vortex. Menacing but cute and comedic.
+Composition: single centered portrait, square canvas, complete crown and vortex and sparse surrounding debris visible with comfortable clear margins. Strong readable silhouette, expressive face suitable for a communication portrait at small mobile sizes.
+Background: genuinely fully transparent PNG alpha outside the character, crown and sparse debris, including gaps between debris. No colored backdrop, no checkerboard drawn into image.
+Constraints: no text, no letters, no watermark, no UI frame. Preserve the reference's visual style while changing subject and framing as requested.
+
+Generation mode: built-in image_gen.

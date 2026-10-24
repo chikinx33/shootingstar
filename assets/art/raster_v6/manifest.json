@@ -1,0 +1,57 @@
+{
+  "generator": "Built-in image_gen; no external image API runner",
+  "generatedAt": "2026-10-16",
+  "artworks": [
+    {
+      "path": "assets/art/raster_v6/bosses.png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 2515720,
+      "sha256": "a91d52574dd1f8f8972dcb8d487b50e0010727857b2d97e87ca2b2e72676b8e4"
+    },
+    {
+      "path": "assets/art/raster_v6/effects.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2511938,
+      "sha256": "a5565970b5ea5f1d2c5b032389692ed906acf6b5fa2fd26705dacb639644f46c"
+    },
+    {
+      "path": "assets/art/raster_v6/enemies.png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 1675126,
+      "sha256": "ba9f6fd5d12a499cb75dfaa8ac59a4372f3187c58085a853ded160c4114d3370"
+    },
+    {
+      "path": "assets/art/raster_v6/icons.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2584723,
+      "sha256": "351b8817eee295e995158d9d1eead7ca42f2a708fc444e57f828ab34d7541ab5"
+    },
+    {
+      "path": "assets/art/raster_v6/panels.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2174556,
+      "sha256": "e984970c15d443d9743571681735fc65297d6be987f20928ebaa261c1686f3f7"
+    },
+    {
+      "path": "assets/art/raster_v6/projectiles.png",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 2164810,
+      "sha256": "6fa0f33a98116a6489f25ba3abc369acee80bfb8f1cfeb53d77065cb6f4ee584"
+    },
+    {
+      "path": "assets/art/raster_v6/worlds.png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 3119276,
+      "sha256": "6b41a4bbbe51bdea0f02d67649de210ba8dfaa17bbfd98bdbb56f2baad143397"
+    }
+  ],
+  "totalPngBytes": 16746149,
+  "decodedRgbaBytes": 44031984
+}

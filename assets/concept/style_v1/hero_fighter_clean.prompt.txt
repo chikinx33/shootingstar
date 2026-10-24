@@ -1,0 +1,17 @@
+Mode: built-in image_gen
+
+Initial prompt:
+Use case: background-extraction / precise-object-edit.
+Asset type: single hero fighter game sprite for mobile shooter Shootingstar.
+Input image 1 is the EDIT TARGET. Clean up this exact ship; preserve subject identity, proportions, component placement, silhouette and geometry, except correcting bilateral symmetry and adapting canvas to square.
+Top-down view, nose pointing straight up. Chubby SD jet with the same orange and yellow color blocks, blue cockpit dome, exactly two gray wing guns with yellow muzzles, and three gray engine nozzles (two side rear nozzles and small central rear nozzle as in input). Thick even dark navy outlines. Crisp clean antialiased edges, flat colors with one cel-shade step and small white highlights, lighting from top-left. Perfectly bilateral symmetric physical design and silhouette; directional highlights remain appropriate to top-left lighting. Do not redesign, add details, change wing shape, elongate the fuselage or change the ship's proportions.
+Output a square PNG with genuine transparent alpha background, ship centered, entire ship visible, maximum ship extent approximately 80 percent of canvas with balanced transparent margins. No opaque cream or white background, no checkerboard painted into the image, no shadow, no ground, no text, no watermark. Single sprite only.
+
+Final framing edit prompt:
+Use case: background-extraction / precise-object-edit.
+Asset type: single hero fighter game sprite for mobile shooter Shootingstar.
+Input image 1 is the EDIT TARGET. Clean up this exact ship; preserve subject identity, proportions, component placement, silhouette and geometry, except correcting bilateral symmetry and adapting canvas to square.
+Top-down view, nose pointing straight up. Chubby SD jet with the same orange and yellow color blocks, blue cockpit dome, exactly two gray wing guns with yellow muzzles, and three gray engine nozzles (two side rear nozzles and small central rear nozzle as in input). Thick even dark navy outlines. Crisp clean antialiased edges, flat colors with one cel-shade step and small white highlights, lighting from top-left. Perfectly bilateral symmetric physical design and silhouette; directional highlights remain appropriate to top-left lighting. Do not redesign, add details, change wing shape, elongate the fuselage or change the ship's proportions.
+Output a square PNG with genuine transparent alpha background, ship centered, entire ship visible, maximum ship extent approximately 80 percent of canvas with balanced transparent margins. No opaque cream or white background, no checkerboard painted into the image, no shadow, no ground, no text, no watermark. Single sprite only.
+Targeted correction: use Image 1 (the cleaned sprite) as the edit target. Preserve its appearance exactly; only reduce the ship's scale on the square transparent canvas so its leftmost and rightmost pixels fall at approximately 10% and 90% of canvas width (80% width total), and center the ship vertically and horizontally. Keep actual PNG alpha outside the ship. Do not crop. Do not enlarge the subject to fill the margins.
+

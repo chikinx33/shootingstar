@@ -1,0 +1,8 @@
+Mode: built-in image_gen
+Use case: style-transfer
+Asset type: seamless-looking vertical scrolling gameplay background for a casual mobile top-down shooter.
+Input image 1: style reference only. Replace its subjects and landscape sprite-sheet composition entirely with the requested lunar terrain and portrait framing.
+Primary request: Gray Moon surface seen strictly from directly above in an orthographic map view, full-bleed portrait 2:3 image (1024x1536). Soft rounded craters, gentle dust ridges and small rocks distributed evenly across the entire frame, no single focal point.
+Style: same friendly clean cartoon visual language as the reference, flat colors, soft cel shading, but thin soft outlines and deliberately LOW CONTRAST, slightly desaturated cool gray with a faint blue tint. Keep all terrain details within a narrow muted value range so bright game characters, bullets and pickups would stay readable over it. Simplified illustrated terrain, not realistic photography.
+Composition: continuous lunar ground filling every edge, consistent feature scale throughout, truly overhead circular crater shapes, no horizon, no perspective tilt. Edges should continue naturally when the image is mirrored and tiled for vertical scrolling; balanced edge detail and uniform base tone, no border, no vignette, no global lighting gradient.
+Constraints: terrain only. No characters, vehicles, creatures, bullets, pickups, UI, text, letters, watermark, space sky or stars. No bold black contours or high contrast shadows. Preserve the reference's cartoon style; subject, geometry, framing and palette are explicitly changed as requested.

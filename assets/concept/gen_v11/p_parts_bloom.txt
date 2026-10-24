@@ -1,0 +1,10 @@
+Game sprite sheet of EIGHT detachable equipment parts for a cat pilot's top-down aircraft, a new matching SAKURA BLOOM set: soft pink and mint green armor with white trim and flower-petal shapes, cheerful. Each part must keep the SAME silhouette type and footprint as the matching part of the orange set in image 3 so it can replace it, but redesigned in the new colors: arranged in a 4x2 grid with wide transparent gaps, in this exact order:
+1) LEFT wing only (root straight edge on the right side, tip pointing left),
+2) LEFT thruster only (one engine housing, nozzle at the bottom, no flame),
+3) body armor pair (two side pieces with an empty gap in the middle),
+4) nose cowl (open slot at the front center for a cannon),
+5) round shield emitter device,
+6) one wing gun (barrel pointing up),
+7) one missile pod with missiles pointing up,
+8) one rear self-propelled gun turret (barrel pointing up).
+Strict orthographic top-down view, thick even dark navy outline, flat colors with one cel-shade step, style of image 1. No cat, no airframe, no text. Output: wide 2:1 image, fully transparent background (PNG alpha), no watermark.

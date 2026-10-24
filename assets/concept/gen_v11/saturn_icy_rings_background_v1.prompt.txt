@@ -1,0 +1,16 @@
+Mode: built-in image_gen; initial generation followed by one contrast refinement.
+Style reference: ref_style.png
+Final asset: saturn_icy_rings_background_v1.png
+
+INITIAL PROMPT
+Use case: style-transfer.
+Asset type: vertical scrolling gameplay background for a casual mobile top-down shooter.
+Input image 1: STYLE REFERENCE ONLY. Adapt its friendly flat-color cartoon illustration and soft cel shading to environmental scenery with thin soft outlines. The requested scene and portrait framing replace the reference sheet's subjects and layout.
+Primary request: Saturn's icy rings seen strictly from directly above, orthographic map view: countless pale blue ice chunks and frosty particles drifting over a dark navy void.
+Output: one full-bleed portrait 2:3 image, preferably 1024x1536.
+Composition: an endless local patch within the ice rings, evenly distributed small and medium irregular icy chunks and many tiny frost fragments throughout the whole frame. No single focal point. No visible planet, horizon, perspective convergence, or full ring silhouette. Keep an even scale and density all the way to every edge. Edges continue naturally when mirrored and tiled for vertical scrolling; avoid directional lighting, border framing, edge fades, vignettes, conspicuous bands, or large central objects.
+Style: clean simplified cartoon shapes, flat colors, restrained soft cel shading, delicate soft blue outlines. Deliberately LOW CONTRAST and slightly desaturated. Muted dusty pale-blue and slate-blue ice with subdued highlights against a dark navy void; compress brightness differences so bright gameplay characters, bullets, and pickups remain clearly readable on top. Frost particles are dim small specks rather than bright glowing stars. No photorealistic or highly detailed 3D rendering.
+Constraints: background scenery only. No characters, vehicles, creatures, bullets, UI, text, letters, symbols, logos, watermark, or objects from the reference sheet.
+
+FINAL REFINEMENT PROMPT
+Use case: lighting-weather. Edit this portrait 2:3 top-down icy-ring gameplay background. Preserve every ice chunk's shape, position, scale, the orthographic framing, density, cartoon cel shading, and naturally continuing edges. Change ONLY palette and contrast: make this a deliberately subdued LOW-CONTRAST gameplay background. Darken all ice surfaces substantially to muted dusty slate-blue midtones, remove the pale bright highlights, and compress all tones close to the navy background. Target approximate colors: void #172a43, ice shadows #243a51, ice main faces #36536b, brightest ice faces no brighter than #53738a. These are color instructions, never render text. Keep a recognizable blue icy appearance and soft cel-shaded facets, with thin soft outlines, but nothing bright enough to compete with foreground bullets. Dim the tiny frosty particles too. Do not add or remove objects. No text, UI, characters, vehicles, creatures, bullets or watermark. Output full-bleed 1024x1536.

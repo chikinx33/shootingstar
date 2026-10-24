@@ -1,0 +1,19 @@
+{
+  "name": "Shootingstar",
+  "short_name": "Shootingstar",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#080f1e",
+  "theme_color": "#080f1e",
+  "description": "Offline orbital survival flight",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "sizes": "any",
+      "src": "icons/star.svg",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "records": [
+    {
+      "name": "enemy-6",
+      "prompt": "ONE original production PNG sprite for a cute casual mobile MECHA action game. Mandatory art style: VERY THICK BLACK INK OUTLINES, chunky chibi toy mechanic, big simple color shapes, flat cartoon cel shading, only 2 tones per material, no realistic metal, no fine bolts, no texture, no tiny panel lines, no gradients, no glows obscuring the black silhouette. Readable at 48px. No text, no logos, no UI frame, no ground shadow. A single whole object centered, occupying middle 65 percent of canvas, leaving AT LEAST 15 percent clear transparent margin on every side. Actual transparent background. Top-down nose UP. A chunky dark purple mine-laying enemy drone, round flattened body, oversized orange triangular caution badge on top, two big round lime mine pods attached to sides, small cream nose. No writing. Only 7 big toy components.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a1492b-cba4-78a2-a77f-8036a5ebcde1\\exec-457af694-2be7-4d45-bf3f-037ed0494242.png",
+      "reason": "Visible silhouette touched both canvas edges."
+    }
+  ]
+}

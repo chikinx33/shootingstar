@@ -1,0 +1,23 @@
+const {chromium}=require('playwright');const fs=require('fs');const path=require('path');const assert=require('assert');
+(async()=>{
+const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});
+const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('https://**',r=>r.abort());
+await page.goto('http://127.0.0.1:8787');await page.waitForTimeout(3500);await page.locator('flt-semantics-placeholder').evaluate(e=>e.click());await page.waitForTimeout(300);
+await page.getByRole('button',{name:'설정',exact:true}).click();await page.waitForTimeout(300);await page.screenshot({path:path.join(__dirname,'evidence/mobile-settings.png')});
+await page.touchscreen.tap(289,608);await page.waitForTimeout(300);
+await page.getByRole('tab',{name:'격납고',exact:true}).click();await page.waitForTimeout(300);await page.screenshot({path:path.join(__dirname,'evidence/mobile-ship.png')});
+await page.getByRole('tab',{name:'출격',exact:true}).click();await page.waitForTimeout(300);await page.mouse.move(195,640);await page.mouse.wheel(0,700);await page.waitForTimeout(500);
+console.log('MOBILE_HOME',await page.locator('body').ariaSnapshot());
+await page.getByRole('button',{name:'45초 훈련',exact:true}).click();await page.waitForTimeout(200);await page.getByRole('button',{name:'비행 준비 완료',exact:true}).click();await page.waitForTimeout(700);
+await page.screenshot({path:path.join(__dirname,'evidence/mobile-touch-before.png')});
+const cdp=await context.newCDPSession(page);
+await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:195,y:470}]});
+await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:255,y:410}]});await page.waitForTimeout(450);
+await page.screenshot({path:path.join(__dirname,'evidence/mobile-touch-held.png')});
+await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(300);
+await page.getByRole('button',{name:'일시정지',exact:true}).click();await page.waitForTimeout(250);assert((await page.locator('body').innerText()).includes('계속 비행'));
+await page.getByRole('button',{name:'귀환 · 현재 보상 정산',exact:true}).click();await page.waitForTimeout(300);assert((await page.locator('body').innerText()).includes('훈련에는 보상이 없습니다'));
+await page.getByRole('button',{name:'격납고로 귀환',exact:true}).click();await page.waitForTimeout(400);
+assert((await page.locator('body').innerText()).includes('당신만의 비행을 설계하세요'));assert.deepEqual(errors,[]);
+console.log('PASS mobile settings, hangar, training, touch start/move/end, pause, no training rewards, return to hangar');await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

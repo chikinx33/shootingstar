@@ -1,0 +1,18 @@
+{
+  "mode": "built-in image_gen",
+  "baseReferences": "assets/art/airframe_v50: source silhouette and composition only",
+  "hullPrompt": "Restyle this spaceship into a VERY SIMPLE chunky casual mobile-game cartoon sprite. Keep the exact silhouette, same nose-up TOP VIEW, canvas margins, proportions, cockpit location and engine positions. Replace all complicated surface details with large flat ivory and orange color areas. Very thick black outer outline. One simple dark cockpit shape. REMOVE every rivet, vent line, bevel, panel seam, metal shine and internal mechanism. Mount sockets should be simple small dark squares at their current locations, without nested rings. At most one flat shadow shade. Think a cute toy plane recognizable at 64 pixels, not a mechanical blueprint. Transparent background, no glow. Preserve source composition exactly.",
+  "colors": {
+    "aurora": "ivory/orange",
+    "vector": "ivory/teal",
+    "monolith": "blue/yellow/ivory"
+  },
+  "modulesPrompt": "Restyle this 4-column 3-row transparent atlas into VERY SIMPLE chunky casual mobile-game cartoon sprites. Preserve the exact twelve item roles, orientations, order and spacing. Very thick black outlines; only two main flat colors and one accent per item. Reduce each to at most 5 LARGE shapes. REMOVE every bolt, vent, bevel, seam, intricate ring and connector collar. Toy-like big forms readable at 48 pixels. Top view. Row1: long up-facing cannon on one block; round turret and single up barrel; twin up-facing barrels on one block; twin DOWN-facing barrels on one block. Row2: simple rectangular bomb-bay panel; ONE side armor slab; blue shield ring; yellow hexagon armor. Row3: simple repair box with wrench symbol; simple battery box with two cyan bars; simple blue shield pod with ONE ring; plain cream ring adapter. No text, no background, no glow, transparent alpha. Do not turn this into elaborate science-fiction machinery.",
+  "sources": {
+    "aurora": "exec-bfcd14bf-adc2-4cd3-a9a4-50ae6d067dd9.png",
+    "vector": "exec-bb5cebf0-345e-49ab-8772-af83ee4755e1.png",
+    "monolith": "exec-2e222c1d-f12f-4922-86fa-2f5401ff9d04.png",
+    "modules": "exec-908a4dbd-b27a-4b81-8cfe-eb39fa86eeb4.png"
+  },
+  "policy": "No panel lines, rivets, metallic realism, dense machinery. Thick outline, broad flat colors, single identifying motif."
+}

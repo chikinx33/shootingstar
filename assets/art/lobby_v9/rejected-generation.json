@@ -1,0 +1,10 @@
+{
+  "reason": "First trophy silhouette had only 14px margin; replaced with newly generated artwork. Never used as final art.",
+  "records": [
+    {
+      "name": "challenge",
+      "prompt": "ONE standalone original mobile game UI icon, actual transparent PNG. Mandatory: very THICK BLACK OUTLINES, cute chunky casual MECHANIC toy style, squat rounded shapes, flat cartoon ink, only two tones per color, maximum 8 big components. Readable at 40px. No texture, no micro details, no metallic reflections, no realistic lighting, no gradients, no text, no UI frame, no ground shadow. Entire object centered with 15 percent transparent padding on EVERY edge. A squat golden trophy cup with an enormous orange five-point star on its face, two short thick handles, short blue base. Large simple silhouette.",
+      "source": "D:\\Programs\\codex-home\\generated_images\\01a1492b-cba4-78a2-a77f-8036a5ebcde1\\exec-9911fecb-95d0-44f0-9081-5c461a521b5b.png"
+    }
+  ]
+}

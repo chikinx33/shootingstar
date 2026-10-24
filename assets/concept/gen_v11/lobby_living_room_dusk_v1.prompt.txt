@@ -1,0 +1,8 @@
+Mode: built-in image_gen
+Use case: style-transfer
+Asset type: casual mobile game lobby background, portrait 9:16.
+Input image 1 is a STYLE REFERENCE ONLY. Replace the sprite-sheet subject and framing with the requested new room composition; preserve its appealing rounded cartoon shapes, confident clean outlines, smooth cel shading, and polished playful game-art language. Do not include any objects or characters from the reference sheet.
+Primary request: Inside a cozy living room at dusk, seen straight from the front. A big round window in the upper-middle wall shows a purple-orange evening sky with a few shooting stars. A tall cat tower stands on the left. A soft empty cushion sits on the floor in the center as an open stage where a cat character will later be placed. A cardboard box on the right emits a faint blue glow. Warm lamps provide a cozy atmosphere.
+Composition: full-bleed vertical 9:16 background. Keep the central cushion and the space above it simple, open, evenly lit and free of dark areas or heavy shadows. Place visual detail toward the sides; ample uncluttered space for overlay UI. No UI elements in the artwork.
+Style and lighting: same cartoon style as reference image 1, adapted to a calm background with softened lower-contrast outlines, muted warm colors and gently blurred detail. Clean rounded forms, simple smooth cel shading, restrained glossy highlights. Soft warm dusk illumination, subtle purple-orange sky, faint cool blue accent from box. Keep center light and calm, avoid dark vignette.
+Constraints: no characters, no animals, no text, no watermark, no logos. Exactly one cohesive living-room environment, not a sprite sheet. Portrait 9:16.

@@ -1,0 +1,154 @@
+[
+  {
+    "path": ".agents/skills/roguelike-game-designer/.markdownlint.json",
+    "sha256": "867D3E36503DE0CC14FDBE0DE7BEDDDC65DF6FB83657FA51F192011523FB78F8"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/README.md",
+    "sha256": "CC8479EE0749A132A761B90DAB63920270A23A7B3692834E502CFAE524AF421B"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/SKILL.md",
+    "sha256": "B8C76684581570CE2445EF6FC98016524971F726E4BFCB159EDB6F6C841719E2"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/evals/accessibility-difficulty.md",
+    "sha256": "B9FD5F9F0E023099B5139E95247D4CD1F71E51DA1782505CB185707B263F1530"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/evals/bad-design-detection.md",
+    "sha256": "1E0D9F15D08EC567F85688BC5C62053CAB6574B11DB9F93ADF60B7EF53F1EFBC"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/evals/boss-review.md",
+    "sha256": "609C883C35DB5C976F8B1F384C8327D22BBCEDEA8CAA84683707E409BB3F6FD2"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/evals/concept-design.md",
+    "sha256": "0A2A7A2ADCBFFBA1F8C63B4FAD264E75947DFBE0456308E50906AFB815C467CE"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/evals/economy-diagnosis.md",
+    "sha256": "2455E5FA44BA30F1BF58FBA197C40D680208F3AD1C8C9F5FFB333CE876AF029A"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/evals/item-review.md",
+    "sha256": "04B2B94DEA675F34AAE67A5CCD2D2BE24247E349FB846D7C7E108B73B43D47A2"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/evals/procedural-generation.md",
+    "sha256": "EBFBE18987291CB052905AE962584EE12BE7C9CBCBBBFECF8E060ACDBE8B05AB"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/evals/README.md",
+    "sha256": "19F94E0ED664AE4A36D7DCFC381EC3D2091919754B0069292D4A9D685F8C4B92"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/evals/rubric.md",
+    "sha256": "4A40CF0FC3662C801A2A02D5272179E098E2373E8E6535AD58A64DE2EE37A87C"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/evals/run-pacing.md",
+    "sha256": "ED3AD3CB94913D7960FCF880731DBCAA0FD5D1AB9B4C68373ECACDC09D301E58"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/evals/runtime-performance.md",
+    "sha256": "5727C848143A5763FCE04D9592E3EA846CDD61C132B7786BAFF8CC86C97D0B68"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/evals/subgenre-selection.md",
+    "sha256": "53086BFD0897C091DE34408EF531686F4FB11A62F592AEC51A47A1D0D4C5300D"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/references/accessibility-difficulty.md",
+    "sha256": "BAB6AA65D566A7F1463D53EB2371732EA78D888D69D7ABD9F36B536220E7B1E1"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/references/balance-economy.md",
+    "sha256": "9FF2FC63504135132C956BA3237A672B69F0F521795053505800D0CC2DA2A7A9"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/references/enemy-encounter-design.md",
+    "sha256": "EC628DF18F639D043B92E3CAE333DB05C797BB3FB96AF1D55F46664B11D19B64"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/references/item-content-design.md",
+    "sha256": "20B921C15B542F0DF8F46367400DC7A30079AEFD0D4CDA6EB4F7BD1C49F1F06D"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/references/level-design-checklist.md",
+    "sha256": "7830F1E6EAE0A84CACAD7E1F07E7BFC77B60D4A5CFB215A4FFD7C5678B6D3DA7"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/references/meta-progression-unlocks.md",
+    "sha256": "61E9AD1AE75D153A95E1F14D3551151840310071AECC42AC3B497D9B0B44B038"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/references/playtest-telemetry-diagnostics.md",
+    "sha256": "B05EB8DF22B1E21E0DB7633942D1BB197E4079FFE7BE5AE50961D86104603989"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/references/procedural-generation-algorithms.md",
+    "sha256": "A3EF84931ABBBD2668E2259037BD02147F2A66A94495C6BE7F4E0C1713167F82"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/references/run-architecture-pacing.md",
+    "sha256": "1588FB6C174D931DA2786EA55478B325B75DF9D681DEEDC821071FBBA03BC9FE"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/references/runtime-performance-fairness.md",
+    "sha256": "BE6B6D11A36F0EA64936832FAB4D7FCDA599B8A8B3CE887749C2E6145995A2C3"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/references/subgenre-guide.md",
+    "sha256": "A98A7C3E2A9BAD796548C004401E40E54C0028C4A5D48BCAE906C5801F258F38"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/templates/accessibility-matrix.md",
+    "sha256": "5922BDA54858E084D437707E07D7E14F836AE01E3FC22675E847AE10FB721743"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/templates/balance-model.md",
+    "sha256": "052B5792FE912E8C05A2AD3B1FAF82AD8394ED53B59FC9FA5872AA8ABA9CEB75"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/templates/design-spec.md",
+    "sha256": "CB95CDB933ECD3CBEFE18A49C3A37ADFB651D41112CD1113C279BABB53097D29"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/templates/encounter-spec.md",
+    "sha256": "DD68C3E9D73ABA598D770AAB620ED717B89AA8B3493877DB39BF764212867F69"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/templates/item-spec.md",
+    "sha256": "21AAF15881829520BC0076822789108B205633F009EF4E97D12499D60FA07DA9"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/templates/meta-progression-model.md",
+    "sha256": "0F02E037B5E6F641EFF532011145370376ECDBF5E535E464721BEF04DA2EADA8"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/templates/playtest-plan.md",
+    "sha256": "35FA323745547882E5DE193B07081F27B979D4507AD05CFC0BA9AB9DDDA70A21"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/templates/run-structure.md",
+    "sha256": "5E7D90C92144E3F4CCEAA6865367EE9F5CDE007D6904CCA2D80B77ABE5B17DC8"
+  },
+  {
+    "path": ".agents/skills/roguelike-game-designer/templates/telemetry-events.md",
+    "sha256": "199C850C7424037715AF6A3C0C6028C0D5B9DD5EA861219A3DC51AA752B2205F"
+  },
+  {
+    "path": ".agents/skills/space-shooter/blueprint.json",
+    "sha256": "A8D118F32B78BE48CC0F43698676F41FF3476245572A4A811F225ABE8A53C02E"
+  },
+  {
+    "path": ".agents/skills/space-shooter/SKILL.md",
+    "sha256": "192A8178B04D3E43BCAA29DE243751DEDD3348ED8DBE9533DE112BD8843A1292"
+  },
+  {
+    "path": ".agents/skills/game-balance/SKILL.md",
+    "sha256": "36AA57E32F3DB5F0564C5C9F00AD92C39C2711B106ACA07347969D7167E38E61"
+  }
+]

@@ -1,0 +1,8 @@
+Create an original in-game screenshot mockup for a casual mobile vertical shoot-'em-up called Shootingstar, combining Survivor.io-like roguelite growth with a vertical flying shooter. Match the rendering style of the reference screenshots (image 1, image 2, image 3): thick dark outlines, chunky super-deformed shapes, flat saturated colors with one cel-shade step, warm orange and yellow accents, cute mechanical design. Do NOT copy any character, logo or UI element from the references; only match their style.
+
+Portrait phone screen, 9:19.5 aspect ratio.
+Scene, seen strictly top-down: a bright cartoon sky over a sunny turquoise sea with small rounded cartoon islands, sandy beaches and a few chunky clouds drifting below; simple, low-detail, clearly readable background that is darker and less saturated than the characters.
+Center-bottom: a chubby orange-and-yellow SD jet fighter (nose up) with twin wing guns and a top turret, firing yellow bullets and two orange homing missiles upward. A cute round robot fox drone pet flies beside it shooting small blue lasers.
+Upper half: a formation of small purple and red enemy drones with glowing eyes, some exploding in big outlined cartoon bursts, a few pink enemy orb bullets coming down. Green, blue and gold experience crystals scattered on screen, floating toward the player.
+HUD in the same chunky style: top bar with a thick outlined orange experience bar and a round level badge, a heart health bar, a small pause button; bottom-right a big round ultimate skill button with a glowing charge ring. Use icons and digits only, no words, no letters.
+Make the player ship, enemy bullets and pickups clearly distinguishable by color and outline. Lively, juicy, satisfying action feel.

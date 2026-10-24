@@ -1,0 +1,7 @@
+Redraw the in-game battle screen of image 4 for the casual vertical shooter Shootingstar, keeping its portrait 9:19.5 layout, composition, HUD placement, enemy formation, explosions, experience crystals and ultimate button.
+Fixes:
+1. The player fighter at center-bottom must be exactly the hero fighter design of image 1 (same silhouette, orange-yellow color blocks, blue cockpit dome, two wing guns, three gray engines), seen top-down nose up, firing yellow bullets and two orange homing missiles.
+2. The pet flying beside it must be exactly the robot fox drone of image 2, shooting small blue lasers.
+3. Background readability: keep the cartoon sea and islands, but make the background clearly secondary - lower saturation and contrast by about 30 percent, slightly darker and cooler teal, fewer and simpler island details, softer outlines than the characters, no lighthouse or small props. Characters, bullets, pickups and HUD keep full saturation and thick dark outlines so they pop.
+4. Enemies, bosses, bullets and pickups use the exact rendering style of image 3: thick even dark outlines, flat saturated colors, one cel-shade step.
+Enemy bullets stay hot pink orbs, player bullets yellow, crystals green/blue/gold. HUD uses icons and digits only, no words, no letters, no watermark.

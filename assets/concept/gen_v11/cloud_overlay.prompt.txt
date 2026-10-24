@@ -1,0 +1,9 @@
+Mode: built-in image_gen
+Reference: ref_style.png
+Use case: style-transfer
+Asset type: transparent cloud overlay PNG for a casual top-down mobile shooter.
+Input images: Image 1 is a cartoon style reference only. Create the requested new cloud layer, replacing the reference's subjects and landscape framing as explicitly requested.
+Primary request: A few soft cartoon clouds seen from directly above, drifting rounded puffs of different sizes spread loosely and irregularly across a portrait 2:3 frame, with lots of empty space between them. Approximately five separated cloud clusters, occupying only about a quarter of the canvas overall. White with very soft lavender shading and a thin soft lavender outline, gentle semi-transparent feel and feathered translucent edges. Match the reference's friendly polished casual-game cartoon rendering, simplified rounded forms, but use the requested soft thin outlines for clouds.
+Composition: true overhead view, no horizon, no side-view flat cloud bottoms. Portrait 1024x1536. Preserve broad empty areas for gameplay visibility.
+Background: genuinely fully transparent PNG alpha everywhere except the clouds; preserve semi-transparent cloud edges. No painted background, no checkerboard pattern.
+Avoid: spaceships, items, characters, ground, sky color, text, watermark, dark thick outlines.

@@ -1,0 +1,8 @@
+Game icon sheet of SIX item icons for a cat-themed casual mobile game, arranged in a 3x2 grid with wide transparent gaps, same visual size, each icon chunky and readable at 32 pixels, in the exact style of image 1:
+1) CHURU: a squeezable lickable cat-treat tube (pink and orange stick pouch) - the common currency,
+2) STAR DUST: a small glowing pouch spilling sparkling golden star dust - the special currency,
+3) a speckled star egg with a crack (chick pet growth item),
+4) an equipment parts crate with a gear emblem and a paw stamp,
+5) a blueprint scroll with a paw print,
+6) a golden trophy with a cat-ear crown (achievement).
+No text, no letters, no numbers. Output: wide 3:2 image, fully transparent background (PNG alpha), no watermark.

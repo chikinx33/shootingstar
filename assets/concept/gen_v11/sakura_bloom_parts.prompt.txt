@@ -1,0 +1,19 @@
+Mode: built-in image_gen
+
+Use case: style-transfer.
+Asset type: transparent PNG game sprite sheet, wide 2:1 canvas.
+Input images: Image 1 is the rendering style reference (thick even dark navy outline, bright readable flat cartoon sprites). Image 2 is supporting in-game readability and top-down orientation reference only; do not reproduce its scene or UI. Image 3 is the equipment geometry reference: preserve the silhouette type, proportions and footprint of each corresponding orange aircraft equipment piece.
+Primary request: create a new matching SAKURA BLOOM equipment set, soft pink and mint green armor with white trim, cheerful flower-petal panel shapes. Exactly EIGHT detachable equipment entries in a 4-column by 2-row grid, read left to right then top to bottom. Each entry isolated with wide fully transparent gaps and generous transparent outer margin. All are strict orthographic top-down aircraft attachments, not complete spacecraft.
+Top row:
+1. LEFT WING ONLY: broad swept triangular silhouette matching image 3 left wing, straight vertical root edge at RIGHT, tip pointing LEFT; white main panel with pink and mint trim, petal-shaped panel decoration inside existing footprint. No gun attached.
+2. LEFT THRUSTER ONLY: a SINGLE engine housing matching image 3 side booster, nozzle at BOTTOM; no flame, no smoke; pink/mint/white casing and dark navy nozzle.
+3. BODY ARMOR PAIR: two separate elongated mirrored side armor pieces together in this cell, matching image 3 fuselage side plates; clear EMPTY TRANSPARENT vertical gap in middle, no cockpit/body connecting them.
+4. NOSE COWL: matching image 3 upper nose armor shell, symmetrical compact tapered cowl, OPEN NOTCH/SLOT in its TOP FRONT CENTER for a separate cannon. Keep slot transparent and visibly open to top edge. No cannon in slot.
+Bottom row:
+5. ROUND SHIELD EMITTER DEVICE: compact circular module matching image 3 circular emitter footprint, mint energy center and pink/white ring with petal motifs; no large shield effect.
+6. ONE WING GUN: slim upright weapon module matching image 3 wing-mounted gun, single barrel pointing straight UP, pink/mint casing and white trim.
+7. ONE MISSILE POD: compact launcher rack matching image 3 wing missile pod, with its missiles pointing straight UP, pastel pink tips and white bodies, mint housing.
+8. ONE REAR SELF-PROPELLED GUN TURRET: compact detachable rear turret module matching image 3 central rear weapon footprint, single barrel pointing straight UP; no vehicle chassis or tracks, no aircraft attached.
+Style: thick consistent dark navy contours; flat fills and only ONE cel-shade step, crisp simple readable construction, no realistic rendering, no perspective tilt. Flower-petal styling must stay within each corresponding equipment silhouette and footprint, without adding loose decorations.
+Background: genuinely fully transparent PNG alpha, including all gaps and the open center of armor pair and cowl slot. No painted checkerboard, no colored backdrop, no cast shadow.
+Constraints: exactly 8 entries, armor pair counts as one entry. No cat, pilot, cockpit, complete airframe, assembled ship, flames, text, numbers, labels, borders, watermark, extra items or duplicate right wing/thruster. Final aspect ratio exactly 2:1.

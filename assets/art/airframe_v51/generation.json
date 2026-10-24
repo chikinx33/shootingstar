@@ -1,0 +1,8 @@
+{
+  "provider": "built-in image_gen.imagegen",
+  "source": "D:/Programs/codex-home/generated_images/01a15319-6843-7822-8403-8840ac8f7dd8/exec-ae9ff7c0-094a-4ab1-9e41-797fd05bd78c.png",
+  "output": "ground.png",
+  "transparent_background": true,
+  "prompt": "Use case: stylized-concept. ONE production transparent sprite atlas, landscape 1536x512, three evenly spaced equal square cells in one horizontal row. Exact directly overhead 90 degree TOP VIEW military ground enemies for a friendly casual mechanical aircraft shooter. Match the new modular aircraft reference: bold charcoal outlines, big flat ivory/blue-grey panels, restrained dark red/orange hostile accents, single hard cel shadow, few large details. Left cell: compact tank, clearly visible two thick dark tread strips, squat armored hull, turret with short barrel pointing UP. Middle cell: eight-wheel armored carrier, rectangular squat hull, four small dark wheels per side, little roof gun pointing UP. Right cell: stationary octagonal ground anti-air turret, sturdy flat square mounting base, central swivel cannon pointing UP. No aircraft, no faces, no animals, no humans, no camouflage texture, no realistic metal, no gradients, no glowing projectile dots, no shadows or ground plane. Large transparent gutters between all three complete silhouettes, each must stay inside its cell. No labels, letters, UI, borders or grid. Crisp readable topview game sprites only.",
+  "processing": "Copied original PNG unchanged. Manifest records alpha bounds only; no pixel editing."
+}

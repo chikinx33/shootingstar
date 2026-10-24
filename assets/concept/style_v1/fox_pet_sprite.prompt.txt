@@ -1,0 +1,15 @@
+Mode: built-in image_gen
+Edit target: ref_fox_pet.png
+
+INITIAL PROMPT
+Use case: background-extraction
+Asset type: single clean mobile shooter Shootingstar robot fox drone pet sprite.
+Input image 1 is the EDIT TARGET. Clean and sharpen this exact character, preserving its identity, proportions, geometry, silhouette, parts and placement.
+Scene/backdrop: fully transparent background, genuine PNG alpha; no background color, no checkerboard pattern, no ground plane or cast shadow.
+Subject: exactly the same round white-and-orange robot head with two fox ears, dark visor with two glowing yellow eyes, existing orange side wing/thruster assemblies with their round yellow details and two small hanging orange side thrusters, and small centered flame underneath. Preserve all original design details and component proportions.
+Style: crisp, clean game sprite edges, thick even dark navy outline, flat colors with one cel-shade step and small white highlights; lighting from top-left. Remove blur.
+Composition: square canvas; centered complete pet, overall width about 75 percent of canvas, preserving original aspect ratio and geometry with generous clear margins. Front-facing slightly top-down view exactly as reference.
+Constraints: change only edge clarity, background transparency, and requested square framing. No redesign, added parts, text, watermark, shadow, or extra objects. Deliver one transparent PNG image.
+
+FINAL FRAMING CORRECTION PROMPT
+Use case: background-extraction. Edit the supplied sprite. Preserve the exact existing robot fox design, colors, geometry and all details. Change only framing: shrink the entire complete sprite uniformly so its leftmost to rightmost extent is exactly 75% of the square canvas width, centered horizontally and vertically. Leave transparent padding of 12.5% canvas width on BOTH left and right. Preserve original aspect ratio. Keep all ears, side wings, hanging side thrusters and bottom flame intact. Crisp dark navy outline, flat colors, one cel shade step, small white highlights, top-left lighting. Actual transparent PNG alpha background, no shadow, no text, no watermark. Single square sprite.

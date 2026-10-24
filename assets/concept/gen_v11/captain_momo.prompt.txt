@@ -1,0 +1,13 @@
+Mode: built-in image_gen. Initial generation plus one targeted cap-color edit.
+
+Use case: style-transfer
+Asset type: casual mobile game character bust portrait, square transparent PNG.
+Input images: Image 1 (ref_style.png) is the game art style reference: thick very dark outlines, simple flat colors, one cel-shade step. Image 2 (ref_cheese.png) is the exact character-design-language reference: oversized round cat head, tiny black dot eyes, small w mouth, extremely short stubby proportions. Both are style/design references, not subjects to copy into the scene.
+Primary request: CAPTAIN MOMO, a retired elderly guardian cat commander. A plump white-and-gray old cat with a bushy white mustache-like whisker tuft, a small scar across one eye, a navy military captain's cap with a simple gold paw badge, and a little gold medal on the chest, sitting proudly holding a cup of tea. Keep the friendly tiny dot eyes and small w mouth visible, and represent the mustache as simple bold white tufts. Very simple shapes, just as cute and minimal as the orange cat reference. No realistic fur, no ornate details.
+Composition: one character only, chest-up bust, facing three-quarter RIGHT, huge round head and a small amount of stubby chest and paws holding the tea cup visible. Entire cap, ears, face, cup and bust silhouette fit comfortably inside the square with transparent padding. No full body or legs.
+Style: thick clean dark navy-black contours, flat opaque fills and exactly one simple cel-shadow step, minimal details, crisp readable mobile game asset.
+Background: truly fully transparent PNG alpha outside character; no colored backdrop, no ground, no cast shadow, no checkerboard drawn into image.
+Constraints: no text, no letters, no name caption, no watermark. Preserve image 2's simple facial construction and proportions and image 1's bold game sprite styling while making the requested new white-and-gray elderly captain.
+
+Final targeted edit:
+Edit this generated CAPTAIN MOMO portrait with exactly one targeted change: recolor the WHITE TOP/CROWN of the captain's cap to DARK NAVY BLUE, with one simple flat cel shade. The entire fabric cap crown must be navy, not white. Preserve the gold paw badge, gold trim, navy brim, all character identity, face, dot eyes, w mouth, scar, white mustache tufts, white-and-gray fur, pose, tea cup, composition, thick outlines, square dimensions, and fully transparent PNG alpha background exactly as they are. No text, no watermark. Do not change anything else.

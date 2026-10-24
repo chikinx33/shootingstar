@@ -1,0 +1,15 @@
+Mode: built-in image_gen
+Reference: ref_style.png
+Use case: style-transfer
+Asset type: one game item icon sheet.
+Input image 1 is the STYLE REFERENCE. Replace the original subjects and original arrangement with the six requested items and 3x2 grid; preserve its visual design language: very thick near-black clean outlines, chunky rounded shapes, vibrant saturated colors, simple cel-shaded facets, bright glossy highlights, playful casual mobile game look.
+Create exactly SIX distinct item icons, in reading order in a uniform three-column two-row grid:
+Top left: CHURU common currency, one squeezable lickable cat-treat tube, a pink and orange stick pouch with sealed crimped end and small opened tip. No brand lettering.
+Top middle: STAR DUST special currency, a small glowing pouch spilling sparkling golden star dust.
+Top right: a speckled egg with a star marking and a clearly visible crack, chick pet growth item.
+Bottom left: equipment parts crate with a prominent gear emblem and a separate paw stamp.
+Bottom middle: blue blueprint scroll with a large clear paw print and minimal blueprint lines, no writing.
+Bottom right: golden trophy with a cat-ear crown, achievement item.
+Composition: wide 3:2 canvas, preferably 1536x1024. Six equally sized grid cells, each icon centered, equal perceived visual size, wide fully transparent gaps and generous outer padding. All icons complete and uncropped. Each silhouette chunky and immediately readable when reduced to 32 pixels; simplify tiny details.
+Background: genuinely fully transparent PNG alpha, including gaps and outer margins. No cream backdrop, no colored background, no checkerboard drawn into pixels, no ground or cast shadow.
+No text, letters, numbers, captions, labels, watermark, or additional icons. Preserve the reference's style and linework consistently throughout.

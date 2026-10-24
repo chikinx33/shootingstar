@@ -1,0 +1,8 @@
+Mode: built-in image_gen
+Use case: style-transfer.
+Asset type: Seamless-looking vertical scrolling GAMEPLAY BACKGROUND for a casual mobile top-down shooter.
+Input image 1: style reference only. The requested scene and portrait framing replace the reference's subjects and sprite-sheet layout completely.
+Primary request: An asteroid garden in dark purple space: drifting rocky asteroids covered with small green moss patches and tiny flowers, scattered stardust.
+Style: Same friendly cartoon visual language as the reference, simplified flat colors, soft cel shading, thin soft outlines, deliberately LOW CONTRAST and slightly desaturated so bright characters, bullets and pickups will remain readable over it. Muted purple-gray rocks, subdued green moss, tiny muted flowers, dim sparse stardust. Avoid bright highlights or black heavy outlines.
+Composition: portrait 2:3 (1024x1536), full bleed. Strictly directly overhead orthographic map view, no horizon, no perspective, no visible side-facing cliffs. Even natural detail spread across the whole frame, no single focal point or dominant asteroid. Consistent scale and brightness throughout. Edges continue naturally when mirrored and tiled for vertical scrolling; keep edge transitions unobtrusive, no border, vignette, central glow or directional gradient.
+Constraints: Environment only. No characters, vehicles, spacecraft, creatures, bullets, pickups, UI, text, letters, logos or watermark. Do not reproduce the reference sprite sheet.
