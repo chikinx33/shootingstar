@@ -1,3 +1,5 @@
+사용자 확정(2026-10-25, 저장소): 소스는 https://github.com/chikinx33/shootingstar (`main`, 공개 저장소)에 둔다. 수정 패치마다 버전 동기화·검사 뒤 변경을 커밋하고 `git push`한다(배포와 같은 단위). 커밋 메시지는 버전명과 변경 요약을 쓴다. `.gitignore`의 제외 항목(`.local/`, `build/`, `tools/qa/evidence/`, 다른 게임 앱 분석 문서·스크립트 등)은 올리지 않으며, 비밀값·서명 키·개인 정보가 들어가지 않았는지 커밋 전에 확인한다.
+
 # Shootingstar 작업 지침
 
 사용자 확정(2026-10-18): 수정 패치마다 `pubspec.yaml`의 버전과 내부 빌드 번호를 올린다. `python tools/sync_version.py --version major.minor.patch+build`로 동기화하되, 화면·로딩·최종 답변에는 **v10.0.1 같은 버전명만 표시하고 +빌드 번호를 붙이지 않는다.** `+build`는 Flutter 내부 메타데이터에만 남긴다. 수정이 반영된 최종 답변의 마지막 표시 줄에는 항상 버전명을 쓴다. 실행 파일에 컴파일된 버전을 표시하며 원격 메타데이터로 덮어쓰지 않는다.
