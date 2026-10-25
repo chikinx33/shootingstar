@@ -20,6 +20,10 @@ class ReleaseGateTest(unittest.TestCase):
             'applicationId = "com.shootingstar.shootingstar"', encoding='utf-8')
         (self.root / 'pubspec.yaml').write_text('version: 10.0.28+44\n', encoding='utf-8')
         self.config = json.loads((ROOT / 'release/google_play.json').read_text(encoding='utf-8'))
+        # start every case from the unconfigured state, whatever the real file holds
+        self.config.update(package_id='com.shootingstar.shootingstar', package_confirmed_in_console=False,
+                           native_build_authorized=False, support_email=None, publisher_name=None,
+                           privacy_url=None, deletion_url=None)
 
     def row(self, name):
         return next(r for r in gate.inspect(self.root, self.config)['checks'] if r['check'] == name)

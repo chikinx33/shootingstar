@@ -2,6 +2,20 @@
 
 2026-10-26 v12.12.0 사용자 확정 게임 이름: 한국어 **수호묘 특공대**, 영어 **Purrtectors**, 스토어 영문 전체 이름 **Purrtectors: Cat Sky Squad**(장르가 보이도록 부제). 앱 제목·웹 제목(언어별)·로딩 접근성 이름·웹 manifest·안드로이드 `app_name`(values / values-en)에 반영했다. 저장 키·백업 형식 id·패키지 이름(`shootingstar`)은 호환을 위해 그대로 둔다. 출시 전 Google Play·App Store에서 같은 이름이 있는지 실제 검색으로 확인한다(이미 있는 고양이 슈팅 'Whisker Squadron'과는 겹치지 않음).
 
+## Google Play 등록·비공개 테스트 (2026-10-26, v12.12.2 코드 129)
+
+사용자 지시("구글 스토어에 등록하고 비공개 테스트 신청해줘")로 RAVIOK 개발자 계정에 앱을 만들고 비공개 테스트를 검토에 보냈다. 이 계정은 2023-11 이후 개인 계정이라 **비공개 테스트 12명 이상·14일 연속 참여** 뒤에만 프로덕션 신청이 된다. 위 과금·광고 항목이 끝나기 전에는 프로덕션을 신청하지 않는다.
+
+- 앱: `Purrtectors: Cat Sky Squad` / 한국어 `수호묘 특공대`, 패키지 `com.raviok.purrtectors`, 기본 언어 en-US + ko-KR 번역, 게임 › 아케이드, 무료
+- 업로드 키: `D:\Codex\Shootingstar\keys\purrtectors-upload.jks`(별칭 `purrtectors-upload`, CN=RAVIOK). 비밀번호는 `android/key.properties`에만 있고 저장소에 올리지 않는다. Play 앱 서명 사용.
+- 빌드: `PUB_CACHE=F:/NKW/App/Shootingstar/.pub-cache`로 `flutter build appbundle --release`(한글 사용자 경로에서 jni 빌드가 깨짐). 이번 빌드는 광고 SDK 초기화를 끄고 AD_ID 권한을 뺐으며 결제는 동작하지 않는다.
+- 웹 문서(Worker `purrtectors`, `release/pages/`): 개인정보처리방침 https://purrtectors.chikinx1.workers.dev/privacy · 계정 삭제 https://purrtectors.chikinx1.workers.dev/delete-account
+- 앱 콘텐츠 신고: 광고 없음, 로그인 정보 불필요(계정은 선택), 타겟 13세 이상, 광고 ID 미사용, 정부·금융·건강 해당 없음. 콘텐츠 등급(IARC): 판타지·만화풍 비인간 대상 폭력(멀리서 자주, 피 없음), 사용자 상호작용 있음(닉네임·길드 이름, 채팅·차단·신고 없음), 디지털 구매 없음.
+- 데이터 보안: 선택 계정에서만 수집 — 개인 정보 › 이름(닉네임)·사용자 ID, 앱 활동 › 기타 사용자 제작 콘텐츠(길드 이름)·기타 작업(진행·길드 기록). 목적 앱 기능(이름·ID는 계정 관리도), 공유 없음, 전송 암호화, 계정 생성 = 사용자 이름+비밀번호, 삭제 URL 위와 같음.
+- 스토어 등록정보: 글은 `store/listing.md`, 업로드용 폴더는 `python tools/play_listing_folder.py`로 만든 `store/play/`를 `Game-Management/play/store_listing.py`로 올린다(아이콘 512, 대표 이미지 1024x500, 휴대폰 스크린샷 1080x1920 5장, 언어별). 연락처 raviok0623@gmail.com, 웹사이트 https://purrtectors.chikinx1.workers.dev/
+- 트랙: 내부 테스트(목록 `Raviok 운영자`) 게시 완료. 비공개 테스트 Alpha — 178개 국가, 목록 `Doply Test`·`Raviok 운영자`, 의견 raviok0623@gmail.com. 초안 앱은 API로 `draft` 출시만 만들 수 있어 콘솔에서 저장·게시했다. 변경사항 17개를 2026-10-26 검토에 보냄.
+- 다음 업로드: 초안 단계가 끝나면 `Game-Management/play/upload.py`에 `purrtectors`를 추가해 내부+비공개 테스트로 올린다.
+
 사용자 확정 지시 · 2026-10-17:
 
 > 실제 과금·광고 연동은 메모해 두었다가 반드시 스토어 출시 전에 구현해야 한다.

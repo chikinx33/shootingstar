@@ -50,7 +50,7 @@ def inspect(root=ROOT, config=None):
     check('native_build', config.get('native_build_authorized') is True,
           '기존 APK 빌드 금지 유지; 명시적 변경 전 네이티브 빌드 없음')
     signing = re.sub(r'//[^\n]*', '', gradle)
-    check('release_signing', bool(re.search(r'signingConfig\s*=\s*signingConfigs\.getByName\("release"\)', signing)),
+    check('release_signing', bool(re.search(r'signingConfig\s*=\s*signingConfigs\.(?:getByName|findByName)\("(?:release|upload)"\)', signing)),
           '현재 출시 서명 미구성; 실제 업로드 인증서 일치는 별도 검토')
     products = config.get('products')
     products_ok = isinstance(products, list) and len(products) > 0

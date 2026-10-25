@@ -2,9 +2,9 @@
   "schema": 1,
   "platform": "android_google_play",
   "platform_confirmed": true,
-  "package_id": "com.shootingstar.shootingstar",
-  "package_confirmed_in_console": false,
-  "native_build_authorized": false,
+  "package_id": "com.raviok.purrtectors",
+  "package_confirmed_in_console": true,
+  "native_build_authorized": true,
   "products": [{
     "product_id": null,
     "kind": "non_consumable_cosmetic",
@@ -22,10 +22,10 @@
     "per_sortie": 1,
     "per_utc_day": 2
   },
-  "support_email": null,
-  "publisher_name": null,
-  "privacy_url": null,
-  "deletion_url": null,
+  "support_email": "raviok0623@gmail.com",
+  "publisher_name": "RAVIOK",
+  "privacy_url": "https://purrtectors.chikinx1.workers.dev/privacy",
+  "deletion_url": "https://purrtectors.chikinx1.workers.dev/delete-account",
   "verification": {
     "billing_android": null,
     "ads_android": null,

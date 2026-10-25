@@ -73,3 +73,9 @@ tools/qa/inspect_survivor_xapk.py
 tools/qa/inspect_survivor_experience.py
 tools/qa/inspect_run_reference.py
 tools/qa/verify_wing_fighter_analysis.py
+
+# project-local pub cache (Korean user path breaks native builds)
+/.pub-cache/
+
+# generated upload folder for Game-Management/play/store_listing.py (tools/play_listing_folder.py)
+/store/play/
