@@ -23,6 +23,12 @@ SHEETS = [
     # v12.9 item slots by rarity: gray, green, blue, purple, gold, red
     ('rarity_slots_raw.png', 3, 2,
      ['slot_r0', 'slot_r1', 'slot_r2', 'slot_r3', 'slot_r4', 'slot_r5']),
+    # v12.9.6 pause menu button icons
+    ('pause_icons_raw.png', 2, 2,
+     ['icon_play', 'icon_stats', 'icon_settings', 'icon_home']),
+    # v12.9.6 mid-boss treasure chest (replaces the old gift box)
+    ('treasure_chest_raw.png', 1, 1, ['../icons_v12/item_elite'],
+     {'border': True, 'max': 256}),
 ]
 KEY = (255, 0, 255)
 
@@ -47,6 +53,41 @@ def key_out(cell: Image.Image) -> Image.Image:
                    for c, k in zip((r, g, b), KEY)]
             dst[x, y] = (*col, round(a * 255))
     return out
+
+
+def key_out_border(cell: Image.Image) -> Image.Image:
+    """Keys only the magenta connected to the cell edge, so pink parts
+    inside the art (a paw lock) stay opaque."""
+    keyed = key_out(cell)
+    rgb = cell.convert('RGB')
+    w, h = rgb.size
+    src, dst = rgb.load(), keyed.load()
+    outside = bytearray(w * h)
+    stack = [x for x in range(w)] + [(h - 1) * w + x for x in range(w)] +         [y * w for y in range(h)] + [y * w + w - 1 for y in range(h)]
+    while stack:
+        i = stack.pop()
+        if outside[i]:
+            continue
+        x, y = i % w, i // w
+        r, g, b = src[x, y]
+        if min(r, b) - g < 60:
+            continue
+        outside[i] = 1
+        for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+            if 0 <= nx < w and 0 <= ny < h and not outside[ny * w + nx]:
+                stack.append(ny * w + nx)
+    for y in range(h):
+        for x in range(w):
+            if outside[y * w + x]:
+                continue
+            # inside the art: keep the original colour fully opaque unless
+            # it borders the keyed outside (soft edge)
+            edge = any(0 <= nx < w and 0 <= ny < h and outside[ny * w + nx]
+                       for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1),
+                                      (x, y - 1)))
+            if not edge:
+                dst[x, y] = (*src[x, y], 255)
+    return keyed
 
 
 def largest_piece(im: Image.Image) -> Image.Image:
@@ -82,14 +123,21 @@ def largest_piece(im: Image.Image) -> Image.Image:
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    for sheet_name, cols, rows, names in SHEETS:
+    for sheet_name, cols, rows, names, *extra in SHEETS:
+        opts = extra[0] if extra else {}
+        if not (SRC / sheet_name).exists():
+            print('skip', sheet_name)
+            continue
         sheet = Image.open(SRC / sheet_name)
         cw, ch = sheet.width / cols, sheet.height / rows
         for index, name in enumerate(names):
             c, r = index % cols, index // cols
             cell = sheet.crop((round(c * cw), round(r * ch),
                                round((c + 1) * cw), round((r + 1) * ch)))
-            piece = largest_piece(key_out(cell))
+            keyer = key_out_border if opts.get('border') else key_out
+            piece = largest_piece(keyer(cell))
+            if opts.get('max') and max(piece.size) > opts['max']:
+                piece.thumbnail((opts['max'], opts['max']), Image.LANCZOS)
             piece.save(OUT / f'{name}.webp', 'WEBP', quality=94,
                        alpha_quality=100, method=6)
             print(name, piece.size)

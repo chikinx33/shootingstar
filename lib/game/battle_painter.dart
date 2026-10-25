@@ -70,6 +70,29 @@ class BattlePainter extends CustomPainter {
         )) {
       return;
     }
+    // v12.9.6 (user 2026-10-25): the old band/ring pictures are vector
+    // effects now (soft glow, glowing edge, a crisp line, turning sheens).
+    final aura = switch (index) {
+      6 => const Color(0xFF5FE8E0),
+      8 => const Color(0xFF6CC8FF),
+      9 => const Color(0xFFBE8EFF),
+      10 => const Color(0xFFFF9A3D),
+      11 => const Color(0xFF9FE4FF),
+      12 => const Color(0xFFFFB04A),
+      13 => const Color(0xFFFF6B57),
+      _ => null,
+    };
+    if (aura != null) {
+      _vectorAura(
+        canvas,
+        at,
+        diameter,
+        aura,
+        opacity,
+        reducedEffects ? 0 : rotation + game.atmosphereTime * 1.4,
+      );
+      return;
+    }
     _fxLegacy(
       canvas,
       index,
@@ -78,6 +101,74 @@ class BattlePainter extends CustomPainter {
       opacity: opacity,
       rotation: rotation,
     );
+  }
+
+  /// A vector aura of [color]: a soft inner glow, a blurred glowing edge,
+  /// a crisp bright line and three turning sheens.
+  void _vectorAura(
+    Canvas canvas,
+    Offset at,
+    double diameter,
+    Color color,
+    double opacity,
+    double spin,
+  ) {
+    final r = diameter / 2;
+    final a = opacity.clamp(0.0, 1.0);
+    if (r <= 0 || a <= 0) return;
+    final bounds = Rect.fromCircle(center: at, radius: r);
+    canvas.drawCircle(
+      at,
+      r,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            color.withValues(alpha: 0),
+            color.withValues(alpha: .10 * a),
+            color.withValues(alpha: .34 * a),
+          ],
+          stops: const [0, .72, 1],
+        ).createShader(bounds),
+    );
+    final edge = r * .96;
+    canvas.drawCircle(
+      at,
+      edge,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(2, r * .09)
+        ..color = color.withValues(alpha: .4 * a)
+        ..maskFilter = MaskFilter.blur(
+          BlurStyle.normal,
+          math.max(1.5, r * .05),
+        ),
+    );
+    canvas.drawCircle(
+      at,
+      edge,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.2, r * .022)
+        ..color = Color.lerp(
+          color,
+          Colors.white,
+          .55,
+        )!.withValues(alpha: .9 * a),
+    );
+    final sheen = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = math.max(1.6, r * .045)
+      ..color = Colors.white.withValues(alpha: .6 * a);
+    for (var i = 0; i < 3; i++) {
+      canvas.drawArc(
+        Rect.fromCircle(center: at, radius: edge),
+        spin + i * math.pi * 2 / 3,
+        .55,
+        false,
+        sheen,
+      );
+    }
   }
 
   void _fxLegacy(
@@ -1448,15 +1539,25 @@ class BattlePainter extends CustomPainter {
           canvas.drawImageRect(
             art,
             Rect.fromLTWH(0, 0, art.width.toDouble(), art.height.toDouble()),
+            // keep the picture's own shape (the treasure chest is wide)
             Rect.fromCenter(
               center: supply.position + Offset(0, bob),
               width: side,
-              height: side,
+              height: side * art.height / art.width,
             ),
             Paint()..filterQuality = FilterQuality.medium,
           );
         }
         continue;
+      }
+      if (!reducedEffects) {
+        _fx(
+          canvas,
+          supply.kind <= 1 ? 6 : 12,
+          supply.position,
+          66,
+          opacity: .35 + .15 * math.sin(game.combatTime * 6),
+        );
       }
       RasterAssets.sprite(
         canvas,

@@ -1,0 +1,10 @@
+Mode: built-in image_gen
+Reference: assets/art/menu_v13/supply.webp
+Selected output: treasure_chest_magenta.png
+
+Initial prompt:
+Use case: precise-object-edit. Asset type: ONE mobile game item sprite, mid-boss treasure chest drop. Input Image 1 is the edit target and style reference. Preserve the supplied chest's identity, near-front slightly-above view, symmetrical chunky rounded silhouette, warm horizontal wood planks, thick gold bands and corner caps, dark navy outlines, and restrained edge highlights. Change the front lock into a big ROUND pink paw-print lock, and open the lid slightly, with a soft golden glow confined to the gap and two or three small sparkle stars escaping immediately above the gap. Cute cat guardian mobile shooter UI style: chunky cel shading, thick dark navy outlines, bright saturated colors, flat simple readable shapes; clean at 50 px. Center this one chest on a square canvas, entire chest and sparkles inside frame, together filling about 80 percent of the canvas. Background everywhere outside the object and discrete sparkles must be perfectly flat pure magenta #FF00FF, no background shadow, no gradient, no texture, no glow bleeding onto the magenta. No text, letters, ribbons, gift box, extra items or panels. Keep original geometry and framing except for the slightly ajar lid and required round pink paw lock.
+
+Final background correction prompt:
+Edit this exact image. Preserve every detail of the chest and sparkles unchanged. Replace ALL transparent background with an OPAQUE solid vivid magenta RGB(255,0,255), hexadecimal #FF00FF. This is a chroma-key plate, NOT a transparent sprite. The final square image MUST have a completely opaque pure magenta background. No alpha transparency anywhere. Do not remove the magenta. No black background, no white background, no checkerboard, no shadows or gradient on the background. Keep chest centered and fully visible, same size, same round pink paw lock and slightly open golden glowing lid and three stars. Only change the background.
+

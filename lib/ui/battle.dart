@@ -1118,6 +1118,15 @@ class _BattleScreenState extends State<BattleScreen>
         : null,
   );
 
+  /// v12.9.6 (user 2026-10-25): simple white kit icons in the pause
+  /// buttons (play, stats, settings, home).
+  static Widget _pauseIcon(String name) => Image.asset(
+    'assets/art/ui_v13/icon_$name.webp',
+    width: 34,
+    height: 34,
+    filterQuality: FilterQuality.medium,
+  );
+
   /// v12.8 (user 2026-10-25): the pause sign cat, a ribbon title and the
   /// actions on a game panel, popping in one after another.
   Widget _pausePanel() {
@@ -1125,7 +1134,7 @@ class _BattleScreenState extends State<BattleScreen>
         ? GameActionButton(
             label: '조작·음향 설정',
             displayLabel: '설정',
-            icon: Icons.settings,
+            leading: _pauseIcon('settings'),
             onPressed: audible(() async {
               _clearInput();
               await Navigator.push(
@@ -1161,7 +1170,7 @@ class _BattleScreenState extends State<BattleScreen>
                     child: GameActionButton(
                       label: '계속 비행',
                       primary: true,
-                      icon: Icons.play_arrow,
+                      leading: _pauseIcon('play'),
                       onPressed: audible(_resume),
                     ),
                   ),
@@ -1175,7 +1184,7 @@ class _BattleScreenState extends State<BattleScreen>
                             key: const Key('pause-battle-statistics'),
                             label: '전투 통계',
                             displayLabel: '통계',
-                            icon: Icons.bar_chart,
+                            leading: _pauseIcon('stats'),
                             onPressed: audible(_showStatistics),
                           ),
                         ),
@@ -1194,7 +1203,7 @@ class _BattleScreenState extends State<BattleScreen>
                           ? '도전 중단 · 토큰 보상 없음'
                           : '귀환 · 현재 보상 정산',
                       displayLabel: widget.dailyEntry != null ? '도전 중단' : '귀환',
-                      icon: Icons.home,
+                      leading: _pauseIcon('home'),
                       onPressed: audible(() {
                         setState(() {
                           game.abandon();

@@ -122,17 +122,7 @@ abstract final class CombatVfx {
     if (g.shieldCounterPending)
       ring(c, g.position, 40 + 4 * math.sin(t * 12), gold, .95, width: 3);
     if (g.pilotBuff > 0) ring(c, g.position, 34, color(g.pilot), .5);
-    // Item silhouettes remain still enough to identify; beacon rings breathe.
-    for (final s in g.supplies) {
-      final r = 19.0 + (reduced ? 0.0 : 3 * math.sin(t * 4 + s.kind));
-      ring(c, s.position, r, s.kind == 0 ? const Color(0xFF95F7AB) : gold, .6);
-      if (!reduced)
-        c.drawLine(
-          s.position + Offset(0, -r - 6),
-          s.position + Offset(0, -r - 13),
-          ink(gold, .7, 3),
-        );
-    }
+    // v12.9.6: item beacons are the vector auras drawn with the items.
     if (!reduced) {
       var i = 0;
       for (final x in g.crystals) {
