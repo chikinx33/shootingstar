@@ -40,7 +40,8 @@ extension HouseBosses on GameEngine {
     // later houses field much tougher bosses (weapons now grow a lot)
     b.hp = b.maxHp =
         b.maxHp *
-        (houseBossKind == HouseBossKind.duelist ? 3.4 : 2.2) *
+        // v12.9.7 (user 2026-10-25: bosses died too easily): about 2x
+        (houseBossKind == HouseBossKind.duelist ? 6.0 : 4.4) *
         (1 + stage.sector * .12);
     _hbFire = 1.6;
     _hbSpin = 0;

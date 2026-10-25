@@ -385,13 +385,12 @@ class GameEngine {
       xp = 0,
       xpNeeded = firstGrowthCost;
 
-  /// Gems needed per level (v12.9, user 2026-10-25: one or two gems opened
-  /// the cards and broke up the fight). An ordinary house gem is 7.2 and a
-  /// wiped formation drops 12, so the first draft takes about five gems and
-  /// later ones roughly half again as many as before.
-  static const firstGrowthCost = 45.0;
+  /// Gems needed per level (v12.9/v12.9.7, user 2026-10-25: drafts broke
+  /// up the fight). An ordinary house gem is 4 and a wiped formation drops 8,
+  /// so the first draft takes about ten gems.
+  static const firstGrowthCost = 60.0;
   static double growthCost(int level) =>
-      45 + level * 14 + math.pow(math.max(0, level - 8), 2) * 1.5;
+      60 + level * 16 + math.pow(math.max(0, level - 8), 2) * 1.5;
   int level = 1, kills = 0;
   double combatTime = 0, laserLife = 0, _laser = 0;
   double? firstEvolutionAt;
@@ -1298,9 +1297,11 @@ class GameEngine {
                     elapsed / duration,
                     armored: e.kind == 2,
                   ) *
-                  (screenMode ? 1.8 : 1),
-              if (wiped) 12,
-              if (e.elite) ...[10, 10, 10],
+                  // v12.9.7 (user 2026-10-25: drafts still too frequent):
+                  // house gems no longer get the old 1.8x bonus
+                  1,
+              if (wiped) 8,
+              if (e.elite) ...[8, 8, 8],
             ];
       if (screenMode && e.kind != 3) houseDrop(e, wiped);
       for (final value in rewards) {

@@ -203,7 +203,8 @@ extension EnemyBehaviors on GameEngine {
               _direction(angle + (i - (count - 1) / 2) * .18) * 135,
               6,
               4,
-              weapon: 'enemy-bullet',
+              // a spread (splitter/weaver) shows as orbs, a single shot a bar
+              weapon: count > 1 ? 'enemy-orb' : 'enemy-bullet',
               life: 4,
               radius: hostileBulletRadius,
             ),

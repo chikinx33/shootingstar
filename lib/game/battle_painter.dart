@@ -882,6 +882,18 @@ class BattlePainter extends CustomPainter {
         : shot.position;
     switch (shot.kind) {
       case 4:
+        // v12.9.7 (user 2026-10-25): spreading volleys are round orbs,
+        // aimed shots stay long bars
+        if (shot.weapon == 'enemy-orb' || shot.weapon == 'boss-volley') {
+          GlowShots.paint(
+            canvas,
+            GlowShape.orb,
+            at,
+            math.max(14, shot.radius * 3.6),
+            GlowShots.pink,
+          );
+          return true;
+        }
         GlowShots.paint(
           canvas,
           GlowShape.bean,

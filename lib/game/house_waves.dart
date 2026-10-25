@@ -360,7 +360,8 @@ extension HouseWaves on GameEngine {
         foe
           ..elite = true
           ..radius = 30
-          ..hp *= 4.5
+          // v12.9.7 (user 2026-10-25: mid-bosses died too easily)
+          ..hp *= 9
           ..maxHp = foe.hp
           ..eliteTimer = 1.2;
         pickupNotice = '중간 보스 등장!';
@@ -432,7 +433,7 @@ extension HouseWaves on GameEngine {
           _direction(angle) * speed * pace,
           7 * threat,
           4,
-          weapon: 'enemy-bullet',
+          weapon: 'enemy-orb', // every mid-boss volley spreads
           life: 6,
           radius: hostileBulletRadius,
         ),

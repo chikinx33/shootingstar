@@ -13,15 +13,16 @@ abstract final class SkillCardArt {
   static String frame(int tier) => '${root}frame_${tier.clamp(1, 6)}.webp';
 
   /// Each frame's size (px) and its inner window (fractions of that size),
-  /// measured on the cut sheet. Windows line up across tiers; the richer
+  /// measured on the cut sheet (v12.9.7: padded 6px for the dark outline,
+  /// tools/outline_card_frames.py). Windows line up across tiers; the richer
   /// ornaments of higher tiers spill outside them.
   static const frames = [
-    (Size(300, 367), Rect.fromLTRB(.131, .192, .866, .886)),
-    (Size(300, 366), Rect.fromLTRB(.137, .216, .866, .888)),
-    (Size(300, 384), Rect.fromLTRB(.164, .214, .831, .798)),
-    (Size(300, 331), Rect.fromLTRB(.220, .225, .780, .879)),
-    (Size(300, 317), Rect.fromLTRB(.200, .256, .800, .881)),
-    (Size(300, 334), Rect.fromLTRB(.193, .271, .805, .848)),
+    (Size(312, 379), Rect.fromLTRB(.145, .202, .852, .874)),
+    (Size(312, 378), Rect.fromLTRB(.151, .225, .852, .876)),
+    (Size(312, 396), Rect.fromLTRB(.177, .223, .818, .789)),
+    (Size(312, 343), Rect.fromLTRB(.231, .235, .769, .866)),
+    (Size(312, 329), Rect.fromLTRB(.212, .265, .788, .867)),
+    (Size(312, 346), Rect.fromLTRB(.205, .279, .793, .836)),
   ];
 
   static const effects = [
