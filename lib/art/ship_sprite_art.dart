@@ -220,9 +220,19 @@ abstract final class ShipSpriteArt {
 
     /// 0..1 white flash over the whole ship (the beat of an attach).
     double flash = 0,
+
+    /// v12.9.4 depth (user 2026-10-25): -1..1 sideways roll. Layers drawn
+    /// under the pilot (canopy) slide against the turn, layers over it with
+    /// it, farther layers more, and the hull narrows a little, so the craft
+    /// seems to turn its body instead of sliding flat.
+    double bank = 0,
+
+    /// Flame length: longer flying forward, a little shorter backing off.
+    double flameScale = 1,
   }) {
     final ship = book?.ships[shipId];
     if (ship == null) return false;
+    final saved = canvas.getSaveCount();
     if (flash > 0) {
       canvas.saveLayer(
         null,
@@ -237,10 +247,30 @@ abstract final class ShipSpriteArt {
     final ink = Paint()
       ..filterQuality = FilterQuality.medium
       ..color = Colors.white.withValues(alpha: opacity);
+    final drawn = [
+      for (final l in ship.resolved)
+        if (l.visible &&
+            !hidden.contains(l.id) &&
+            !(l.attachTo != null && hidden.contains(l.attachTo)))
+          l.id,
+    ];
+    var pilot = drawn.indexOf('canopy');
+    if (pilot < 0) pilot = drawn.indexOf('base');
+    if (pilot < 0) pilot = drawn.length ~/ 2;
+    final span = math.max(1, math.max(pilot, drawn.length - 1 - pilot));
+    final roll = bank.clamp(-1.0, 1.0);
+    if (roll != 0) {
+      canvas.save();
+      canvas.translate(center.dx, 0);
+      canvas.scale(1 - .1 * roll.abs(), 1);
+      canvas.translate(-center.dx, 0);
+    }
+    var depth = -1;
     for (final l in ship.resolved) {
       if (!l.visible || hidden.contains(l.id)) continue;
       if (l.attachTo != null && hidden.contains(l.attachTo)) continue;
       order++;
+      depth++;
       var dx = 0.0, dy = 0.0, alpha = opacity;
       if (assembly != null) {
         final t = assembly(order).clamp(0.0, 1.0);
@@ -267,13 +297,15 @@ abstract final class ShipSpriteArt {
         dy = unit.dy * away * 1.4 * side;
         alpha = opacity * math.min(1, t * 4);
       }
+      if (roll != 0) dx += roll * (depth - pilot) / span * .1 * side;
       // Equipped gear swaps the sprite (a mirror follows its source layer);
       // the slot keeps its authored width, height follows the new art.
       final swap = assets[l.mirrorOf ?? l.id];
       final image = images[swap ?? l.frameAsset(time)];
       if (image == null) continue;
       final w = l.width * side;
-      final h = swap == null ? l.height * side : w * image.height / image.width;
+      var h = swap == null ? l.height * side : w * image.height / image.width;
+      if (flameScale != 1 && l.id.startsWith('flame')) h *= flameScale;
       canvas.save();
       canvas.translate(
         center.dx + l.x * side + dx,
@@ -298,7 +330,7 @@ abstract final class ShipSpriteArt {
       );
       canvas.restore();
     }
-    if (flash > 0) canvas.restore();
+    canvas.restoreToCount(saved);
     return true;
   }
 

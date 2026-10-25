@@ -289,6 +289,15 @@ class GameEngine {
   // v12.4 house stages: follow-touch steering target (field coordinates),
   // which map is under the cat and the cloud veil that swaps them.
   Offset? steerTarget;
+
+  /// v12.9.4 follow-touch: a very slight glide (user 2026-10-25: "아주 살짝
+  /// 관성", never the slow drift of old). Drag steering stays dead-exact.
+  bool steerGlide = false;
+  Offset _steerVelocity = Offset.zero;
+
+  /// Smoothed -1..1 sideways roll and back/forward thrust of the craft:
+  /// the layered banking and the flame length (presentation only).
+  double bank = 0, thrust = 0;
   bool houseMapShown = false;
   double _cloudOut = 0;
   String pickupNotice = '';
@@ -848,12 +857,29 @@ class GameEngine {
       // Follow-touch steering: glide straight to the finger point without
       // overshoot (fast, but capped so it never teleports).
       final to = steer - position;
-      final reach = moveSpeed * 2.6 * dt;
-      position += to.distance <= reach ? to : _unit(to) * reach;
+      final top = moveSpeed * 2.6;
+      if (steerGlide) {
+        // ~45 ms to reach speed, easing in over the last ~70 ms of the way;
+        // a step never passes the point, so there is no overshoot.
+        var want = to / .07;
+        if (want.distance > top) want = want / want.distance * top;
+        _steerVelocity += (want - _steerVelocity) * math.min(1, dt / .045);
+        final step = _steerVelocity * dt;
+        if (step.distance >= to.distance || to.distance < .4) {
+          position = steer;
+          _steerVelocity *= .5;
+        } else {
+          position += step;
+        }
+      } else {
+        final reach = top * dt;
+        position += to.distance <= reach ? to : _unit(to) * reach;
+      }
       movement = to.distance > 2
           ? _unit(to) * math.min(1, to.distance / 40)
           : Offset.zero;
     } else {
+      _steerVelocity = Offset.zero;
       position += movement * moveSpeed * dt;
     }
     position = Offset(
@@ -861,6 +887,13 @@ class GameEngine {
       position.dy.clamp(32.0, worldHeight - 32),
     );
     if (screenMode) keepOnScreen();
+    if (dt > 0) {
+      final v = (position - previousPosition) / dt;
+      final ref = moveSpeed * 1.5;
+      final k = math.min(1.0, dt / .09);
+      bank += ((v.dx / ref).clamp(-1.0, 1.0) - bank) * k;
+      thrust += ((-v.dy / ref).clamp(-1.0, 1.0) - thrust) * k;
+    }
     visuals.followMovement(position - previousPosition, dt);
     if (movement.distance > .05) {
       final target = math.atan2(movement.dy, movement.dx);

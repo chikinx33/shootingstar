@@ -1908,6 +1908,13 @@ class BattlePainter extends CustomPainter {
         time: game.combatTime,
         hidden: ShipSpriteArt.hiddenFor(game.moduleLoadout),
         assets: ShipSpriteArt.battleAssets,
+        // v12.9.4: the craft rolls into turns; flames stretch going forward
+        bank: reducedEffects ? 0 : game.bank,
+        flameScale: reducedEffects
+            ? 1
+            : 1 +
+                  .6 * math.max(0, game.thrust) -
+                  .3 * math.max(0, -game.thrust),
       );
     } else if (game.moduleLoadout != null) {
       ModuleAircraftArt.paint(

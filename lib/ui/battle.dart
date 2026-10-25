@@ -333,6 +333,7 @@ class _BattleScreenState extends State<BattleScreen>
     final target = game.clampToField(wanted);
     // Pinned at an edge: re-base so reversing responds immediately.
     if (target != wanted) _dragCat = target - slide;
+    game.steerGlide = false;
     game.steerTarget = target;
     _stick = local;
   }
@@ -340,6 +341,7 @@ class _BattleScreenState extends State<BattleScreen>
   /// Follow-touch steering: the cat flies to just above the finger.
   void _follow(Offset local, double width) {
     final view = local * (420 / width);
+    game.steerGlide = true;
     game.steerTarget = game.screenToField(
       view - const Offset(0, ControlPreferences.followLift),
     );

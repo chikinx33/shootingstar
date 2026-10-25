@@ -284,7 +284,11 @@ void main() {
       for (var i = 0; i < 80; i++) {
         g.update(.025);
       }
-      expect(g.choices, isEmpty, reason: 'a bar that is not full opens nothing');
+      expect(
+        g.choices,
+        isEmpty,
+        reason: 'a bar that is not full opens nothing',
+      );
     });
 
     test(
@@ -307,6 +311,38 @@ void main() {
         expect(g.position, goal, reason: 'stays put when the finger stops');
       },
     );
+
+    test('follow-touch glides with a hint of inertia, never slow or past the finger', () async {
+      final g = await safeRun();
+      g.enemies.clear();
+      final start = g.position;
+      final goal = g.clampToField(start + const Offset(150, -60));
+      g
+        ..steerGlide = true
+        ..steerTarget = goal;
+      var closest = double.infinity;
+      var arrived = -1;
+      for (var i = 0; i < 40; i++) {
+        g.update(.025);
+        final d = (g.position - goal).distance;
+        expect(d, lessThanOrEqualTo(closest + 1e-6), reason: 'no overshoot');
+        closest = d;
+        if (arrived < 0 && d < .5) arrived = i;
+      }
+      // a quarter-second-ish trip: eased, but nowhere near a slow drift
+      expect(arrived, inInclusiveRange(4, 16));
+      // moving right and forward: the craft rolls right, flames stretch
+      final h = await safeRun();
+      h.enemies.clear();
+      h
+        ..steerGlide = true
+        ..steerTarget = h.clampToField(h.position + const Offset(160, -160));
+      for (var i = 0; i < 6; i++) {
+        h.update(.025);
+      }
+      expect(h.bank, greaterThan(.3));
+      expect(h.thrust, greaterThan(.3));
+    });
 
     test('formation planes are big and gems are generous', () async {
       final g = await safeRun();
