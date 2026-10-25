@@ -158,7 +158,9 @@ class _BattleScreenState extends State<BattleScreen>
           mainPrecisionLink: false,
           mainCycleLink: false,
           bossSetWorld: -1,
-          pilot: pilots[p.selectedPilot].id,
+          // the cat is the pilot: its fixed trait grows with its level
+          pilot: catTraitFor(p.selectedShip).id,
+          traitLevel: catTraitLevel(p.pilotLevel),
           bonusSpeed: gear.speed,
           bonusPickup: gear.pickup,
           bonusCooldown: 0,

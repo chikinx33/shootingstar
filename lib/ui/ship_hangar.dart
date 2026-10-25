@@ -200,13 +200,30 @@ class _ShipHangarState extends State<ShipHangar> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (!compact)
+                  Text(
+                    tr(ship.tagline),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFFFFD43D),
+                    ),
+                  ),
+                // v12.9.2: the cat is the pilot; its fixed trait
                 Text(
-                  tr(ship.tagline),
+                  compact
+                      ? message('특기 {0}', [tr(catTraitFor(i).name)])
+                      : message('특기 {0} · {1}', [
+                          tr(catTraitFor(i).name),
+                          tr(catTraitFor(i).short),
+                        ]),
+                  key: ValueKey('ship-trait-$i'),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFFFFD43D),
+                    color: Color(0xFF8FF0C8),
                   ),
                 ),
                 // the smallest phones keep the gun line for the stats only

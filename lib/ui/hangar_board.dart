@@ -50,7 +50,7 @@ class _HangarBoardState extends State<HangarBoard> {
           CatalogHeader(
             title: '출격 편성',
             status: section == 1
-                ? pilots[p.selectedPilot].name
+                ? catTraitFor(p.selectedShip).name
                 : section == 2
                 ? equipmentOptions[p.equipment].name
                 : '${ships[p.selectedShip].name} · ${armaments[p.activeArmamentIndex].name}',
@@ -63,7 +63,7 @@ class _HangarBoardState extends State<HangarBoard> {
             ),
           ),
           CatalogTabs(
-            labels: const ['편성', '파일럿', '모듈'],
+            labels: const ['편성', '특기', '모듈'],
             selected: section,
             onSelected: audibleChange(
               (value) => setState(() => section = value),
@@ -132,17 +132,15 @@ class _HangarBoardState extends State<HangarBoard> {
                     listKey: ValueKey('hangar-selection-$section'),
                     children: section == 1
                         ? [
-                            for (var i = 0; i < pilots.length; i++)
+                            // v12.9.2: the cat is the pilot; its trait is fixed
+                            for (var i = 0; i < catTraits.length; i++)
                               GameItemSlot(
-                                title: pilots[i].name,
-                                image: ArcadeAircraft(
-                                  shipIndex: i % ships.length,
-                                  size: 56,
-                                ),
-                                status: p.selectedPilot == i ? '출격 중' : '고유 모듈',
-                                selected: p.selectedPilot == i,
-                                semanticLabel: '${pilots[i].name} 파일럿 상세',
-                                onTap: audible(() => _pilot(i)),
+                                title: catTraits[i].name,
+                                image: ArcadeAircraft(shipIndex: i, size: 56),
+                                status: ships[i].name,
+                                selected: p.selectedShip == i,
+                                semanticLabel: '${catTraits[i].name} 특기 상세',
+                                onTap: audible(() => _trait(i)),
                               ),
                           ]
                         : [
@@ -227,35 +225,11 @@ class _HangarBoardState extends State<HangarBoard> {
     ),
   );
 
-  Future<void> _pilot(int id) => showDialog<void>(
+  Future<void> _trait(int id) => showDialog<void>(
     context: context,
     builder: (dialog) => GameDialog(
-      title: pilots[id].name,
-      actions: [
-        GameActionButton(
-          label: '파일럿 선택',
-          primary: true,
-          icon: Icons.check,
-          onPressed: audible(() {
-            p.selectPilot(id);
-            Navigator.pop(dialog);
-          }),
-        ),
-      ],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(tr(pilots[id].detail), textAlign: TextAlign.center),
-          gap(12),
-          Text(
-            tr(
-              '고유 모듈은 출격 중 강화합니다. 일부 파일럿은 전용 능력 버튼을 사용하며, 공격/보조 슬롯 사용 여부도 다릅니다.',
-            ),
-
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+      title: catTraits[id].name,
+      child: Text(tr(catTraits[id].detail), textAlign: TextAlign.center),
     ),
   );
 

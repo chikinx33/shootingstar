@@ -1,8 +1,12 @@
 part of 'engine.dart';
 
 extension PilotAbilities on GameEngine {
-  int get pilotSkillLevel =>
-      (pilot == 'common' ? 1 : (upgrades['pilot'] ?? passives['pilot'] ?? 0));
+  /// The three guardian cats' fixed traits (lib/data/combat_loadout.dart).
+  bool get pilotIsCatTrait =>
+      const ['common', 'king', 'elaine'].contains(pilot);
+  int get pilotSkillLevel => pilotIsCatTrait
+      ? traitLevel.clamp(1, 5)
+      : (upgrades['pilot'] ?? passives['pilot'] ?? 0);
   bool get pilotUsesPassive => ['common', 'king', 'venato'].contains(pilot);
   String get pilotStateText => switch (pilot) {
     'yang' => pilotStance == 0 ? '태양 자세 · 관통 타격' : '보호 자세 · 회복·차폐',
@@ -27,7 +31,6 @@ extension PilotAbilities on GameEngine {
     'metallia',
     'taloxa',
     'venato',
-    'elaine',
     'nezha',
     'vulcan',
     'loki',
@@ -277,96 +280,8 @@ extension PilotAbilities on GameEngine {
             );
           }
         }
-      case 'april':
-      case 'splinter':
-      case 'plankton':
-        if (at != null) {
-          at.vulnerable = 3;
-          shots.add(
-            Shot(
-              petPosition,
-              _unit(at.position - petPosition) * 300,
-              damage * damageFactor,
-              9,
-              weapon: 'support',
-              target: at,
-              life: 2,
-            ),
-          );
-        }
-        if (pilot == 'splinter') {
-          petHp = math.min(100, petHp + 8);
-          hp = math.min(maxHp, hp + maxHp * .01);
-        }
-      case 'patrick':
-        _lineDamage(
-          position,
-          _direction(movementAngle),
-          200,
-          45,
-          damage * 1.5,
-          'dive',
-        );
-        _radialDamage(position, 100, damage, 'dive');
-      case 'squid':
-        _radialDamage(
-          position,
-          (140 + level * 12) * areaFactor,
-          damage,
-          'sound',
-          slow: evo,
-        );
-      case 'raph':
-        _lineDamage(
-          position,
-          _direction(movementAngle),
-          220,
-          18,
-          damage * 2.5,
-          'sai',
-        );
-        if (at != null) at.vulnerable = 3;
-      case 'leo':
-        _lineDamage(
-          position,
-          _direction(movementAngle),
-          200,
-          35,
-          damage,
-          'dualblade',
-        );
-        _lineDamage(
-          position,
-          -_direction(movementAngle),
-          200,
-          35,
-          damage,
-          'dualblade',
-        );
-        if (evo) _radialDamage(position, 120, damage, 'dualblade');
-      case 'don':
-        _radialDamage(position, (150 + level * 5) * areaFactor, damage, 'bo');
-        for (final e in enemies) {
-          if (e.kind != 3 && (e.position - position).distance < 180) {
-            e.position += _unit(e.position - position) * 30;
-          }
-        }
-      case 'sandy':
-      case 'mikey':
-        _radialDamage(
-          position,
-          (pilot == 'sandy' ? 90 : 120) * areaFactor,
-          damage * 1.5,
-          'martial',
-        );
-        if (evo) _radialDamage(position, 170, damage * .5, 'martial');
-      default: // moon and spatula families
-        _radialDamage(
-          position,
-          (pilot == 'tsuki' ? 130 : 110) * areaFactor,
-          damage,
-          'moon',
-        );
+      default: // tsuki: the round slash
+        _radialDamage(position, 130 * areaFactor, damage, 'moon');
         if (evo) {
           _lineDamage(
             position,

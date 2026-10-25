@@ -42,7 +42,10 @@ void main() {
             await tester.tap(find.byType(GameItemSlot).at(i));
             await tester.pumpAndSettle();
           }
+
           await openShip(1);
+          // the cat is the pilot: its fixed trait shows with the cat
+          expect(find.byKey(const ValueKey('ship-trait-1')), findsOneWidget);
           final vector = find.byKey(const ValueKey('ship-select-1'));
           await revealUi(tester, vector);
           final rect = tester.getRect(vector);

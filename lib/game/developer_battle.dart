@@ -133,6 +133,7 @@ class DeveloperBattleConfig {
       armament: armaments[p.activeArmamentIndex].id,
       armamentLevel: p.activeArmamentLevel,
       pilot: pilots[p.selectedPilot].id,
+      traitLevel: catTraitLevel(p.pilotLevel),
       gearDamage: p.gearDamage + p.pilotDamage,
       gearHull: p.gearHull + p.pilotHull,
       startingWeapon: p.startingWeapon,

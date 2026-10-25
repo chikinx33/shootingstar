@@ -629,32 +629,6 @@ class ModuleWorkshop extends StatelessWidget {
                   onOpened: audible(() {}),
                   onCanceled: audible(() {}, cue: 'back'),
                   onSelected: audibleChange((value) {
-                    if (value == '파일럿') {
-                      showDialog<void>(
-                        context: context,
-                        builder: (dialog) => GameDialog(
-                          title: '파일럿 선택',
-                          child: SizedBox(
-                            height: 280,
-                            child: GameSlotList(
-                              children: [
-                                for (var i = 0; i < pilots.length; i++)
-                                  GameItemSlot(
-                                    title: pilots[i].name,
-                                    image: const Icon(Icons.person, size: 48),
-                                    selected: profile.selectedPilot == i,
-                                    onTap: () {
-                                      profile.selectPilot(i);
-                                      Navigator.pop(dialog);
-                                    },
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                      return;
-                    }
                     final page = switch (value) {
                       '편성' => HangarPresets(profile: profile),
                       '출격 기록' => FlightHistoryScreen(profile: profile),
@@ -666,7 +640,7 @@ class ModuleWorkshop extends StatelessWidget {
                     );
                   }),
                   itemBuilder: (_) => [
-                    for (final item in ['편성', '파일럿', '출격 기록', '후원 외형'])
+                    for (final item in ['편성', '출격 기록', '후원 외형'])
                       PopupMenuItem(
                         value: item,
                         child: Text(tr(item), textAlign: TextAlign.center),

@@ -22,7 +22,9 @@ class HangarPresets extends StatelessWidget {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return Scaffold(
-      appBar: GameAppBar(title: Text(tr('출격 구성 저장'), textAlign: TextAlign.center)),
+      appBar: GameAppBar(
+        title: Text(tr('출격 구성 저장'), textAlign: TextAlign.center),
+      ),
       body: AnimatedBuilder(
         animation: profile,
         builder: (context, _) => Column(
@@ -160,7 +162,7 @@ class HangarPresets extends StatelessWidget {
 
   /// The two facts a player checks first; the full list opens from '자세히'.
   String _brief(HangarPreset p) => [
-    '${ships[p.ship].name} · ${pilots[p.pilot].name}',
+    '${ships[p.ship].name} · ${catTraitFor(p.ship).name}',
     '${armaments[p.armament].name} · ${equipmentOptions[p.equipment].name}',
   ].join('\n');
 
@@ -177,7 +179,7 @@ class HangarPresets extends StatelessWidget {
       );
 
   String _summary(HangarPreset p) => [
-    '${ships[p.ship].name} · ${pilots[p.pilot].name}',
+    '${ships[p.ship].name} · ${catTraitFor(p.ship).name}',
     '${armaments[p.armament].name} · ${equipmentOptions[p.equipment].name}',
     '장비: ${p.gearIds.map((id) => profile.item(id)?.definition.name ?? '소실된 장비').join(' / ')}',
     '테크: ${p.techIds.isEmpty ? '미장착' : p.techIds.map((id) => techNames[id]).join(' / ')}',

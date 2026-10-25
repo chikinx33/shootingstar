@@ -190,6 +190,10 @@ class GameEngine {
   int gearVolleys = 0, gearSalvage = 0;
   final int campaignLoop, armamentLevel;
   final String armament, pilot;
+
+  /// Cat trait step 1-5 from the cat's level (v12.9.2); [pilot] is a trait
+  /// for every guardian cat, other ids only in developer tests.
+  final int traitLevel;
   final bool mainPrecisionLink, mainCycleLink;
   int _mainLinkVolleys = 0, _mainLinkBlocks = 0;
   double _mainLinkBlockReadyAt = 0;
@@ -263,7 +267,7 @@ class GameEngine {
               (armament == 'revolver' && unifiedModules
                   ? gUp('gun', 3, 1.15) - 1
                   : 0) +
-              (pilot == 'king' ? (upgrades['pilot'] ?? 1) * .05 : 0) +
+              (pilot == 'king' ? pilotSkillLevel * .05 : 0) +
               bossSetCrit)
           .clamp(0, .65);
   double _supplyClock = 27, _guardian = 0, _lightning = 0;
@@ -601,6 +605,7 @@ class GameEngine {
     int bossSetWorld = -1,
     int armamentLevel = 0,
     this.pilot = 'common',
+    this.traitLevel = 1,
     this.training = false,
     this.challenge = false,
     this.dailyEntry,
@@ -646,8 +651,8 @@ class GameEngine {
         startingWeapon != 'gun' &&
         !(this.aircraft?.gearSpecs.isNotEmpty ?? false))
       upgrades[startingWeapon] = 1;
-    if (pilot == 'common') {
-      // Common has an innate bonus and does not occupy a skill slot.
+    if (pilotIsCatTrait) {
+      // A cat's trait is innate: it takes no skill slot (v12.9.2).
     } else if (pilotUsesPassive) {
       passives['pilot'] = 1;
     } else {
