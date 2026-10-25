@@ -205,10 +205,8 @@ class _FlightSettingsState extends State<FlightSettings> {
                             ),
                             icon: const Icon(Icons.lock_open, size: 28),
                           ),
-                        IconButton(
-                          tooltip: tr('닫기'),
+                        KitCloseButton(
                           onPressed: audible(() => Navigator.pop(context)),
-                          icon: const RasterIcon(Icons.close, size: 32),
                         ),
                       ],
                     ),

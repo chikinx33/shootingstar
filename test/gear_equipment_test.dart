@@ -132,13 +132,17 @@ void main() {
     expect(target.vulnerable, greaterThan(1.9));
     final scanner = arena(utility);
     for (var i = 0; i < 8; i++) {
-      scanner.crystals.add(ExperienceCrystal.at(
-        scanner.position + Offset(150 + (i ~/ 2) * 3, 0),
-        [4.0, 8.0, 16.0][i % 3],
-      ));
+      scanner.crystals.add(
+        ExperienceCrystal.at(
+          scanner.position + Offset(150 + (i ~/ 2) * 3, 0),
+          [4.0, 8.0, 16.0][i % 3],
+        ),
+      );
     }
-    final value = scanner.crystals.fold<double>(0,
-        (sum, c) => sum + ExperienceCrystal.valueOf(c));
+    final value = scanner.crystals.fold<double>(
+      0,
+      (sum, c) => sum + ExperienceCrystal.valueOf(c),
+    );
     final xp = scanner.xp;
     scanner.update(.025);
     expect(
@@ -149,8 +153,13 @@ void main() {
     );
     expect(scanner.xp, xp);
     expect(scanner.crystals, hasLength(8));
-    expect(scanner.crystals.fold<double>(0,
-        (sum, c) => sum + ExperienceCrystal.valueOf(c)), value);
+    expect(
+      scanner.crystals.fold<double>(
+        0,
+        (sum, c) => sum + ExperienceCrystal.valueOf(c),
+      ),
+      value,
+    );
   });
   test(
     'output burst changes actual damage; cycle core instead produces charge',
@@ -308,55 +317,75 @@ void main() {
   // v12.10: the old inventory filter / card list is gone; each growth slot
   // opens a popup listing the owned pieces with their own art and the picked
   // piece's set traits.
-  testWidgets(
-    '320px gear slot popup shows per-item art and set traits',
-    (t) async {
-      t.view.physicalSize = const Size(320, 568);
-      t.view.devicePixelRatio = 1;
-      addTearDown(t.view.resetPhysicalSize);
-      addTearDown(t.view.resetDevicePixelRatio);
-      final p = await Profile.load();
-      final night = p.catGear.add('night', CatGearSlot.nose, 2);
-      p.catGear.add('bloom', CatGearSlot.nose, 3);
-      await t.pumpWidget(
-        LanguageScope(
-          child: MaterialApp(
-            theme: ThemeData.dark().copyWith(
-              textTheme: ThemeData.dark().textTheme.apply(
-                fontFamily: 'NotoSansKR',
-              ),
+  testWidgets('320px gear slot popup shows per-item art and set traits', (
+    t,
+  ) async {
+    t.view.physicalSize = const Size(320, 568);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.resetPhysicalSize);
+    addTearDown(t.view.resetDevicePixelRatio);
+    final p = await Profile.load();
+    final night = p.catGear.add('night', CatGearSlot.nose, 2);
+    p.catGear.add('bloom', CatGearSlot.nose, 3);
+    await t.pumpWidget(
+      LanguageScope(
+        child: MaterialApp(
+          theme: ThemeData.dark().copyWith(
+            textTheme: ThemeData.dark().textTheme.apply(
+              fontFamily: 'NotoSansKR',
             ),
-            home: Scaffold(body: ContentHub(profile: p)),
           ),
+          home: Scaffold(body: ContentHub(profile: p)),
         ),
-      );
+      ),
+    );
+    await t.pumpAndSettle();
+    await t.tap(find.byKey(const Key('cat-gear-slot-nose')));
+    await t.pumpAndSettle();
+    expect(t.takeException(), isNull);
+    final list = find.byKey(const Key('cat-gear-list-nose'));
+    expect(list, findsOneWidget);
+    final art = find
+        .descendant(of: list, matching: find.byType(Image))
+        .evaluate()
+        .map((e) => ((e.widget as Image).image as AssetImage).assetName)
+        .toSet();
+    expect(art, {
+      for (final set in ['sunshine', 'night', 'bloom'])
+        catGearSet(set).asset(CatGearSlot.nose),
+    });
+    // the wide test font may push the item card onto a later page
+    Future<void> turn(String key) async {
+      final arrow = find.byKey(Key(key));
+      if (arrow.evaluate().isEmpty) return;
+      await t.tap(arrow);
       await t.pumpAndSettle();
-      await t.tap(find.byKey(const Key('cat-gear-slot-nose')));
-      await t.pumpAndSettle();
-      expect(t.takeException(), isNull);
-      final list = find.byKey(const Key('cat-gear-list-nose'));
-      expect(list, findsOneWidget);
-      final art = find
-          .descendant(of: list, matching: find.byType(Image))
-          .evaluate()
-          .map((e) => ((e.widget as Image).image as AssetImage).assetName)
-          .toSet();
-      expect(art, {
-        for (final set in ['sunshine', 'night', 'bloom'])
-          catGearSet(set).asset(CatGearSlot.nose),
-      });
-      // the equipped starter is picked first
-      expect(find.textContaining(catGearSet('sunshine').two), findsOneWidget);
-      await t.tap(find.byKey(ValueKey('cat-gear-item-${night.id}')));
-      await t.pumpAndSettle();
-      expect(find.textContaining(catGearSet('night').two), findsOneWidget);
-      expect(t.takeException(), isNull);
-      await t.tap(find.byTooltip('닫기').last);
-      await t.pumpAndSettle();
-      expect(t.takeException(), isNull);
-      await t.pumpWidget(const SizedBox());
-    },
-  );
+    }
+
+    Future<bool> reach(Finder f) async {
+      for (var i = 0; i < 4 && f.evaluate().isEmpty; i++) {
+        await turn('game-page-next');
+      }
+      return f.evaluate().isNotEmpty;
+    }
+
+    // the equipped starter is picked first
+    expect(
+      await reach(find.textContaining(catGearSet('sunshine').two)),
+      isTrue,
+    );
+    for (var i = 0; i < 4 && list.evaluate().isEmpty; i++) {
+      await turn('game-page-previous');
+    }
+    await t.tap(find.byKey(ValueKey('cat-gear-item-${night.id}')));
+    await t.pumpAndSettle();
+    expect(await reach(find.textContaining(catGearSet('night').two)), isTrue);
+    expect(t.takeException(), isNull);
+    await t.tap(find.byTooltip('닫기').last);
+    await t.pumpAndSettle();
+    expect(t.takeException(), isNull);
+    await t.pumpWidget(const SizedBox());
+  });
 }
 
 Future<ui.Image> recorderImage(ui.Picture picture) => picture.toImage(56, 56);

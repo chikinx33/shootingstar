@@ -348,6 +348,33 @@ class GameAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
+/// Every close control (v12.12, user 2026-10-26): the same gold-rimmed
+/// navy plate as the title bar's back button, with a white X.
+class KitCloseButton extends StatelessWidget {
+  const KitCloseButton({
+    super.key,
+    required this.onPressed,
+    this.tooltip = '닫기',
+  });
+  final VoidCallback? onPressed;
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) => KitRound(
+    child: IconButton(
+      tooltip: tr(tooltip),
+      style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
+      onPressed: onPressed,
+      icon: const Icon(
+        Icons.close_rounded,
+        size: 28,
+        color: Colors.white,
+        shadows: [Shadow(color: Color(0xFF172031), offset: Offset(0, 2))],
+      ),
+    ),
+  );
+}
+
 /// A round navy kit plate (gold rim) behind a 48px icon control.
 class KitRound extends StatelessWidget {
   const KitRound({super.key, required this.child, this.size = 46});

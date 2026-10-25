@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'game_motion.dart';
 
 import '../art/raster_assets.dart';
+import 'game_decor.dart';
 import 'game_ui.dart';
 import 'game_pages.dart';
 
@@ -69,16 +70,12 @@ class GameDialog extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      IconButton(
-                        tooltip: tr(closeLabel),
-                        style: IconButton.styleFrom(
-                          minimumSize: const Size(48, 48),
-                        ),
+                      KitCloseButton(
+                        tooltip: closeLabel,
                         onPressed: audible(
                           () => Navigator.of(context).pop(),
                           cue: 'back',
                         ),
-                        icon: const RasterIcon(Icons.close, size: 32),
                       ),
                     ],
                   ),

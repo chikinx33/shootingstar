@@ -16,6 +16,7 @@ import '../l10n/app_language.dart';
 import 'audio_feedback.dart';
 import 'game_dialog.dart';
 import 'game_ui.dart';
+import 'item_info_card.dart';
 import 'item_slots.dart';
 import 'module_workshop.dart' show showAirframeDetails;
 
@@ -448,43 +449,6 @@ class _CatGearScreenState extends State<CatGearScreen>
     );
   }
 
-  /// Name in its colour, then at most two short lines.
-  Widget _info(String name, Color color, String line, String note) => Column(
-    key: const Key('item-detail'),
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(
-        tr(name),
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 18,
-          height: 1.25,
-          fontWeight: FontWeight.w900,
-          color: color,
-        ),
-      ),
-      Text(
-        tr(line),
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontSize: 15,
-          height: 1.3,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-      if (note.isNotEmpty)
-        Text(
-          tr(note),
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 13,
-            height: 1.3,
-            color: Color(0xFFFFD27A),
-          ),
-        ),
-    ],
-  );
-
   /// One gear slot's owned pieces, the picked piece and its four actions.
   Future<void> _gearPopup(CatGearSlot slot) async {
     int? picked = p.catGear.equipped[slot];
@@ -536,20 +500,42 @@ class _CatGearScreenState extends State<CatGearScreen>
               ],
               info: item == null
                   ? null
-                  : _info(
-                      '${item.name} · ${catGearRarityNames[item.rarity]}',
-                      Color(catGearRarityColors[item.rarity]),
-                      'Lv.${item.level}/${item.maxLevel} · ${item.statText}\n세트 2부위 ${set!.two} · 4부위 ${set.four}',
-                      item.maxed
-                          ? '최대 레벨'
-                          : message('강화 · 츄르 {0}{1}', [
-                              item.upgradeChuru,
-                              item.upgradeStardust > 0
-                                  ? message(' · 별가루 {0}', [
-                                      item.upgradeStardust,
-                                    ])
-                                  : '',
-                            ]),
+                  : ItemInfoCard(
+                      name: item.name,
+                      nameColor: Color(catGearRarityColors[item.rarity]),
+                      chips: [
+                        (
+                          catGearRarityNames[item.rarity],
+                          Color(catGearRarityColors[item.rarity]),
+                        ),
+                        (
+                          'Lv.${item.level}/${item.maxLevel}',
+                          const Color(0xFFFFD43D),
+                        ),
+                        if (item.locked) ('잠김', const Color(0xFFFFB55C)),
+                      ],
+                      stats: [
+                        (
+                          label: item.statLabel,
+                          value: '+${(item.value * 100).toStringAsFixed(1)}%',
+                          color: const Color(0xFFFF8A5C),
+                        ),
+                      ],
+                      setName: set!.name,
+                      setSteps: [
+                        (
+                          count: '2부위',
+                          effect: set.two,
+                          active: (p.catGear.setCounts[set.id] ?? 0) >= 2,
+                        ),
+                        (
+                          count: '4부위',
+                          effect: set.four,
+                          active: (p.catGear.setCounts[set.id] ?? 0) >= 4,
+                        ),
+                      ],
+                      churu: item.maxed ? null : item.upgradeChuru,
+                      stardust: item.upgradeStardust,
                     ),
               actions: item == null
                   ? const []
@@ -558,6 +544,7 @@ class _CatGearScreenState extends State<CatGearScreen>
                         key: const Key('cat-gear-equip'),
                         label: equipped ? '장착 중' : '장착',
                         icon: Icons.check,
+                        image: 'assets/art/ui_v13/act_check.webp',
                         primary: !equipped,
                         onPressed: equipped
                             ? null
@@ -567,6 +554,7 @@ class _CatGearScreenState extends State<CatGearScreen>
                         key: const Key('cat-gear-upgrade'),
                         label: '강화',
                         icon: Icons.upgrade,
+                        image: 'assets/art/ui_v13/act_upgrade.webp',
                         onPressed: p.canUpgradeCatGear(item)
                             ? () => p.upgradeCatGear(item.id)
                             : null,
@@ -576,6 +564,9 @@ class _CatGearScreenState extends State<CatGearScreen>
                         label: item.locked ? '잠금 해제' : '보호 잠금',
                         displayLabel: item.locked ? '잠금 해제' : '잠금',
                         icon: item.locked ? Icons.lock_open : Icons.lock,
+                        image: item.locked
+                            ? 'assets/art/ui_v13/act_unlock.webp'
+                            : 'assets/art/ui_v13/act_lock.webp',
                         onPressed: () => p.toggleCatGearLock(item.id),
                       ),
                       GameActionTile(
@@ -586,6 +577,7 @@ class _CatGearScreenState extends State<CatGearScreen>
                         ]),
                         displayLabel: '분해',
                         icon: Icons.recycling,
+                        image: 'assets/art/ui_v13/act_dismantle.webp',
                         onPressed: equipped || item.locked
                             ? null
                             : () => p.dismantleCatGear(item.id),
@@ -641,24 +633,47 @@ class _CatGearScreenState extends State<CatGearScreen>
                       e.value.partId == part.partId &&
                       e.value.instanceId != part.instanceId,
                 );
-            var line = '', note = '';
+            var stats = <ItemStat>[];
+            var note = '';
             if (part != null) {
-              final stats = resolvePartStats(part, profile);
+              final s = resolvePartStats(part, profile);
               String n(double v) => v.toStringAsFixed(1);
-              line = part.definition.weapon
-                  ? '피해 ${n(stats.damage)} · 초당 ${n(stats.fireRate)} · 발사 ${stats.count}${stats.pierce > 0 ? ' · 관통 +${stats.pierce}' : ''}'
-                  : '지원 효율 ${(stats.supportPower * 100).round()}%';
-              line = '${part.definition.effect}\n$line';
+              stats = part.definition.weapon
+                  ? [
+                      (
+                        label: '피해',
+                        value: n(s.damage),
+                        color: const Color(0xFFFF8A5C),
+                      ),
+                      (
+                        label: '초당 발사',
+                        value: n(s.fireRate),
+                        color: const Color(0xFFFFD43D),
+                      ),
+                      (
+                        label: '발사 수',
+                        value: '${s.count}',
+                        color: const Color(0xFF7CC8FF),
+                      ),
+                      if (s.pierce > 0)
+                        (
+                          label: '관통',
+                          value: '+${s.pierce}',
+                          color: const Color(0xFFD9A8FF),
+                        ),
+                    ]
+                  : [
+                      (
+                        label: '지원 효율',
+                        value: '${(s.supportPower * 100).round()}%',
+                        color: const Color(0xFF7CE08A),
+                      ),
+                    ];
               note = duplicate
                   ? '같은 보조 부품은 중복 장착할 수 없습니다.'
                   : from != null && !here
                   ? '${mountProfile(from).name}에 장착 중 · 옮겨도 레벨 유지'
-                  : part.level >= 40
-                  ? '최고 레벨'
-                  : message('강화 · 츄르 {0} · 별가루 {1}', [
-                      p.moduleUpgradeCredits(part.level),
-                      p.moduleUpgradePlans(part.level),
-                    ]);
+                  : '';
             }
             return _popup(
               context: context,
@@ -689,11 +704,19 @@ class _CatGearScreenState extends State<CatGearScreen>
               ],
               info: part == null
                   ? null
-                  : _info(
-                      '${part.definition.name} · Lv.${part.level}',
-                      Colors.white,
-                      line,
-                      note,
+                  : ItemInfoCard(
+                      name: part.definition.name,
+                      chips: [
+                        ('Lv.${part.level}/40', const Color(0xFFFFD43D)),
+                        if (here) ('장착 중', const Color(0xFF7CE08A)),
+                      ],
+                      tags: part.definition.effect.split(' · '),
+                      stats: stats,
+                      note: note,
+                      churu: part.level >= 40
+                          ? null
+                          : p.moduleUpgradeCredits(part.level),
+                      stardust: p.moduleUpgradePlans(part.level),
                     ),
               actions: part == null
                   ? const []
@@ -702,6 +725,9 @@ class _CatGearScreenState extends State<CatGearScreen>
                         key: const Key('weapon-equip'),
                         label: here ? '해제' : '장착',
                         icon: here ? Icons.close : Icons.check,
+                        image: here
+                            ? 'assets/art/ui_v13/act_cross.webp'
+                            : 'assets/art/ui_v13/act_check.webp',
                         primary: !here,
                         onPressed: duplicate
                             ? null
@@ -714,6 +740,7 @@ class _CatGearScreenState extends State<CatGearScreen>
                         key: const Key('weapon-upgrade'),
                         label: '강화',
                         icon: Icons.upgrade,
+                        image: 'assets/art/ui_v13/act_upgrade.webp',
                         onPressed:
                             part.level < 40 &&
                                 p.credits >=
@@ -726,6 +753,7 @@ class _CatGearScreenState extends State<CatGearScreen>
                         key: const Key('weapon-salvage'),
                         label: '분해',
                         icon: Icons.recycling,
+                        image: 'assets/art/ui_v13/act_dismantle.webp',
                         onPressed: p.canSalvageModule(part.instanceId)
                             ? () => _confirmSalvage(part)
                             : null,

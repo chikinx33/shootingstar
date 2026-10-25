@@ -295,11 +295,10 @@ class BattleStatisticsDialog extends StatelessWidget {
                           ),
                         ),
                       ),
-                      IconButton(
+                      KitCloseButton(
                         key: const Key('close-battle-statistics'),
-                        tooltip: tr('통계 닫기'),
+                        tooltip: '통계 닫기',
                         onPressed: audible(() => Navigator.of(context).pop()),
-                        icon: const RasterIcon(Icons.close),
                       ),
                     ],
                   ),

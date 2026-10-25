@@ -231,12 +231,16 @@ class GameActionTile extends StatelessWidget {
     required this.onPressed,
     this.displayLabel,
     this.primary = false,
+    this.image,
   });
   final String label;
   final String? displayLabel;
   final IconData icon;
   final VoidCallback? onPressed;
   final bool primary;
+
+  /// A generated icon (ui_v13/act_*.webp, v12.12) drawn instead of [icon].
+  final String? image;
 
   @override
   Widget build(BuildContext context) {
@@ -271,7 +275,14 @@ class GameActionTile extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      RasterIcon(icon, size: 28),
+                      image == null
+                          ? RasterIcon(icon, size: 28)
+                          : Image.asset(
+                              image!,
+                              width: 30,
+                              height: 30,
+                              filterQuality: FilterQuality.medium,
+                            ),
                       ExcludeSemantics(
                         child: Text(
                           tr(displayLabel ?? label),

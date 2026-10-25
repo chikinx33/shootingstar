@@ -1004,6 +1004,7 @@ class _ContentHubState extends State<ContentHub> {
               key: const Key('pet-deploy'),
               label: active ? '출전 중' : '출전',
               icon: Icons.rocket_launch,
+              image: 'assets/art/ui_v13/act_launch.webp',
               primary: !active,
               onPressed: active ? null : () => act(() => p.deployPet(i)),
             ),
@@ -1012,6 +1013,7 @@ class _ContentHubState extends State<ContentHub> {
               label: p.assistingPets.contains(i) ? '보조 해제' : '보조 배치',
               displayLabel: p.assistingPets.contains(i) ? '보조 해제' : '보조',
               icon: Icons.groups,
+              image: 'assets/art/ui_v13/act_helpers.webp',
               onPressed: active ? null : () => act(() => p.assistPet(i)),
             ),
           ],
@@ -1024,6 +1026,7 @@ class _ContentHubState extends State<ContentHub> {
               label: '펫 육성',
               displayLabel: '육성',
               icon: Icons.upgrade,
+              image: 'assets/art/ui_v13/act_feed.webp',
               onPressed: p.petFood >= food && p.petLevels[i] < maxLevel
                   ? () => act(() => p.feedPet(i))
                   : null,
@@ -1033,6 +1036,7 @@ class _ContentHubState extends State<ContentHub> {
               label: '펫 승급',
               displayLabel: '승급',
               icon: Icons.auto_awesome,
+              image: 'assets/art/ui_v13/act_promote.webp',
               onPressed: p.petRanks[i] < 5 && p.petShards[i] >= shards
                   ? () => act(() => p.evolvePet(i))
                   : null,
@@ -1042,6 +1046,7 @@ class _ContentHubState extends State<ContentHub> {
               label: '각성·호감도',
               displayLabel: '호감도',
               icon: Icons.favorite,
+              image: 'assets/art/ui_v13/act_heart.webp',
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute<void>(
