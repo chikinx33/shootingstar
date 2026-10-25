@@ -1913,7 +1913,7 @@ class BattlePainter extends CustomPainter {
         flameScale: reducedEffects
             ? 1
             : 1 +
-                  .6 * math.max(0, game.thrust) -
+                  1.3 * math.max(0, game.thrust) -
                   .3 * math.max(0, -game.thrust),
       );
     } else if (game.moduleLoadout != null) {

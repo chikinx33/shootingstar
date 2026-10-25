@@ -892,7 +892,8 @@ class GameEngine {
       final ref = moveSpeed * 1.5;
       final k = math.min(1.0, dt / .09);
       bank += ((v.dx / ref).clamp(-1.0, 1.0) - bank) * k;
-      thrust += ((-v.dy / ref).clamp(-1.0, 1.0) - thrust) * k;
+      // thrust reacts sooner than the roll, so forward flight always shows
+      thrust += ((-v.dy / (moveSpeed * .8)).clamp(-1.0, 1.0) - thrust) * k;
     }
     visuals.followMovement(position - previousPosition, dt);
     if (movement.distance > .05) {

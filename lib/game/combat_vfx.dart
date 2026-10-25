@@ -80,8 +80,8 @@ abstract final class CombatVfx {
   static void under(Canvas c, GameEngine g, bool reduced) {
     final t = reduced ? 0.0 : g.combatTime;
     if (!reduced) {
-      _jet(c, g.position + const Offset(-17, 22), t);
-      _jet(c, g.position + const Offset(17, 22), t + .07);
+      // v12.9.5 (user 2026-10-25): the cat's craft shows only its painted
+      // flame art; the old code-drawn jets under it are gone.
       for (final e in g.enemies) {
         if ((e.position - g.position).distance > 650 || e.kind == 3) continue;
         c.save();
