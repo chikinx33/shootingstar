@@ -4,6 +4,7 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import '../art/ui_kit.dart';
 import 'reward_flight.dart';
 
 import 'components.dart';
@@ -197,4 +198,129 @@ class GameItemSlot extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The slot currently being looked at glows in cyan (the yellow rim and
+/// check of [GameItemSlot.selected] stay for "equipped" / "deployed").
+class PickedGlow extends StatelessWidget {
+  const PickedGlow({super.key, required this.on, required this.child});
+  final bool on;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => AnimatedContainer(
+    duration: const Duration(milliseconds: 160),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: on
+          ? const [BoxShadow(color: Color(0xDD4FE3FF), blurRadius: 12)]
+          : const [],
+    ),
+    child: child,
+  );
+}
+
+/// One kit button of an item's action strip: picture above a short word.
+/// The full [label] stays the accessible name (v12.10.1, user 2026-10-26:
+/// an item's actions sit on one line instead of two rows).
+class GameActionTile extends StatelessWidget {
+  const GameActionTile({
+    super.key,
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+    this.displayLabel,
+    this.primary = false,
+  });
+  final String label;
+  final String? displayLabel;
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final bool primary;
+
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    // InkWell, not a button: the tile fills its share of the strip.
+    final tap = audible(onPressed, cue: buttonCue(label));
+    return Semantics(
+      button: true,
+      enabled: onPressed != null,
+      label: tr(label),
+      excludeSemantics: true,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: tap,
+          borderRadius: BorderRadius.circular(32),
+          child: Opacity(
+            opacity: onPressed == null ? .58 : 1,
+            child: UiKitFrame(
+              // always a kit pill: a narrow tile squeezes the round caps instead
+              // of turning into the paw-bolt panel
+              onPressed == null
+                  ? 'tab_off'
+                  : (primary ? 'btn_yellow' : 'btn_blue'),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 64),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 6,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      RasterIcon(icon, size: 28),
+                      ExcludeSemantics(
+                        child: Text(
+                          tr(displayLabel ?? label),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 15,
+                            height: 1.15,
+                            fontWeight: FontWeight.w900,
+                            color: primary
+                                ? const Color(0xFF202838)
+                                : Colors.white,
+                            shadows: [
+                              Shadow(
+                                color: primary
+                                    ? const Color(0x88FFFFFF)
+                                    : const Color(0xFF172031),
+                                offset: Offset(0, primary ? 1 : 2),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// An item's actions side by side in one row of equal tiles.
+class GameActionStrip extends StatelessWidget {
+  const GameActionStrip({super.key, required this.children});
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => IntrinsicHeight(
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0) const SizedBox(width: 6),
+          Expanded(child: children[i]),
+        ],
+      ],
+    ),
+  );
 }

@@ -3,33 +3,70 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import '../art/raster_assets.dart';
 import '../art/toon_assets.dart';
 import '../art/ui_kit.dart';
 import 'game_motion.dart';
 
 import '../art/ship_sprite_art.dart';
 import '../data/cat_gear.dart';
+import '../data/content.dart';
 import '../data/profile.dart';
+import '../data/ship_modules.dart';
 import '../l10n/app_language.dart';
 import 'audio_feedback.dart';
 import 'game_dialog.dart';
+import 'game_ui.dart';
 import 'item_slots.dart';
+import 'module_workshop.dart' show showAirframeDetails;
+import 'skill_cards.dart' show partIllustration;
 
-/// The cat's equipment (v12.10, user 2026-10-26): a stat label over a large
-/// craft that can be nudged around and springs back, and the five airframe
-/// slots around it. A slot opens its owned pieces with the selected piece's
-/// details and actions (equip, upgrade, lock, dismantle) in one popup.
+/// Growth > equipment and weapons (v12.10, user 2026-10-26): a stat label
+/// over a large craft that can be nudged around and springs back, with its
+/// slots around it. The equipment and weapon tabs swap the slots in place:
+/// one set sweeps into the craft and the other springs out of it. A slot
+/// opens one popup with that slot's items, the picked item's details and its
+/// actions on one line.
 class CatGearScreen extends StatefulWidget {
-  const CatGearScreen({super.key, required this.profile});
+  const CatGearScreen({super.key, required this.profile, this.weapons = false});
   final Profile profile;
+
+  /// Shows the seven weapon/support mounts instead of the five gear slots.
+  final bool weapons;
 
   @override
   State<CatGearScreen> createState() => _CatGearScreenState();
 }
 
-class _CatGearScreenState extends State<CatGearScreen> {
+/// Where a slot sits and what it draws.
+typedef _Placed = ({Key key, Offset at, Widget child});
+
+class _CatGearScreenState extends State<CatGearScreen>
+    with SingleTickerProviderStateMixin {
   Profile get p => widget.profile;
+
+  /// 0 = gear slots out, 1 = weapon slots out.
+  late final AnimationController _swap = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 560),
+    value: widget.weapons ? 1 : 0,
+  );
+
+  @override
+  void didUpdateWidget(CatGearScreen old) {
+    super.didUpdateWidget(old);
+    if (old.weapons == widget.weapons) return;
+    if (liveMotion(context)) {
+      _swap.animateTo(widget.weapons ? 1 : 0);
+    } else {
+      _swap.value = widget.weapons ? 1 : 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _swap.dispose();
+    super.dispose();
+  }
 
   static Widget gearImage(CatGearItem item, double size) => SizedBox.square(
     dimension: size,
@@ -40,56 +77,89 @@ class _CatGearScreenState extends State<CatGearScreen> {
     ),
   );
 
-  Widget _slot(CatGearSlot slot, double size) {
-    final item = p.catGear.equippedIn(slot);
-    return Semantics(
-      button: true,
-      label: tr(
-        item == null
-            ? '${catGearSlotNames[slot]} 비어 있음'
-            : '${catGearSlotNames[slot]} ${item.name} Lv.${item.level}',
-      ),
-      excludeSemantics: true,
-      child: InkWell(
-        key: Key('cat-gear-slot-${slot.name}'),
-        onTap: audible(() => _slotPopup(slot)),
-        borderRadius: BorderRadius.circular(14),
-        child: SizedBox(
-          width: size,
-          height: size + 18,
-          child: ToonRarityFrame(
-            rank: item?.rarity ?? -1,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (item != null)
-                  gearImage(item, size * .62)
-                else
+  /// The shared slot look: rarity rim, big picture, one line below.
+  Widget _frame({
+    required Key key,
+    required String semantics,
+    required double size,
+    required int rank,
+    required Widget? image,
+    required String line,
+    required VoidCallback onTap,
+  }) => Semantics(
+    button: true,
+    label: tr(semantics),
+    excludeSemantics: true,
+    child: InkWell(
+      key: key,
+      onTap: audible(onTap),
+      borderRadius: BorderRadius.circular(14),
+      child: SizedBox(
+        width: size,
+        height: size + 18,
+        child: ToonRarityFrame(
+          rank: rank,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              image ??
                   Icon(
                     Icons.add,
                     size: size * .42,
                     color: const Color(0xFF8EA6C2),
                   ),
-                Text(
-                  item == null
-                      ? tr(catGearSlotNames[slot]!)
-                      : 'Lv.${item.level}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    height: 1.15,
-                    fontWeight: FontWeight.w900,
-                  ),
+              Text(
+                tr(line),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                softWrap: false,
+                style: const TextStyle(
+                  fontSize: 14,
+                  height: 1.15,
+                  fontWeight: FontWeight.w900,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
+    ),
+  );
+
+  Widget _gearSlot(CatGearSlot slot, double size) {
+    final item = p.catGear.equippedIn(slot);
+    return _frame(
+      key: Key('cat-gear-slot-${slot.name}'),
+      semantics: item == null
+          ? '${catGearSlotNames[slot]} 비어 있음'
+          : '${catGearSlotNames[slot]} ${item.name} Lv.${item.level}',
+      size: size,
+      rank: item?.rarity ?? -1,
+      image: item == null ? null : gearImage(item, size * .62),
+      line: item == null ? catGearSlotNames[slot]! : 'Lv.${item.level}',
+      onTap: () => _gearPopup(slot),
     );
   }
 
-  /// Set effects that are active now (empty when none are).
+  Widget _weaponSlot(String mount, double size) {
+    final part = p.moduleLoadout.parts[mount];
+    final name = mountProfile(mount).name;
+    return _frame(
+      key: Key('weapon-slot-$mount'),
+      semantics: part == null
+          ? '$mount $name 비어 있음'
+          : '$mount $name ${part.definition.name} Lv.${part.level}',
+      size: size,
+      rank: -1,
+      image: part == null
+          ? null
+          : partIllustration(part.definition, size: size * .58),
+      line: part == null ? mount : '$mount · Lv.${part.level}',
+      onTap: () => _weaponPopup(mount),
+    );
+  }
+
+  /// Set effects that are active now (a hint when none are).
   String _setLine() {
     final counts = p.catGear.setCounts;
     final parts = <String>[];
@@ -101,7 +171,7 @@ class _CatGearScreenState extends State<CatGearScreen> {
         parts.add('${set.name} 3세트 · ${set.three}');
       }
     }
-    return parts.join('\n');
+    return parts.isEmpty ? '같은 세트 3·5부위를 장착하면 세트 효과' : parts.join('\n');
   }
 
   static String _percent(double v) {
@@ -109,58 +179,56 @@ class _CatGearScreenState extends State<CatGearScreen> {
     return '+${pct >= 10 || pct == pct.roundToDouble() ? pct.round() : pct.toStringAsFixed(1)}%';
   }
 
-  /// Gear power, the five stats the gear adds and the active set effect.
-  Widget _stats() {
-    final b = p.catGear.bonuses;
-    final set = _setLine();
-    final stats = [
-      ('화력', b.damage, const Color(0xFFFF8A5C)),
-      ('선체', b.hull, const Color(0xFF7CE08A)),
-      ('피해 감소', b.reduction, const Color(0xFF7CC8FF)),
-      ('이동 속도', b.speed, const Color(0xFFFFD43D)),
-      ('회수 범위', b.pickup, const Color(0xFFD9A8FF)),
-    ];
-    return UiKitFrame(
+  static const _bigValue = TextStyle(
+    fontSize: 22,
+    height: 1.1,
+    fontWeight: FontWeight.w900,
+    color: Color(0xFFFFD43D),
+  );
+
+  /// The label over the craft: a title row, a row of values, one note.
+  Widget _label({
+    required Key key,
+    required String image,
+    required String title,
+    required Widget value,
+    required List<(String, String, Color)> stats,
+    required String note,
+    String semantics = '',
+    VoidCallback? onTap,
+  }) {
+    final panel = UiKitFrame(
       'panel',
-      key: const Key('cat-gear-power'),
+      key: key,
       corner: 18,
       padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Semantics(
-            label: message('장비 전투력 {0}', [p.catGear.power]),
-            excludeSemantics: true,
+            label: semantics,
+            excludeSemantics: semantics.isNotEmpty,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset(
-                  'assets/art/menu_v13/trophy_gear_upgrades.webp',
-                  width: 30,
-                  height: 30,
-                ),
+                Image.asset(image, width: 30, height: 30),
                 const SizedBox(width: 6),
-                Text(
-                  tr('전투력'),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFFB8C7DA),
+                Flexible(
+                  child: Text(
+                    tr(title),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.fade,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFFB8C7DA),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                CountUp(
-                  value: p.catGear.power.toDouble(),
-                  format: (v) => '${v.round()}',
-                  duration: 600,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    height: 1.1,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFFFFD43D),
-                  ),
-                ),
+                value,
               ],
             ),
           ),
@@ -168,19 +236,20 @@ class _CatGearScreenState extends State<CatGearScreen> {
           LayoutBuilder(
             builder: (context, box) => Row(
               children: [
-                for (final (label, value, color) in stats)
+                for (final (label, shown, color) in stats)
                   Expanded(
                     child: Semantics(
-                      label: '${tr(label)} ${_percent(value)}',
+                      label: '${tr(label)} ${tr(shown)}',
                       excludeSemantics: true,
                       child: Column(
                         children: [
                           Text(
-                            _percent(value),
+                            tr(shown),
                             textAlign: TextAlign.center,
                             maxLines: 1,
                             softWrap: false,
-                            // five columns: a narrow phone keeps a gap
+                            overflow: TextOverflow.fade,
+                            // a narrow phone keeps a gap between columns
                             style: TextStyle(
                               fontSize: box.maxWidth < 300 ? 14 : 16,
                               height: 1.2,
@@ -207,26 +276,173 @@ class _CatGearScreenState extends State<CatGearScreen> {
               ],
             ),
           ),
-          if (set.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              tr(set),
-              key: const Key('cat-gear-sets'),
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 13,
-                height: 1.25,
-                color: Color(0xFF9FE6B0),
-              ),
+          const SizedBox(height: 4),
+          Text(
+            tr(note),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1.25,
+              color: Color(0xFF9FE6B0),
             ),
+          ),
+        ],
+      ),
+    );
+    return onTap == null
+        ? panel
+        : GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: audible(onTap),
+            child: panel,
+          );
+  }
+
+  /// Gear power, the five stats the gear adds and the active set effect.
+  Widget _gearLabel() {
+    final b = p.catGear.bonuses;
+    return _label(
+      key: const Key('cat-gear-power'),
+      image: 'assets/art/menu_v13/trophy_gear_upgrades.webp',
+      title: '전투력',
+      semantics: message('장비 전투력 {0}', [p.catGear.power]),
+      value: CountUp(
+        value: p.catGear.power.toDouble(),
+        format: (v) => '${v.round()}',
+        duration: 600,
+        style: _bigValue,
+      ),
+      stats: [
+        ('화력', _percent(b.damage), const Color(0xFFFF8A5C)),
+        ('선체', _percent(b.hull), const Color(0xFF7CE08A)),
+        ('피해 감소', _percent(b.reduction), const Color(0xFF7CC8FF)),
+        ('이동 속도', _percent(b.speed), const Color(0xFFFFD43D)),
+        ('회수 범위', _percent(b.pickup), const Color(0xFFD9A8FF)),
+      ],
+      note: _setLine(),
+    );
+  }
+
+  /// The airframe and its weapons; tapping opens the airframe upgrade.
+  Widget _weaponLabel() {
+    final snap = p.moduleLoadout;
+    final weapons = moduleProfiles
+        .where((m) => m.weapon && snap.parts.containsKey(m.id))
+        .length;
+    final support = moduleProfiles
+        .where((m) => !m.weapon && snap.parts.containsKey(m.id))
+        .length;
+    return _label(
+      key: const Key('weapon-label'),
+      image: 'assets/art/menu_v13/hangar.webp',
+      title: ships[p.selectedShip].name,
+      semantics: message('{0} 기체 Lv.{1} · 기체 정보', [
+        ships[p.selectedShip].name,
+        snap.airframeLevel,
+      ]),
+      value: Text(
+        'Lv.${snap.airframeLevel}',
+        textAlign: TextAlign.center,
+        style: _bigValue,
+      ),
+      stats: [
+        ('고유 주포', snap.signatureName, const Color(0xFFFF8A5C)),
+        ('궁극기', snap.ultimateName, const Color(0xFFD9A8FF)),
+        ('무장 · 보조', '$weapons/4 · $support/3', const Color(0xFF7CC8FF)),
+      ],
+      note: message('보유 파츠 {0}/240 · 눌러서 기체 강화', [p.shipModules.owned.length]),
+      onTap: () => showAirframeDetails(context, p),
+    );
+  }
+
+  /// The shared popup: the slot's items, then the picked item's few lines
+  /// and its actions on one line.
+  Widget _popup({
+    required BuildContext context,
+    required String title,
+    required Key listKey,
+    required List<Widget> tiles,
+    required String empty,
+    required Widget? info,
+    required List<Widget> actions,
+  }) {
+    final screen = MediaQuery.sizeOf(context);
+    final inner = math.min(440.0, screen.width - 24) - 36 - 16;
+    final columns = (inner / 112).floor().clamp(3, 5);
+    final rows = (tiles.length / columns).ceil();
+    final tile =
+        GameItemSlot.imageHeight +
+        20 +
+        3 * 18 * MediaQuery.textScalerOf(context).scale(1);
+    // as many rows as needed, up to about two and a half
+    final listHeight = math.min(
+      rows * (tile + 8) + 8,
+      math.max(tile + 16, math.min(400.0, screen.height * .42)),
+    );
+    return GameDialog(
+      title: title,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (tiles.isEmpty)
+            Text(tr(empty), textAlign: TextAlign.center)
+          else
+            SizedBox(
+              height: listHeight,
+              child: GameSlotList(listKey: listKey, children: tiles),
+            ),
+          if (info != null) ...[
+            const SizedBox(height: 10),
+            info,
+            const SizedBox(height: 10),
+            GameActionStrip(children: actions),
           ],
         ],
       ),
     );
   }
 
-  /// One slot's owned pieces; the chosen piece's details and actions below.
-  Future<void> _slotPopup(CatGearSlot slot) async {
+  /// Name in its colour, then at most two short lines.
+  Widget _info(String name, Color color, String line, String note) => Column(
+    key: const Key('item-detail'),
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        tr(name),
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 18,
+          height: 1.25,
+          fontWeight: FontWeight.w900,
+          color: color,
+        ),
+      ),
+      Text(
+        tr(line),
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontSize: 15,
+          height: 1.3,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      if (note.isNotEmpty)
+        Text(
+          tr(note),
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 13,
+            height: 1.3,
+            color: Color(0xFFFFD27A),
+          ),
+        ),
+    ],
+  );
+
+  /// One gear slot's owned pieces, the picked piece and its four actions.
+  Future<void> _gearPopup(CatGearSlot slot) async {
     int? picked = p.catGear.equipped[slot];
     await showDialog<void>(
       context: context,
@@ -246,66 +462,91 @@ class _CatGearScreenState extends State<CatGearScreen> {
             final item =
                 (picked == null ? null : p.catGear.item(picked!)) ??
                 items.firstOrNull;
-            // list height: as many rows as needed, at most about 1.5 rows
-            final screen = MediaQuery.sizeOf(context);
-            final inner = math.min(440.0, screen.width - 24) - 36 - 16;
-            final columns = (inner / 112).floor().clamp(3, 5);
-            final rows = (items.length / columns).ceil();
-            final tile =
-                GameItemSlot.imageHeight +
-                20 +
-                3 * 18 * MediaQuery.textScalerOf(context).scale(1);
-            final listHeight = math.min(
-              rows * (tile + 8) + 8,
-              math.max(tile + 16, math.min(260.0, screen.height * .3)),
-            );
-            return GameDialog(
+            final equipped = item != null && p.catGear.isEquipped(item);
+            final set = item == null ? null : catGearSet(item.set);
+            return _popup(
+              context: context,
               title: catGearSlotNames[slot]!,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (items.isEmpty)
-                    Text(
-                      tr('보유한 부품이 없습니다. 출격 보상으로 얻을 수 있습니다.'),
-                      textAlign: TextAlign.center,
-                    )
-                  else
-                    SizedBox(
-                      height: listHeight,
-                      child: GameSlotList(
-                        listKey: Key('cat-gear-list-${slot.name}'),
-                        children: [
-                          for (final i in items)
-                            _PickedOutline(
-                              on: i.id == item?.id,
-                              child: GameItemSlot(
-                                key: ValueKey('cat-gear-item-${i.id}'),
-                                title:
-                                    '${catGearSet(i.set).name} · ${catGearRarityNames[i.rarity]}',
-                                status: 'Lv.${i.level}${i.locked ? ' 🔒' : ''}',
-                                image: gearImage(i, 60),
-                                rarity: i.rarity,
-                                selected: p.catGear.isEquipped(i),
-                                semanticLabel:
-                                    '${i.name} ${catGearRarityNames[i.rarity]} Lv.${i.level}',
-                                onTap: audible(
-                                  () => setPicked(() => picked = i.id),
-                                  cue: 'select',
-                                ),
-                              ),
-                            ),
-                        ],
+              listKey: Key('cat-gear-list-${slot.name}'),
+              empty: '보유한 부품이 없습니다. 출격 보상으로 얻을 수 있습니다.',
+              tiles: [
+                for (final i in items)
+                  PickedGlow(
+                    on: i.id == item?.id,
+                    child: GameItemSlot(
+                      key: ValueKey('cat-gear-item-${i.id}'),
+                      title:
+                          '${catGearSet(i.set).name} · ${catGearRarityNames[i.rarity]}',
+                      status: 'Lv.${i.level}${i.locked ? ' 🔒' : ''}',
+                      image: gearImage(i, 60),
+                      rarity: i.rarity,
+                      selected: p.catGear.isEquipped(i),
+                      semanticLabel:
+                          '${i.name} ${catGearRarityNames[i.rarity]} Lv.${i.level}',
+                      onTap: audible(
+                        () => setPicked(() => picked = i.id),
+                        cue: 'select',
                       ),
                     ),
-                  if (item != null) ...[
-                    const SizedBox(height: 12),
-                    _itemInfo(item),
-                    const SizedBox(height: 14),
-                    _itemActions(item),
-                  ],
-                ],
-              ),
+                  ),
+              ],
+              info: item == null
+                  ? null
+                  : _info(
+                      '${item.name} · ${catGearRarityNames[item.rarity]}',
+                      Color(catGearRarityColors[item.rarity]),
+                      'Lv.${item.level}/${item.maxLevel} · ${item.statText}\n세트 3부위 ${set!.three} · 5부위 ${set.five}',
+                      item.maxed
+                          ? '최대 레벨'
+                          : message('강화 · 츄르 {0}{1}', [
+                              item.upgradeChuru,
+                              item.upgradeStardust > 0
+                                  ? message(' · 별가루 {0}', [
+                                      item.upgradeStardust,
+                                    ])
+                                  : '',
+                            ]),
+                    ),
+              actions: item == null
+                  ? const []
+                  : [
+                      GameActionTile(
+                        key: const Key('cat-gear-equip'),
+                        label: equipped ? '장착 중' : '장착',
+                        icon: Icons.check,
+                        primary: !equipped,
+                        onPressed: equipped
+                            ? null
+                            : () => p.equipCatGear(item.id),
+                      ),
+                      GameActionTile(
+                        key: const Key('cat-gear-upgrade'),
+                        label: '강화',
+                        icon: Icons.upgrade,
+                        onPressed: p.canUpgradeCatGear(item)
+                            ? () => p.upgradeCatGear(item.id)
+                            : null,
+                      ),
+                      GameActionTile(
+                        key: const Key('cat-gear-lock'),
+                        label: item.locked ? '잠금 해제' : '보호 잠금',
+                        displayLabel: item.locked ? '잠금 해제' : '잠금',
+                        icon: item.locked ? Icons.lock_open : Icons.lock,
+                        onPressed: () => p.toggleCatGearLock(item.id),
+                      ),
+                      GameActionTile(
+                        key: const Key('cat-gear-dismantle'),
+                        label: message('분해 · 츄르 {0} · 별가루 {1}', [
+                          item.dismantleChuru,
+                          item.dismantleStardust,
+                        ]),
+                        displayLabel: '분해',
+                        icon: Icons.recycling,
+                        onPressed: equipped || item.locked
+                            ? null
+                            : () => p.dismantleCatGear(item.id),
+                      ),
+                    ],
             );
           },
         ),
@@ -313,193 +554,307 @@ class _CatGearScreenState extends State<CatGearScreen> {
     );
   }
 
-  Widget _itemInfo(CatGearItem item) => Column(
-    key: const Key('cat-gear-detail'),
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(
-        tr(item.name),
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 20,
-          height: 1.25,
-          fontWeight: FontWeight.w900,
-          color: Color(catGearRarityColors[item.rarity]),
-        ),
-      ),
-      Text(
-        message('{0} · Lv.{1}/{2} · {3}', [
-          tr(catGearRarityNames[item.rarity]),
-          item.level,
-          item.maxLevel,
-          tr(item.statText),
-        ]),
-        textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
-      ),
-      Text(
-        tr(
-          '${catGearSet(item.set).name} 세트 · 3부위 ${catGearSet(item.set).three} · 5부위 ${catGearSet(item.set).five}',
-        ),
-        textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 14, color: Color(0xFFB8C7DA)),
-      ),
-      Text(
-        item.maxed
-            ? tr('최대 레벨')
-            : message('강화 · 츄르 {0}{1}', [
-                item.upgradeChuru,
-                item.upgradeStardust > 0
-                    ? message(' · 별가루 {0}', [item.upgradeStardust])
-                    : '',
-              ]),
-        textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 14, color: Color(0xFFFFD27A)),
-      ),
-    ],
-  );
+  /// One mount's fitting parts (also those on other mounts: equipping moves
+  /// them, level kept), the picked part and its actions.
+  Future<void> _weaponPopup(String mount) async {
+    final profile = mountProfile(mount);
+    String? picked = p.moduleLoadout.parts[mount]?.instanceId;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setPicked) => AnimatedBuilder(
+          animation: p,
+          builder: (context, _) {
+            final snap = p.moduleLoadout;
+            String? mountOf(String id) => snap.parts.entries
+                .where((e) => e.value.instanceId == id)
+                .firstOrNull
+                ?.key;
+            int order(OwnedModulePart i) {
+              final m = mountOf(i.instanceId);
+              return m == mount ? 2 : (m == null ? 1 : 0);
+            }
 
-  /// Equip, upgrade, lock and dismantle side by side in two rows.
-  Widget _itemActions(CatGearItem item) {
-    final equipped = p.catGear.isEquipped(item);
-    final tiles = [
-      _GearAction(
-        key: const Key('cat-gear-equip'),
-        label: equipped ? '장착 중' : '장착',
-        icon: Icons.check,
-        primary: !equipped,
-        onPressed: equipped ? null : () => p.equipCatGear(item.id),
+            final items =
+                p.shipModules.owned.values
+                    .where((i) => i.definition.weapon == profile.weapon)
+                    .toList()
+                  ..sort((a, b) {
+                    final r = order(b).compareTo(order(a));
+                    return r != 0 ? r : b.level.compareTo(a.level);
+                  });
+            final part =
+                (picked == null ? null : p.shipModules.owned[picked]) ??
+                items.firstOrNull;
+            final from = part == null ? null : mountOf(part.instanceId);
+            final here = from == mount;
+            final duplicate =
+                part != null &&
+                !part.definition.weapon &&
+                snap.parts.entries.any(
+                  (e) =>
+                      e.key != mount &&
+                      e.value.partId == part.partId &&
+                      e.value.instanceId != part.instanceId,
+                );
+            var line = '', note = '';
+            if (part != null) {
+              final stats = resolvePartStats(part, profile);
+              String n(double v) => v.toStringAsFixed(1);
+              line = part.definition.weapon
+                  ? '피해 ${n(stats.damage)} · 초당 ${n(stats.fireRate)} · 발사 ${stats.count}${stats.pierce > 0 ? ' · 관통 +${stats.pierce}' : ''}'
+                  : '지원 효율 ${(stats.supportPower * 100).round()}%';
+              line = '${part.definition.effect}\n$line';
+              note = duplicate
+                  ? '같은 보조 부품은 중복 장착할 수 없습니다.'
+                  : from != null && !here
+                  ? '$from에 장착 중 · 옮겨도 레벨 유지'
+                  : part.level >= 40
+                  ? '최고 레벨'
+                  : message('강화 · 츄르 {0} · 별가루 {1}', [
+                      p.moduleUpgradeCredits(part.level),
+                      p.moduleUpgradePlans(part.level),
+                    ]);
+            }
+            return _popup(
+              context: context,
+              title: '$mount · ${profile.name}',
+              listKey: Key('weapon-list-$mount'),
+              empty: '보유한 파츠가 없습니다. 보급에서 파츠를 얻을 수 있습니다.',
+              tiles: [
+                for (final i in items)
+                  PickedGlow(
+                    on: i.instanceId == part?.instanceId,
+                    child: GameItemSlot(
+                      key: ValueKey('weapon-item-${i.instanceId}'),
+                      title: i.definition.name,
+                      status: [
+                        'Lv.${i.level}',
+                        if (mountOf(i.instanceId) case final m? when m != mount)
+                          m,
+                      ].join(' · '),
+                      image: partIllustration(i.definition, size: 60),
+                      selected: mountOf(i.instanceId) == mount,
+                      semanticLabel: '${i.definition.name} Lv.${i.level}',
+                      onTap: audible(
+                        () => setPicked(() => picked = i.instanceId),
+                        cue: 'select',
+                      ),
+                    ),
+                  ),
+              ],
+              info: part == null
+                  ? null
+                  : _info(
+                      '${part.definition.name} · Lv.${part.level}',
+                      Colors.white,
+                      line,
+                      note,
+                    ),
+              actions: part == null
+                  ? const []
+                  : [
+                      GameActionTile(
+                        key: const Key('weapon-equip'),
+                        label: here ? '해제' : '장착',
+                        icon: here ? Icons.close : Icons.check,
+                        primary: !here,
+                        onPressed: duplicate
+                            ? null
+                            : () => p.equipModule(
+                                mount,
+                                here ? null : part.instanceId,
+                              ),
+                      ),
+                      GameActionTile(
+                        key: const Key('weapon-upgrade'),
+                        label: '강화',
+                        icon: Icons.upgrade,
+                        onPressed:
+                            part.level < 40 &&
+                                p.credits >=
+                                    p.moduleUpgradeCredits(part.level) &&
+                                p.blueprints >= p.moduleUpgradePlans(part.level)
+                            ? () => p.upgradeModule(part.instanceId)
+                            : null,
+                      ),
+                      GameActionTile(
+                        key: const Key('weapon-salvage'),
+                        label: '분해',
+                        icon: Icons.recycling,
+                        onPressed: p.canSalvageModule(part.instanceId)
+                            ? () => _confirmSalvage(part)
+                            : null,
+                      ),
+                    ],
+            );
+          },
+        ),
       ),
-      _GearAction(
-        key: const Key('cat-gear-upgrade'),
-        label: '강화',
-        icon: Icons.upgrade,
-        onPressed: p.canUpgradeCatGear(item)
-            ? () => p.upgradeCatGear(item.id)
-            : null,
-      ),
-      _GearAction(
-        key: const Key('cat-gear-lock'),
-        label: item.locked ? '잠금 해제' : '보호 잠금',
-        icon: item.locked ? Icons.lock_open : Icons.lock,
-        onPressed: () => p.toggleCatGearLock(item.id),
-      ),
-      _GearAction(
-        key: const Key('cat-gear-dismantle'),
-        label: message('분해 · 츄르 {0} · 별가루 {1}', [
-          item.dismantleChuru,
-          item.dismantleStardust,
-        ]),
-        displayLabel: '분해',
-        icon: Icons.recycling,
-        onPressed: equipped || item.locked
-            ? null
-            : () => p.dismantleCatGear(item.id),
-      ),
-    ];
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (var r = 0; r < 4; r += 2) ...[
-          if (r > 0) const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(child: tiles[r]),
-              const SizedBox(width: 10),
-              Expanded(child: tiles[r + 1]),
-            ],
+    );
+  }
+
+  Future<void> _confirmSalvage(OwnedModulePart part) async {
+    final yes = await showDialog<bool>(
+      context: context,
+      builder: (dialog) => GameDialog(
+        title: '파츠 분해',
+        actions: [
+          GameActionButton(
+            label: '분해',
+            primary: true,
+            icon: Icons.recycling,
+            onPressed: () => Navigator.pop(dialog, true),
+          ),
+          GameActionButton(
+            label: '취소',
+            onPressed: () => Navigator.pop(dialog, false),
           ),
         ],
-      ],
+        child: Text(
+          message('{0} Lv.{1}\n{2} 츄르 · 별가루 {3}', [
+            part.definition.name,
+            part.level,
+            20 + part.level * 5,
+            1 + part.level ~/ 3,
+          ]),
+          textAlign: TextAlign.center,
+        ),
+      ),
     );
+    if (yes == true) p.salvageModule(part.instanceId);
   }
 
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return AnimatedBuilder(
-      animation: p,
-      builder: (context, _) => Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
-            child: _stats(),
-          ),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, box) {
-                final w = box.maxWidth, h = box.maxHeight;
-                // side slots keep clear of the screen edges
-                final margin = (w * .06).clamp(16.0, 32.0);
-                final slot = math.min(w * .22, h * .2).clamp(64.0, 96.0);
-                final slotH = slot + 18;
-                const gap = 6.0;
-                // The wings pass between the upper and lower side slots, so
-                // the craft may span the width inside the margins.
-                final craft = math
-                    .min(w - 2 * margin, (h - 1.5 * slotH - gap) / .82)
-                    .clamp(110.0, 380.0);
-                final rise = craft * .38;
-                // slots, craft, pedestal and shield slot centred as one group
-                final top = math.max(
-                  0.0,
-                  (h - craft * .82 - 1.5 * slotH - gap) / 2,
-                );
-                final cx = w / 2, cy = top + rise + slotH / 2;
-                Widget at(double x, double y, Widget child) =>
-                    Positioned(left: x, top: y, child: child);
-                return Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Positioned(
-                      left: cx - craft * .28,
-                      top: cy - craft * .02,
-                      width: craft * .56,
-                      child: Image.asset(
-                        '${UiKit.root}pedestal.webp',
-                        fit: BoxFit.contain,
-                        filterQuality: FilterQuality.medium,
-                      ),
-                    ),
-                    Positioned(
-                      left: cx - craft / 2,
-                      top: cy - craft / 2,
-                      width: craft,
-                      height: craft,
-                      child: _CraftStage(profile: p, size: craft),
-                    ),
-                    at(
-                      margin,
-                      cy - rise - slotH / 2,
-                      _slot(CatGearSlot.nose, slot),
-                    ),
-                    at(
-                      margin,
-                      cy + rise - slotH / 2,
-                      _slot(CatGearSlot.armor, slot),
-                    ),
-                    at(
-                      w - margin - slot,
-                      cy - rise - slotH / 2,
-                      _slot(CatGearSlot.wings, slot),
-                    ),
-                    at(
-                      w - margin - slot,
-                      cy + rise - slotH / 2,
-                      _slot(CatGearSlot.engines, slot),
-                    ),
-                    at(
-                      cx - slot / 2,
-                      math.min(cy + craft * .44 + gap, h - slotH),
-                      _slot(CatGearSlot.shield, slot),
-                    ),
-                  ],
-                );
-              },
+      animation: Listenable.merge([p, _swap]),
+      builder: (context, _) {
+        final t = _swap.value;
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                child: t < .5 ? _gearLabel() : _weaponLabel(),
+              ),
+            ),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, box) => _stage(box.biggest, t),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// The craft, its pedestal and both slot sets; [t] runs the swap.
+  Widget _stage(Size box, double t) {
+    final w = box.width, h = box.height;
+    // side slots keep clear of the screen edges
+    final margin = (w * .06).clamp(16.0, 32.0);
+    final slot = math.min(w * .22, h * .2).clamp(64.0, 96.0);
+    final slotH = slot + 18;
+    const gap = 6.0;
+    // The wings pass between the upper and lower side slots, so the craft
+    // may span the width inside the margins. Gear puts one slot under the
+    // pedestal, weapons a row of three support mounts under the side pair;
+    // the craft keeps one size for both.
+    final craft = math
+        .min(
+          w - 2 * margin,
+          math.min((h - 1.5 * slotH - gap) / .82, (h - 2 * slotH - gap) / .76),
+        )
+        .clamp(110.0, 380.0);
+    final rise = craft * .38;
+    final below = math.max(craft * .44 + gap + slotH, rise + 1.5 * slotH + gap);
+    final top = math.max(0.0, (h - (rise + slotH / 2) - below) / 2);
+    final cx = w / 2, cy = top + rise + slotH / 2;
+    final left = margin + slot / 2, right = w - margin - slot / 2;
+    final shieldY = math.min(cy + craft * .44 + gap, h - slotH) + slotH / 2;
+    final gear = <_Placed>[
+      for (final (s, at) in [
+        (CatGearSlot.nose, Offset(left, cy - rise)),
+        (CatGearSlot.armor, Offset(left, cy + rise)),
+        (CatGearSlot.wings, Offset(right, cy - rise)),
+        (CatGearSlot.engines, Offset(right, cy + rise)),
+        (CatGearSlot.shield, Offset(cx, shieldY)),
+      ])
+        (key: ValueKey('g-${s.name}'), at: at, child: _gearSlot(s, slot)),
+    ];
+    final row = cy + rise + slotH + gap;
+    final weapons = <_Placed>[
+      for (final (m, at) in [
+        ('W4', Offset(left, cy - rise)),
+        ('W1', Offset(right, cy - rise)),
+        ('W2', Offset(left, cy + rise)),
+        ('W3', Offset(right, cy + rise)),
+        ('S1', Offset(cx - slot - 8, row)),
+        ('S2', Offset(cx, row)),
+        ('S3', Offset(cx + slot + 8, row)),
+      ])
+        (key: ValueKey('w-$m'), at: at, child: _weaponSlot(m, slot)),
+    ];
+    // gear sweeps into the craft fast, then the weapons spring out
+    final gearOut = 1 - Curves.easeInCubic.transform((t / .4).clamp(0.0, 1.0));
+    final weaponOut = Curves.easeOutBack.transform(
+      ((t - .4) / .6).clamp(0.0, 1.0),
+    );
+    // the craft swallows one set and pushes out the other with a pulse
+    final pulse = math.sin(math.pi * ((t - .25) / .35).clamp(0.0, 1.0));
+    final centre = Offset(cx, cy);
+    Iterable<Widget> placed(List<_Placed> slots, double out) sync* {
+      if (out <= .001) return;
+      for (final s in slots) {
+        final at = Offset.lerp(centre, s.at, out)!;
+        yield Positioned(
+          key: s.key,
+          left: at.dx - slot / 2,
+          top: at.dy - slotH / 2,
+          child: IgnorePointer(
+            ignoring: out < .98,
+            child: Opacity(
+              opacity: out.clamp(0.0, 1.0),
+              child: Transform.scale(
+                scale: (.2 + .8 * out).clamp(0.0, 1.1),
+                child: s.child,
+              ),
             ),
           ),
-        ],
-      ),
+        );
+      }
+    }
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          left: cx - craft * .28,
+          top: cy - craft * .02,
+          width: craft * .56,
+          child: Image.asset(
+            '${UiKit.root}pedestal.webp',
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.medium,
+          ),
+        ),
+        Positioned(
+          left: cx - craft / 2,
+          top: cy - craft / 2,
+          width: craft,
+          height: craft,
+          child: Transform.scale(
+            scale: 1 + .06 * pulse,
+            child: _CraftStage(profile: p, size: craft),
+          ),
+        ),
+        ...placed(gear, gearOut),
+        ...placed(weapons, weaponOut),
+      ],
     );
   }
 }
@@ -661,98 +1016,4 @@ class _CraftStageState extends State<_CraftStage>
   }
 
   double get size => widget.size;
-}
-
-/// The piece being viewed in the slot popup glows in cyan.
-class _PickedOutline extends StatelessWidget {
-  const _PickedOutline({required this.on, required this.child});
-  final bool on;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => AnimatedContainer(
-    duration: const Duration(milliseconds: 160),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(16),
-      boxShadow: on
-          ? const [BoxShadow(color: Color(0xCC4FE3FF), blurRadius: 10)]
-          : const [],
-    ),
-    child: child,
-  );
-}
-
-/// A kit button sized for a two-column action grid inside a popup.
-class _GearAction extends StatelessWidget {
-  const _GearAction({
-    super.key,
-    required this.label,
-    required this.icon,
-    required this.onPressed,
-    this.displayLabel,
-    this.primary = false,
-  });
-  final String label;
-  final String? displayLabel;
-  final IconData icon;
-  final VoidCallback? onPressed;
-  final bool primary;
-
-  @override
-  Widget build(BuildContext context) => FilledButton(
-    style: FilledButton.styleFrom(
-      padding: EdgeInsets.zero,
-      minimumSize: Size.zero,
-      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      backgroundColor: Colors.transparent,
-      foregroundColor: Colors.white,
-      disabledBackgroundColor: Colors.transparent,
-      elevation: 0,
-      side: BorderSide.none,
-    ).copyWith(backgroundBuilder: (context, states, child) => child!),
-    onPressed: audible(onPressed, cue: buttonCue(label)),
-    child: Opacity(
-      opacity: onPressed == null ? .58 : 1,
-      child: RasterPanel(
-        skin: onPressed == null ? 4 : (primary ? 2 : 3),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 58),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                RasterIcon(icon, size: 28),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Semantics(
-                    label: tr(label),
-                    excludeSemantics: true,
-                    child: Text(
-                      tr(displayLabel ?? label),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 17,
-                        height: 1.2,
-                        fontWeight: FontWeight.w900,
-                        color: primary ? const Color(0xFF202838) : Colors.white,
-                        shadows: [
-                          Shadow(
-                            color: primary
-                                ? const Color(0x88FFFFFF)
-                                : const Color(0xFF172031),
-                            offset: Offset(0, primary ? 1 : 2),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
 }

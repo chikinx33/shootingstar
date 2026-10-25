@@ -1,7 +1,6 @@
 import '../l10n/app_language.dart';
 
 import 'audio_feedback.dart';
-import 'module_workshop.dart';
 
 import 'dart:async';
 
@@ -12,6 +11,7 @@ import 'game_decor.dart';
 import '../data/profile.dart';
 import '../art/arcade_aircraft.dart';
 import '../art/toon_assets.dart';
+import '../art/ui_kit.dart';
 import '../art/menu_art.dart';
 import '../art/gear_art.dart';
 import '../data/gear_traits.dart';
@@ -225,10 +225,11 @@ class _ContentHubState extends State<ContentHub> {
             ),
           ),
         Expanded(
-          child: page == 0
-              ? gearScreen()
-              : page == 1
-              ? ModuleWorkshop(profile: p, embedded: true)
+          // v12.10.1: equipment and weapons are one screen whose slots swap
+          child: page <= 1
+              ? CatGearScreen(profile: p, weapons: page == 1)
+              : page == 2
+              ? petsPage()
               : page == 3
               ? SupplyShop(profile: p)
               : page == 4
@@ -905,6 +906,163 @@ class _ContentHubState extends State<ContentHub> {
           ),
         ),
       );
+
+  /// The pet being looked at below the pet slots (default: the deployed one).
+  int? petPick;
+
+  /// v12.10.1 (user 2026-10-26): a pet slot shows its details in the free
+  /// space under the slots instead of a popup.
+  Widget petsPage() {
+    final i = (petPick ?? p.activePet).clamp(0, 2);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+          child: GameSlotRows(
+            children: [
+              for (var k = 0; k < 3; k++)
+                PickedGlow(
+                  on: k == i,
+                  child: GameItemSlot(
+                    key: ValueKey('pet-slot-$k'),
+                    title: petNames[k],
+                    image: ToonTile('ships', 3 + k, size: 56),
+                    status: p.petLevels[k] == 0
+                        ? '미구조'
+                        : 'Lv.${p.petLevels[k]}',
+                    selected: p.activePet == k,
+                    rarity: p.petRanks[k],
+                    onTap: audible(
+                      () => setState(() => petPick = k),
+                      cue: 'select',
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: Align(
+              child: UiKitFrame(
+                'panel',
+                key: const Key('pet-detail'),
+                corner: 18,
+                child: GamePages(
+                  key: ValueKey('pet-detail-$i'),
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                  children: petDetail(i),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> petDetail(int i) {
+    final rescued = p.petLevels[i] > 0;
+    final active = p.activePet == i;
+    final maxLevel = 20 + p.petRanks[i] * 10;
+    final food = p.petLevels[i] * 10;
+    final shards = 3 * (p.petRanks[i] + 1);
+    return [
+      GameDetailHeader(
+        image: ToonTile('ships', 3 + i, size: 72),
+        title: message('{0} · {1}', [
+          petNames[i],
+          active ? '출전 중' : (rescued ? '대기 중' : '미구조'),
+        ]),
+        status: 'Lv.${p.petLevels[i]} · ${qualityNames[p.petRanks[i]]}',
+      ),
+      Text(
+        tr(petDescriptions[i]),
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 15, height: 1.3),
+      ),
+      Text(
+        rescued
+            ? message('먹이 {0} · 육성 {1} · 조각 {2}/{3}', [
+                p.petFood,
+                p.petLevels[i] < maxLevel ? food : '최대',
+                p.petShards[i],
+                shards,
+              ])
+            : message('구조용 알 {0}개', [p.petEggs]),
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 14, color: Color(0xFFFFD27A)),
+      ),
+      const SizedBox(height: 12),
+      if (rescued) ...[
+        // deployment on one line, growth on the next
+        GameActionStrip(
+          children: [
+            GameActionTile(
+              key: const Key('pet-deploy'),
+              label: active ? '출전 중' : '출전',
+              icon: Icons.rocket_launch,
+              primary: !active,
+              onPressed: active ? null : () => act(() => p.deployPet(i)),
+            ),
+            GameActionTile(
+              key: const Key('pet-assist'),
+              label: p.assistingPets.contains(i) ? '보조 해제' : '보조 배치',
+              displayLabel: p.assistingPets.contains(i) ? '보조 해제' : '보조',
+              icon: Icons.groups,
+              onPressed: active ? null : () => act(() => p.assistPet(i)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        GameActionStrip(
+          children: [
+            GameActionTile(
+              key: const Key('pet-feed'),
+              label: '펫 육성',
+              displayLabel: '육성',
+              icon: Icons.upgrade,
+              onPressed: p.petFood >= food && p.petLevels[i] < maxLevel
+                  ? () => act(() => p.feedPet(i))
+                  : null,
+            ),
+            GameActionTile(
+              key: const Key('pet-evolve'),
+              label: '펫 승급',
+              displayLabel: '승급',
+              icon: Icons.auto_awesome,
+              onPressed: p.petRanks[i] < 5 && p.petShards[i] >= shards
+                  ? () => act(() => p.evolvePet(i))
+                  : null,
+            ),
+            GameActionTile(
+              key: const Key('pet-bond'),
+              label: '각성·호감도',
+              displayLabel: '호감도',
+              icon: Icons.favorite,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => PetBondScreen(profile: p, pet: i),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ] else
+        GameActionButton(
+          label: '펫 구조하기',
+          primary: true,
+          onPressed: audible(
+            p.petEggs > 0
+                ? () => claimWithRewardPopup(context, p, p.rescuePet)
+                : null,
+          ),
+        ),
+    ];
+  }
 
   List<Widget> pets() => [
     GameSlotRows(
