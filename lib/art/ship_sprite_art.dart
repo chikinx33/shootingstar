@@ -361,10 +361,15 @@ class ShipSprite extends StatefulWidget {
     this.loadout,
     this.assets = const {},
     this.semanticLabel,
+    this.bank = 0,
+    this.flameScale = 1,
   });
 
   final int hull;
   final ModuleSnapshot? loadout;
+
+  /// Layered roll and flame length, as in flight (ShipSpriteArt.paint).
+  final double bank, flameScale;
 
   /// Equipped gear sprites (CatGearState.layerAssets).
   final Map<String, String> assets;
@@ -420,17 +425,26 @@ class _ShipSpriteState extends State<ShipSprite>
         ShipSpriteArt.hiddenFor(widget.loadout),
         widget.assets,
         _time,
+        widget.bank,
+        widget.flameScale,
       ),
     ),
   );
 }
 
 class _ShipSpritePainter extends CustomPainter {
-  _ShipSpritePainter(this.shipId, this.hidden, this.assets, this.time);
+  _ShipSpritePainter(
+    this.shipId,
+    this.hidden,
+    this.assets,
+    this.time,
+    this.bank,
+    this.flameScale,
+  );
   final String shipId;
   final Set<String> hidden;
   final Map<String, String> assets;
-  final double time;
+  final double time, bank, flameScale;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -446,10 +460,16 @@ class _ShipSpritePainter extends CustomPainter {
       time: time,
       hidden: hidden,
       assets: assets,
+      bank: bank,
+      flameScale: flameScale,
     );
   }
 
   @override
   bool shouldRepaint(_ShipSpritePainter old) =>
-      old.time != time || old.shipId != shipId || old.hidden != hidden;
+      old.time != time ||
+      old.shipId != shipId ||
+      old.hidden != hidden ||
+      old.bank != bank ||
+      old.flameScale != flameScale;
 }

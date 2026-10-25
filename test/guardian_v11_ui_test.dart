@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shootingstar/data/cat_gear.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/ui/cat_gear_screen.dart';
 import 'package:shootingstar/ui/guardian_quest_screen.dart';
@@ -51,6 +52,22 @@ void main() {
         expect(find.byKey(const Key('cat-gear-power')), findsOneWidget);
         await tester.tap(find.byKey(const Key('cat-gear-slot-nose')));
         await tester.pump(const Duration(milliseconds: 400));
+        expect(tester.takeException(), isNull);
+        // v12.10: the slot popup lists the slot's pieces with the details
+        expect(find.byKey(const Key('cat-gear-list-nose')), findsOneWidget);
+        // the test font is wider, so the details may sit on a later page
+        await tester.pump(const Duration(milliseconds: 100));
+        for (var i = 0; i < 3; i++) {
+          if (find.byKey(const Key('cat-gear-lock')).evaluate().isNotEmpty) {
+            break;
+          }
+          await tester.tap(find.byKey(const Key('game-page-next')));
+          await tester.pump(const Duration(milliseconds: 300));
+        }
+        expect(find.byKey(const Key('cat-gear-lock')), findsOneWidget);
+        await tester.tap(find.byKey(const Key('cat-gear-lock')));
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(p.catGear.equippedIn(CatGearSlot.nose)!.locked, isTrue);
         expect(tester.takeException(), isNull);
       });
     }
