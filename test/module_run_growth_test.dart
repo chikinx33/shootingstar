@@ -56,15 +56,30 @@ void main() {
   test(
     'support recovery uses base hull instead of multiplying frame HP growth',
     () {
-      final g = run.campaignGame(0, 30, 'guns', 11, defense: true)
-        ..legacyArena = true;
+      final g = run.campaignGame(
+        0,
+        30,
+        'guns',
+        11,
+        defense: true,
+        support: 'repair',
+      )..legacyArena = true;
       g.hp -= 100;
       final before = g.hp;
       g.update(.001);
       final power = g.moduleLoadout!.supportPower('repair');
       expect(g.hp - before, closeTo(g.ship.health * .018 * power, .001));
-      expect(g.moduleShield, closeTo(g.ship.health * .025 * power, .001));
       expect(g.maxHp, greaterThan(g.ship.health * 2));
+      final s = run.campaignGame(0, 30, 'guns', 11, defense: true)
+        ..legacyArena = true;
+      s.update(.001);
+      expect(
+        s.moduleShield,
+        closeTo(
+          s.ship.health * .025 * s.moduleLoadout!.supportPower('shield'),
+          .001,
+        ),
+      );
     },
   );
 

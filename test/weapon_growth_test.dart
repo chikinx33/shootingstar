@@ -89,7 +89,8 @@ void main() {
   });
 
   test('every mounted weapon grows and its ultimate fights', () async {
-    for (final mount in ['W1', 'W2', 'W3', 'W4']) {
+    // v12.11: wing gun, missile pair and mortar (the W4 turret is gone)
+    for (final mount in ['W1', 'W2', 'W3']) {
       final g = await armed(seed: 4);
       final id = 'part:$mount';
       final before = g.partStats(mount);
@@ -121,10 +122,9 @@ void main() {
       g.growthEvolve['part:W1'] = 3;
       // evolve cards need the enhance step of their rank first (v12.9)
       g.growthEnhance['part:W3'] = 1;
-      g.growthEnhance['part:W4'] = 1;
       for (final set in [
-        ['ult|part:W1', 'enh|part:W3', 'evo|part:W4'],
-        ['paw:orbit', 'evo|part:W3', 'enh|part:W4'],
+        ['ult|part:W1', 'enh|part:W3', 'paw:orbit'],
+        ['paw:orbit', 'evo|part:W3', 'paw:yarn'],
       ]) {
         final all = {for (final c in g.growthChoices()) c.id: c};
         g.choices = [for (final id in set) all[id]!];

@@ -18,7 +18,9 @@ void main() {
 
   Widget host(Profile p, bool weapons) => MaterialApp(
     theme: ThemeData.dark(),
-    home: Scaffold(body: CatGearScreen(profile: p, weapons: weapons)),
+    home: Scaffold(
+      body: CatGearScreen(profile: p, weapons: weapons),
+    ),
   );
 
   testWidgets('tabs swap gear and weapon slots through the craft', (
@@ -40,7 +42,12 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     expect(nose, findsNothing);
     expect(find.byKey(const Key('weapon-slot-W1')), findsOneWidget);
-    expect(find.byKey(const Key('weapon-slot-S3')), findsOneWidget);
+    // v12.11: main gun, support device, missile, wing gun, mortar
+    for (final m in ['main', 'S1', 'W2', 'W1', 'W3']) {
+      expect(find.byKey(Key('weapon-slot-$m')), findsOneWidget, reason: m);
+    }
+    expect(find.byKey(const Key('weapon-slot-W4')), findsNothing);
+    expect(find.byKey(const Key('weapon-slot-S2')), findsNothing);
     expect(find.byKey(const Key('weapon-label')), findsOneWidget);
     expect(tester.takeException(), isNull);
 

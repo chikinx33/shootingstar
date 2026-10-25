@@ -350,6 +350,11 @@ class Profile extends ChangeNotifier with ContentSystems {
   /// v11 cat airframe equipment (nose, armour, wings, engines, shield).
   CatGearState catGear = CatGearState.starter();
 
+  /// One-time messages about save changes (v12.11 slot rework), shown once
+  /// in the lobby and then dropped; never saved.
+  final List<String> updateNotices = [];
+  void addUpdateNotice(String text) => updateNotices.add(text);
+
   /// The gear piece the last won flight dropped (result screen), if any.
   CatGearItem? lastGearDrop;
 
@@ -810,6 +815,13 @@ class Profile extends ChangeNotifier with ContentSystems {
         : volume;
     controls = ControlPreferences.restore(data['controls']);
     catGear = CatGearState.restore(data['catGear']);
+    if (catGear.retiredShields > 0) {
+      credits = (credits + catGear.retiredChuru).clamp(0, 9999999);
+      blueprints = (blueprints + catGear.retiredStardust).clamp(0, 999999);
+      addUpdateNotice(
+        '보호막 장치가 무기의 보조 장치로 옮겨져, 가지고 있던 보호막 장치 ${catGear.retiredShields}개를 전액 환급했습니다. 츄르 ${catGear.retiredChuru} · 별가루 ${catGear.retiredStardust}',
+      );
+    }
     prologueSeen = data['prologueSeen'] == true;
     quests = GuardianQuestState.restore(data['quests']);
     _moduleFleet = null;
@@ -1075,7 +1087,7 @@ class Profile extends ChangeNotifier with ContentSystems {
           _processedRunIds.contains(runId)) {
         return 0;
       }
-        _processedRunIds.add(runId);
+      _processedRunIds.add(runId);
       if (_processedRunIds.length > 100) {
         _processedRunIds.remove(_processedRunIds.first);
       }

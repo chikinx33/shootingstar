@@ -56,7 +56,6 @@ class CombatCues {
     'W1': .07,
     'W2': .055,
     'W3': .08,
-    'W4': .06,
     'main': .045,
     'auxiliary': .06,
     'wings': .07,

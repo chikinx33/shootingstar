@@ -1,0 +1,17 @@
+Mode: built-in image_gen; single sprite sheet edit.
+Reference: ref_shield_orb.png
+
+Use case: precise-object-edit.
+Asset type: one game sprite sheet, a 3 column by 2 row grid on a landscape 3:2 canvas.
+Input image 1 is the edit target and exact design reference: a round support device seen straight above, orange and sunny-yellow clamps at 12, 3, 6, 9 o'clock, steel-gray rim, thick even dark navy outline, flat cel-shaded colors and small white highlights.
+Primary request: make six copies of EXACTLY this device. Preserve the reference outer frame, clamp geometry and positions, outer silhouette, outline thickness, frame colors, and top-down orthographic view. All six devices must have identical outer parts and size. Only change the glowing round central core's color and replace its hexagon pattern with one simple bold white symbol.
+Reading order:
+Top left: steel-gray core with a white shield emblem.
+Top middle: bright yellow core with a white lightning bolt.
+Top right: red core with a white crosshair target reticle.
+Bottom left: green core with a white plus cross.
+Bottom middle: purple core with a white horseshoe U magnet.
+Bottom right: orange core with a white upward DOUBLE chevron arrow (two stacked upward chevrons).
+Composition: six equal square cells in an invisible 3 by 2 grid. Each complete device centered in its cell and fills about 70 percent of the cell width and height, with generous clear magenta space between devices. Keep all devices completely inside the canvas.
+Background: flat solid pure magenta #FF00FF everywhere outside the six devices.
+Constraints: preserve subject identity and geometry; no magenta or pink inside devices (purple core should be violet, not pink); no shadows outside devices; no text, no labels, no grid lines; no added details. Match the input's simple chunky cel-shaded game sprite style.

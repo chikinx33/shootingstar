@@ -18,7 +18,6 @@ import 'game_dialog.dart';
 import 'game_ui.dart';
 import 'item_slots.dart';
 import 'module_workshop.dart' show showAirframeDetails;
-import 'skill_cards.dart' show partIllustration;
 
 /// Growth > equipment and weapons (v12.10, user 2026-10-26): a stat label
 /// over a large craft that can be nudged around and springs back, with its
@@ -141,21 +140,69 @@ class _CatGearScreenState extends State<CatGearScreen>
     );
   }
 
+  /// A part drawn with the very sprite it shows on the airframe (v12.11,
+  /// user 2026-10-26): wing gun, wing missile, tail gun or mortar, or the
+  /// support device core.
+  static Widget partSprite(ModulePart part, double size, {String? mount}) {
+    const root = 'assets/art/ship_parts/sunshine/';
+    final asset = switch (part.category) {
+      PartCategory.missile => '${root}missile.webp',
+      PartCategory.support => supportOrbAsset(part.id),
+      PartCategory.drone => ShipSpriteArt.droneAsset,
+      PartCategory.gun when part.id == 'mortar_cat' => mortarMountAsset,
+      PartCategory.gun when mount == 'W3' => '${root}reargun.webp',
+      PartCategory.gun => '${root}winggun.webp',
+    };
+    final image = Image.asset(
+      asset,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.medium,
+    );
+    // the mortar's sprite is stored upside down for the tail layer
+    return part.id == 'mortar_cat'
+        ? RotatedBox(quarterTurns: 2, child: image)
+        : image;
+  }
+
   Widget _weaponSlot(String mount, double size) {
     final part = p.moduleLoadout.parts[mount];
     final name = mountProfile(mount).name;
     return _frame(
       key: Key('weapon-slot-$mount'),
       semantics: part == null
-          ? '$mount $name 비어 있음'
-          : '$mount $name ${part.definition.name} Lv.${part.level}',
+          ? '$name 비어 있음'
+          : '$name ${part.definition.name} Lv.${part.level}',
       size: size,
       rank: -1,
       image: part == null
           ? null
-          : partIllustration(part.definition, size: size * .58),
-      line: part == null ? mount : '$mount · Lv.${part.level}',
+          : partSprite(part.definition, size * .58, mount: mount),
+      line: part == null ? name : 'Lv.${part.level}',
       onTap: () => _weaponPopup(mount),
+    );
+  }
+
+  /// The nose gun: the airframe's own signature weapon, drawn on its body.
+  /// Fixed to the craft; it opens the airframe details and upgrade.
+  Widget _mainGunSlot(double size) {
+    final snap = p.moduleLoadout;
+    final ship = ShipSpriteArt.shipIds[p.selectedShip.clamp(0, 2)];
+    return _frame(
+      key: const Key('weapon-slot-main'),
+      semantics: '메인건 ${snap.signatureName} 기체 Lv.${snap.airframeLevel}',
+      size: size,
+      rank: -1,
+      image: Image.asset(
+        'assets/art/ship_parts/$ship/maingun.webp',
+        width: size * .58,
+        height: size * .58,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.medium,
+      ),
+      line: 'Lv.${snap.airframeLevel}',
+      onTap: () => showAirframeDetails(context, p),
     );
   }
 
@@ -165,13 +212,13 @@ class _CatGearScreenState extends State<CatGearScreen>
     final parts = <String>[];
     for (final set in catGearSets) {
       final n = counts[set.id] ?? 0;
-      if (n >= 5) {
-        parts.add('${set.name} 5세트 · ${set.five}');
-      } else if (n >= 3) {
-        parts.add('${set.name} 3세트 · ${set.three}');
+      if (n >= 4) {
+        parts.add('${set.name} 4세트 · ${set.four}');
+      } else if (n >= 2) {
+        parts.add('${set.name} 2세트 · ${set.two}');
       }
     }
-    return parts.isEmpty ? '같은 세트 3·5부위를 장착하면 세트 효과' : parts.join('\n');
+    return parts.isEmpty ? '같은 세트 2·4부위를 장착하면 세트 효과' : parts.join('\n');
   }
 
   static String _percent(double v) {
@@ -327,11 +374,8 @@ class _CatGearScreenState extends State<CatGearScreen>
   /// The airframe and its weapons; tapping opens the airframe upgrade.
   Widget _weaponLabel() {
     final snap = p.moduleLoadout;
-    final weapons = moduleProfiles
-        .where((m) => m.weapon && snap.parts.containsKey(m.id))
-        .length;
-    final support = moduleProfiles
-        .where((m) => !m.weapon && snap.parts.containsKey(m.id))
+    final fitted = moduleProfiles
+        .where((m) => snap.parts.containsKey(m.id))
         .length;
     return _label(
       key: const Key('weapon-label'),
@@ -347,9 +391,9 @@ class _CatGearScreenState extends State<CatGearScreen>
         style: _bigValue,
       ),
       stats: [
-        ('고유 주포', snap.signatureName, const Color(0xFFFF8A5C)),
+        ('메인건', snap.signatureName, const Color(0xFFFF8A5C)),
         ('궁극기', snap.ultimateName, const Color(0xFFD9A8FF)),
-        ('무장 · 보조', '$weapons/4 · $support/3', const Color(0xFF7CC8FF)),
+        ('장착', '$fitted/${moduleProfiles.length}', const Color(0xFF7CC8FF)),
       ],
       note: message('보유 파츠 {0}/240 · 눌러서 기체 강화', [p.shipModules.owned.length]),
       onTap: () => showAirframeDetails(context, p),
@@ -495,7 +539,7 @@ class _CatGearScreenState extends State<CatGearScreen>
                   : _info(
                       '${item.name} · ${catGearRarityNames[item.rarity]}',
                       Color(catGearRarityColors[item.rarity]),
-                      'Lv.${item.level}/${item.maxLevel} · ${item.statText}\n세트 3부위 ${set!.three} · 5부위 ${set.five}',
+                      'Lv.${item.level}/${item.maxLevel} · ${item.statText}\n세트 2부위 ${set!.two} · 4부위 ${set.four}',
                       item.maxed
                           ? '최대 레벨'
                           : message('강화 · 츄르 {0}{1}', [
@@ -577,7 +621,7 @@ class _CatGearScreenState extends State<CatGearScreen>
 
             final items =
                 p.shipModules.owned.values
-                    .where((i) => i.definition.weapon == profile.weapon)
+                    .where((i) => mountAccepts(mount, i.definition))
                     .toList()
                   ..sort((a, b) {
                     final r = order(b).compareTo(order(a));
@@ -608,7 +652,7 @@ class _CatGearScreenState extends State<CatGearScreen>
               note = duplicate
                   ? '같은 보조 부품은 중복 장착할 수 없습니다.'
                   : from != null && !here
-                  ? '$from에 장착 중 · 옮겨도 레벨 유지'
+                  ? '${mountProfile(from).name}에 장착 중 · 옮겨도 레벨 유지'
                   : part.level >= 40
                   ? '최고 레벨'
                   : message('강화 · 츄르 {0} · 별가루 {1}', [
@@ -618,7 +662,7 @@ class _CatGearScreenState extends State<CatGearScreen>
             }
             return _popup(
               context: context,
-              title: '$mount · ${profile.name}',
+              title: profile.name,
               listKey: Key('weapon-list-$mount'),
               empty: '보유한 파츠가 없습니다. 보급에서 파츠를 얻을 수 있습니다.',
               tiles: [
@@ -631,9 +675,9 @@ class _CatGearScreenState extends State<CatGearScreen>
                       status: [
                         'Lv.${i.level}',
                         if (mountOf(i.instanceId) case final m? when m != mount)
-                          m,
+                          mountProfile(m).name,
                       ].join(' · '),
-                      image: partIllustration(i.definition, size: 60),
+                      image: partSprite(i.definition, 60, mount: mount),
                       selected: mountOf(i.instanceId) == mount,
                       semanticLabel: '${i.definition.name} Lv.${i.level}',
                       onTap: audible(
@@ -761,41 +805,39 @@ class _CatGearScreenState extends State<CatGearScreen>
     final slotH = slot + 18;
     const gap = 6.0;
     // The wings pass between the upper and lower side slots, so the craft
-    // may span the width inside the margins. Gear puts one slot under the
-    // pedestal, weapons a row of three support mounts under the side pair;
-    // the craft keeps one size for both.
+    // may span the width inside the margins. Gear: four corner slots.
+    // Weapons (v12.11): main gun over the nose, mortar under the tail,
+    // missile and wing gun in the lower corners, support device upper left.
+    // The craft keeps one size and place for both.
     final craft = math
-        .min(
-          w - 2 * margin,
-          math.min((h - 1.5 * slotH - gap) / .82, (h - 2 * slotH - gap) / .76),
-        )
+        .min(w - 2 * margin, (h - 2 * slotH - gap) / .80)
         .clamp(110.0, 380.0);
     final rise = craft * .38;
-    final below = math.max(craft * .44 + gap + slotH, rise + 1.5 * slotH + gap);
-    final top = math.max(0.0, (h - (rise + slotH / 2) - below) / 2);
-    final cx = w / 2, cy = top + rise + slotH / 2;
+    final above = craft * .36 + slotH, below = craft * .44 + gap + slotH;
+    final top = math.max(0.0, (h - above - below) / 2);
+    final cx = w / 2, cy = top + above;
     final left = margin + slot / 2, right = w - margin - slot / 2;
-    final shieldY = math.min(cy + craft * .44 + gap, h - slotH) + slotH / 2;
     final gear = <_Placed>[
       for (final (s, at) in [
         (CatGearSlot.nose, Offset(left, cy - rise)),
         (CatGearSlot.armor, Offset(left, cy + rise)),
         (CatGearSlot.wings, Offset(right, cy - rise)),
         (CatGearSlot.engines, Offset(right, cy + rise)),
-        (CatGearSlot.shield, Offset(cx, shieldY)),
       ])
         (key: ValueKey('g-${s.name}'), at: at, child: _gearSlot(s, slot)),
     ];
-    final row = cy + rise + slotH + gap;
+    final tail = math.min(cy + craft * .44 + gap, h - slotH) + slotH / 2;
     final weapons = <_Placed>[
+      (
+        key: const ValueKey('w-main'),
+        at: Offset(cx, cy - craft * .36 - slotH / 2),
+        child: _mainGunSlot(slot),
+      ),
       for (final (m, at) in [
-        ('W4', Offset(left, cy - rise)),
-        ('W1', Offset(right, cy - rise)),
+        ('S1', Offset(left, cy - rise)),
         ('W2', Offset(left, cy + rise)),
-        ('W3', Offset(right, cy + rise)),
-        ('S1', Offset(cx - slot - 8, row)),
-        ('S2', Offset(cx, row)),
-        ('S3', Offset(cx + slot + 8, row)),
+        ('W1', Offset(right, cy + rise)),
+        ('W3', Offset(cx, tail)),
       ])
         (key: ValueKey('w-$m'), at: at, child: _weaponSlot(m, slot)),
     ];

@@ -40,78 +40,69 @@ GameEngine arena(String mount, {String part = 'gun_vulcan', int level = 3}) =>
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() => SharedPreferences.setMockInitialValues({}));
+  // v12.11: each slot takes only the device drawn there
   test(
-    'one instance moves among four mounts without changing level or attributes',
+    'a vulcan moves between the wing gun and tail slots; other slots refuse it',
     () {
       final fleet = ModuleFleet()..seed(0);
       final part = fleet.add('gun_vulcan', level: 3);
-      for (final mount in moduleProfiles.where((m) => m.weapon)) {
-        expect(fleet.equip(0, mount.id, part.instanceId), isTrue);
+      for (final mount in ['W1', 'W3']) {
+        expect(fleet.equip(0, mount, part.instanceId), isTrue);
         final snap = fleet.snapshot(0);
         expect(
           snap.parts.values.where((p) => p.instanceId == part.instanceId),
           hasLength(1),
         );
-        expect(snap.parts[mount.id]!.level, 3);
-        expect(snap.parts[mount.id]!.definition.homing, isFalse);
+        expect(snap.parts[mount]!.level, 3);
       }
-      final stats = [
-        for (final m in moduleProfiles.where((m) => m.weapon))
-          resolvePartStats(part, m),
-      ];
-      expect(stats.map((s) => s.count).toList(), [2, 1, 3, 1]);
-      expect(stats[1].damage, greaterThan(stats[0].damage));
-      expect(stats[1].pierce, 1);
-      for (final m in moduleProfiles.where((m) => m.weapon)) {
-        final a = resolvePartStats(part, m),
-            b = resolvePartStats(part.leveled(), m);
+      expect(fleet.equip(0, 'W2', part.instanceId), isFalse);
+      expect(fleet.equip(0, 'S1', part.instanceId), isFalse);
+      expect(resolvePartStats(part, mountProfile('W1')).count, 2);
+      expect(resolvePartStats(part, mountProfile('W3')).count, 3);
+      for (final m in ['W1', 'W3']) {
+        final a = resolvePartStats(part, mountProfile(m)),
+            b = resolvePartStats(part.leveled(), mountProfile(m));
         expect(b.damage / a.damage, closeTo(1.24 / 1.16, 1e-9));
       }
-      final shield = fleet.add('shield'), copy = fleet.add('shield');
+      final missile = fleet.add('missile_hawk');
+      expect(fleet.equip(0, 'W2', missile.instanceId), isTrue);
+      expect(fleet.equip(0, 'W1', missile.instanceId), isFalse);
+      final shield = fleet.add('shield');
       expect(fleet.equip(0, 'S1', shield.instanceId), isTrue);
-      expect(fleet.equip(0, 'S2', copy.instanceId), isFalse);
       expect(fleet.equip(0, 'W1', shield.instanceId), isFalse);
-      expect(fleet.equip(0, 'S2', shield.instanceId), isTrue);
-      expect(fleet.snapshot(0).parts.containsKey('S1'), isFalse);
+      expect(fleet.equip(0, 'S2', shield.instanceId), isFalse);
+      expect(fleet.snapshot(0).parts['S1']!.partId, 'shield');
     },
   );
-  test(
-    'same gun produces actual outward, heavy, rear fan and turret projectiles',
-    () {
-      for (final mount in ['W1', 'W2', 'W3', 'W4']) {
-        final g = arena(mount);
-        g.enemies.add(Foe(g.position + const Offset(120, 0), 10000, 0, 10, 0));
-        g.update(.001);
-        final shots = g.shots
-            .where((s) => s.weapon.startsWith('part:$mount:'))
-            .toList();
-        expect(
-          shots,
-          hasLength(
-            mount == 'W1'
-                ? 2
-                : mount == 'W3'
-                ? 3
-                : 1,
-          ),
-          reason: mount,
-        );
-        if (mount == 'W1') {
-          expect(shots.first.velocity.dx, lessThan(0));
-          expect(shots.last.velocity.dx, greaterThan(0));
-          expect(shots.every((s) => s.velocity.dy < 0), isTrue);
-        } else if (mount == 'W2') {
-          expect(shots.single.velocity.dx, closeTo(0, 1e-9));
-          expect(shots.single.velocity.dy, lessThan(0));
-        } else if (mount == 'W3') {
-          expect(shots.every((s) => s.velocity.dy > 0), isTrue);
-        } else {
-          expect(shots.single.velocity.dx, greaterThan(0));
-        }
-        expect(shots.every((s) => s.kind == 0), isTrue);
+  test('same gun produces actual outward and rear fan projectiles', () {
+    for (final mount in ['W1', 'W3']) {
+      final g = arena(mount);
+      g.enemies.add(Foe(g.position + const Offset(120, 0), 10000, 0, 10, 0));
+      g.update(.001);
+      final shots = g.shots
+          .where((s) => s.weapon.startsWith('part:$mount:'))
+          .toList();
+      expect(
+        shots,
+        hasLength(
+          mount == 'W1'
+              ? 2
+              : mount == 'W3'
+              ? 3
+              : 1,
+        ),
+        reason: mount,
+      );
+      if (mount == 'W1') {
+        expect(shots.first.velocity.dx, lessThan(0));
+        expect(shots.last.velocity.dx, greaterThan(0));
+        expect(shots.every((s) => s.velocity.dy < 0), isTrue);
+      } else {
+        expect(shots.every((s) => s.velocity.dy > 0), isTrue);
       }
-    },
-  );
+      expect(shots.every((s) => s.kind == 0), isTrue);
+    }
+  });
   test('ground masks, empty mounts, checkpoint and module choices follow new loadout', () {
     final g = arena('W1');
     final ground = Foe(
@@ -123,8 +114,7 @@ void main() {
       plane: AircraftTarget.ground,
     );
     expect(g.partSourceHits('part:W1:gun_vulcan', ground), isFalse);
-    expect(g.partSourceHits('part:W2:gun_vulcan', ground), isTrue);
-    expect(g.partSourceHits('part:W4:missile_hawk', ground), isTrue);
+    expect(g.partSourceHits('part:W2:missile_hawk', ground), isTrue);
     expect(g.partSourceHits('module-main', ground), isFalse);
     g.update(.02);
     final copy = BattleCheckpoint.restore(
@@ -181,17 +171,17 @@ void main() {
     p.blueprints = 100;
     expect(p.upgradeModule(id), isTrue);
     final level = p.shipModules.owned[id]!.level;
-    expect(p.equipModule('W2', id), isTrue);
+    expect(p.equipModule('W3', id), isTrue);
     expect(p.moduleLoadout.parts.containsKey('W1'), isFalse);
     p.unlockedShips.add(1);
     p.selectShip(1);
     expect(p.moduleLoadout.hull, 1);
     p.selectShip(0);
-    expect(p.moduleLoadout.parts['W2']!.instanceId, id);
+    expect(p.moduleLoadout.parts['W3']!.instanceId, id);
     await p.save();
     final data = jsonEncode(p.shipModules.toJson());
     final copy = await Profile.load();
-    expect(copy.moduleLoadout.parts['W2']!.level, level);
+    expect(copy.moduleLoadout.parts['W3']!.level, level);
     expect(copy.inventory.length, legacyCount);
     expect(jsonEncode(copy.shipModules.toJson()), data);
     Directory('.local/module-v66').createSync(recursive: true);
@@ -212,11 +202,11 @@ void main() {
     final id = p.moduleLoadout.parts['W1']!.instanceId;
     expect(p.upgradeModule(id), isTrue);
     final level = fleet.owned[id]!.level;
-    p.equipModule('W2', id);
+    p.equipModule('W3', id);
     expect(preset.apply(p), isTrue);
     expect(p.moduleLoadout.parts['W1']!.level, level);
     expect(p.canSalvageModule(id), isFalse);
-    final spare = fleet.add('drone_wasp');
+    final spare = fleet.add('gun_vulcan');
     expect(p.salvageModule(spare.instanceId), isTrue);
     expect(fleet.owned.containsKey(spare.instanceId), isFalse);
     p.dispose();
@@ -246,7 +236,7 @@ void main() {
       shipIndex: 0,
       aircraft: AircraftAssembly(
         modules: ModuleSnapshot(0, level, {
-          'W2': const OwnedModulePart('same', 'gun_vulcan', 3),
+          'W1': const OwnedModulePart('same', 'gun_vulcan', 3),
         }),
       ),
       attackLevel: 0,
@@ -256,63 +246,22 @@ void main() {
     );
     final a = make(1), b = make(10);
     expect(b.damageFactor, greaterThan(a.damageFactor));
-    expect(b.partStats('W2').damage, closeTo(a.partStats('W2').damage, 1e-9));
+    expect(b.partStats('W1').damage, closeTo(a.partStats('W1').damage, 1e-9));
   });
-  test('missiles retain homing and hit ground on every mount; top salvo divides targets', () {
-    for (final mount in ['W1', 'W2', 'W3', 'W4']) {
-      final g = arena(mount, part: 'missile_hawk');
-      final target = Foe(
-        g.position + Offset(0, mount == 'W3' ? 110 : -110),
-        10000,
-        0,
-        18,
-        0,
-        plane: AircraftTarget.ground,
-      );
-      g.enemies.add(target);
-      for (var i = 0; i < 90; i++) g.update(1 / 60);
-      expect(
-        g.damageByWeapon['part:$mount:missile_hawk'] ?? 0,
-        greaterThan(0),
-        reason: mount,
-      );
-      expect(target.hp, lessThan(target.maxHp), reason: mount);
-    }
-    final g = arena('W4', part: 'missile_hawk');
-    final targets = [
-      for (final dx in [-160.0, 0.0, 160.0])
-        Foe(g.position + Offset(dx, 110), 10000, 0, 12, 0),
-    ];
-    g.enemies.addAll(targets);
-    // The top carrier now visibly ascends, then releases real falling rockets.
-    for (var i = 0; i < 70; i++) g.update(1 / 60);
-    expect(targets.every((f) => f.hp < f.maxHp), isTrue);
-  });
-  test('drones use four formations and preserve independent damaged health on resume', () {
-    for (final mount in ['W1', 'W2', 'W3', 'W4']) {
-      final g = arena(mount, part: 'drone_wasp', level: 1);
-      final part = g.moduleLoadout!.parts[mount]!,
-          count = g.partStats(mount).count;
-      final points = g.droneFormation(mount, part, count);
-      expect(points, hasLength(count));
-      if (mount == 'W1') {
-        expect(points.first.dx, lessThan(g.position.dx));
-        expect(points.last.dx, greaterThan(g.position.dx));
-      } else if (mount == 'W2') {
-        expect(points.single.dy, lessThan(g.position.dy));
-      } else if (mount == 'W3') {
-        expect(points.every((at) => at.dy > g.position.dy), isTrue);
-      } else {
-        expect((points.single - g.position).distance, closeTo(52, 1e-8));
-      }
-      g.enemies.add(Foe(points.first, 10000, 0, 12, 0));
-      g.update(.01);
-      expect(g.droneHealth(mount, 0), lessThan(g.partStats(mount).droneHealth));
-      final copy = BattleCheckpoint.restore(
-        jsonDecode(jsonEncode(g.checkpoint())),
-      );
-      expect(copy.droneHealth(mount, 0), g.droneHealth(mount, 0));
-    }
+  test('wing missiles keep homing and hit the ground', () {
+    final g = arena('W2', part: 'missile_hawk');
+    final target = Foe(
+      g.position + const Offset(0, -110),
+      10000,
+      0,
+      18,
+      0,
+      plane: AircraftTarget.ground,
+    );
+    g.enemies.add(target);
+    for (var i = 0; i < 90; i++) g.update(1 / 60);
+    expect(g.damageByWeapon['part:W2:missile_hawk'] ?? 0, greaterThan(0));
+    expect(target.hp, lessThan(target.maxHp));
   });
   testWidgets(
     'part growth card, details and statistics accept the actual mounted skill id',
@@ -363,7 +312,7 @@ void main() {
     },
   );
   testWidgets(
-    '320px unified seven slots, picker, mount stats, move and eye geometry',
+    '320px unified four slots, picker, mount stats, move and eye geometry',
     (tester) async {
       tester.view.physicalSize = const Size(320, 568);
       tester.view.devicePixelRatio = 1;
@@ -376,7 +325,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.byType(GameItemSlot), findsNWidgets(7));
+      expect(find.byType(GameItemSlot), findsNWidgets(moduleProfiles.length));
       await tapUi(tester, find.bySemanticsLabel('W1 모듈 편집'));
       await tester.pumpAndSettle();
       final id = p.moduleLoadout.parts['W1']!.instanceId;
@@ -405,14 +354,15 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('lobby-slot-eye')));
       await tester.pumpAndSettle();
-      for (final id in ['W1', 'W2', 'W3', 'W4'])
+      for (final id in ['W1', 'W2', 'W3'])
         expect(find.byKey(ValueKey('module-socket-$id-0')), findsOneWidget);
+      // the wing gun and wing missile pairs show a socket on each side
       expect(find.byKey(const Key('module-socket-W1-1')), findsOneWidget);
-      for (final id in ['S1', 'S2', 'S3'])
-        expect(find.bySemanticsLabel('$id 보조 슬롯'), findsOneWidget);
+      expect(find.byKey(const Key('module-socket-W2-1')), findsOneWidget);
+      expect(find.bySemanticsLabel('S1 보조 슬롯'), findsOneWidget);
       final rects = [
-        for (final id in ['W2', 'W3', 'W4'])
-          tester.getRect(find.byKey(ValueKey('module-socket-$id-0'))),
+        for (final id in ['W2-0', 'W2-1', 'W3-0'])
+          tester.getRect(find.byKey(ValueKey('module-socket-$id'))),
       ];
       for (var i = 0; i < rects.length; i++)
         for (var j = 0; j < i; j++)
@@ -428,10 +378,16 @@ void main() {
     // One figure shows identical gun sprites in all physical mount positions.
     final c = Canvas(recorder)
       ..drawColor(const Color(0xff23384e), BlendMode.src);
-    for (var i = 0; i < 4; i++) {
-      final m = moduleProfiles[i];
+    final fits = [
+      ('W1', 'gun_vulcan'),
+      ('W2', 'missile_hawk'),
+      ('W3', 'gun_vulcan'),
+      ('W3', 'mortar_cat'),
+    ];
+    for (var i = 0; i < fits.length; i++) {
+      final (mount, part) = fits[i];
       final snap = ModuleSnapshot(i % 3, 1, {
-        m.id: const OwnedModulePart('same', 'gun_vulcan', 3),
+        mount: OwnedModulePart('same', part, 3),
       });
       ModuleAircraftArt.paint(c, Offset(130 + i * 260, 160), 230, snap);
     }

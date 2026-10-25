@@ -35,9 +35,8 @@ extension ShipModuleCombat on GameEngine {
   /// Weapon bay → authored sprite layer (v11 cat airframes).
   static String? _bayLayer(String id, int side) => switch (id) {
     'W1' => side == 0 ? 'gun_l' : 'gun_r',
-    'W2' => 'missile_l',
+    'W2' => side == 0 ? 'missile_l' : 'missile_r',
     'W3' => 'rear_gun',
-    'W4' => 'missile_r',
     _ => null,
   };
 
@@ -57,13 +56,11 @@ extension ShipModuleCombat on GameEngine {
       visuals.recoil(ModuleGeometry.recoilKey(id, side));
   Offset moduleMuzzleAt(String id, int side, double angle) {
     // Fixed bays fire from the front edge of their drawn sprite.
-    if (id != 'W4') {
-      final layer = _bayLayer(id, side);
-      final tip = layer == null
-          ? null
-          : ShipSpriteArt.mountPoint(shipIndex, layer, muzzle: true);
-      if (tip != null) return position + tip;
-    }
+    final layer = _bayLayer(id, side);
+    final tip = layer == null
+        ? null
+        : ShipSpriteArt.mountPoint(shipIndex, layer, muzzle: true);
+    if (tip != null) return position + tip;
     return _moduleMuzzleGeometry(id, side, angle);
   }
 
@@ -72,7 +69,7 @@ extension ShipModuleCombat on GameEngine {
         moduleWorldAnchor(id, side),
         AircraftGeometry.combatBodySize * ModuleGeometry.partScale(id),
         moduleLoadout!.parts[id]!.definition.category,
-        id == 'W4' ? angle : ModuleGeometry.angle(id, side),
+        ModuleGeometry.angle(id, side),
       );
   Offset partShotVisualPosition(Shot s, {bool reduced = false}) =>
       s.position +
@@ -319,9 +316,7 @@ extension ShipModuleCombat on GameEngine {
     final key = drone == null
         ? ModuleGeometry.recoilKey(mount, side)
         : 'drone-$mount-$drone';
-    final kickAngle = drone != null || mount == 'W4'
-        ? angle
-        : ModuleGeometry.angle(mount, side);
+    final kickAngle = drone != null ? angle : ModuleGeometry.angle(mount, side);
     visuals.kick(
       key,
       -ModuleGeometry.direction(kickAngle) *
@@ -352,7 +347,9 @@ extension ShipModuleCombat on GameEngine {
         definition = modulePart(bits[2]);
     final behavior = definition.behaviors[mount.kind];
     if (shot.age - dt < 0) {
-      final side = mount.id == 'W1' && shot.velocity.dx >= 0 ? 1 : 0;
+      // the paired bays (wing guns, wing missiles) launch from their side
+      final paired = mount.id == 'W1' || mount.id == 'W2';
+      final side = paired && shot.velocity.dx >= 0 ? 1 : 0;
       final angle = math.atan2(shot.velocity.dx, -shot.velocity.dy);
       shot.position = moduleMuzzleAt(mount.id, side, angle);
       shot.anchor = modulePartVisualOffset(mount.id, side);
@@ -676,7 +673,7 @@ extension ShipModuleCombat on GameEngine {
       final e = _partTarget(
         position,
         modulePart('gun_vulcan'),
-        mountProfile('W4'),
+        mountProfile('W1'),
       );
       if (e != null) e.vulnerable = 2 * snap.supportPower('sensor');
     }

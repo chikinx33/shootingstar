@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
@@ -9,12 +10,12 @@ import 'package:shootingstar/data/profile.dart';
 void main() {
   test('a new pilot wears the full common Sunshine set', () {
     final gear = CatGearState.starter();
-    expect(gear.items, hasLength(5));
+    expect(gear.items, hasLength(4));
     for (final slot in CatGearSlot.values) {
       expect(gear.equippedIn(slot)?.set, 'sunshine');
     }
-    expect(gear.setCounts['sunshine'], 5);
-    // 5-piece Sunshine adds +10% firepower on top of the nose stat
+    expect(gear.setCounts['sunshine'], 4);
+    // 4-piece Sunshine adds +10% firepower on top of the nose stat
     expect(
       gear.bonuses.damage,
       closeTo(.10 + gear.equippedIn(CatGearSlot.nose)!.value, 1e-9),
@@ -33,7 +34,8 @@ void main() {
       gear.layerAssets['wing_l'],
       'assets/art/ship_parts/night/wing_left.webp',
     );
-    expect(gear.setCounts['sunshine'], 4);
+    expect(gear.setCounts['sunshine'], 3);
+    // three Sunshine pieces still hold the 2-piece +4%
     expect(
       gear.bonuses.damage,
       closeTo(.04 + gear.equippedIn(CatGearSlot.nose)!.value, 1e-9),
@@ -41,12 +43,35 @@ void main() {
   });
 
   test('gear survives a save round trip and rejects foreign slots', () {
-    final gear = CatGearState.starter()..add('bloom', CatGearSlot.shield, 4);
+    final gear = CatGearState.starter()..add('bloom', CatGearSlot.engines, 4);
     final back = CatGearState.restore(gear.toJson());
-    expect(back.items, hasLength(6));
+    expect(back.items, hasLength(5));
     expect(back.items.last.rarity, 4);
     final bad = gear.toJson()..['equipped'] = {'nose': back.items.last.id};
     expect(CatGearState.restore(bad).equippedIn(CatGearSlot.nose), isNull);
+  });
+
+  test('v12.11: shield devices of an old save leave with a full refund', () {
+    // as a saved file reads back: plain JSON lists and maps
+    final old = jsonDecode(
+      jsonEncode(CatGearState.starter().toJson()),
+    ) as Map<String, dynamic>;
+    (old['items'] as List).addAll([
+      {'id': 90, 'set': 'night', 'slot': 'shield', 'rarity': 2, 'level': 6},
+      {'id': 91, 'set': 'sunshine', 'slot': 'shield', 'rarity': 0},
+    ]);
+    (old['equipped'] as Map)['shield'] = 90;
+    final back = CatGearState.restore(old);
+    expect(back.items.any((i) => i.id >= 90), isFalse);
+    expect(back.retiredShields, 2);
+    // all churu spent on levels 1..5 plus the base salvage, both pieces
+    var spent = 0;
+    for (var l = 1; l < 6; l++) {
+      spent += 40 + 18 * l * 3;
+    }
+    expect(back.retiredChuru, (20 + 60 + spent) + 20);
+    // star dust: base 4 + the level-4 upgrade's 6, plus the common's 1
+    expect(back.retiredStardust, 4 + 6 + 1);
   });
 
   test('drops get better deeper in the campaign and finales give rare+', () {

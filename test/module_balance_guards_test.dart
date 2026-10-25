@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -32,18 +31,19 @@ void main() {
       ];
       g.enemies.addAll(targets);
       for (var i = 0; i < 60 && g.damageByWeapon.isEmpty; i++) g.update(1 / 60);
-      expect(
-        g.damageByWeapon['part:W2:missile_hawk'],
-        closeTo(g.partStats('W2').damage * 2, .001),
-      );
+      // v12.11: the pair fires two missiles; each blast hits both once
+      final blast = g.partStats('W2').damage * 2;
+      double total() => g.damageByWeapon['part:W2:missile_hawk']!;
+      expect(targets[0].hp, closeTo(targets[1].hp, .001));
+      expect(total() / blast, closeTo((total() / blast).roundToDouble(), 1e-6));
       final copy = BattleCheckpoint.restore(
         jsonDecode(jsonEncode(g.checkpoint())),
       );
       advance(g, 60);
       advance(copy, 60);
       expect(
-        g.damageByWeapon['part:W2:missile_hawk'],
-        closeTo(g.partStats('W2').damage * 2, .001),
+        total(),
+        lessThanOrEqualTo(blast * g.partStats('W2').count + .001),
       );
       expect(copy.damageByWeapon, g.damageByWeapon);
     },
@@ -51,7 +51,7 @@ void main() {
 
   test('wing missiles spread their locks but keep both launchers against a solo boss', () {
     for (final count in [1, 2]) {
-      final g = bench.arena('missile_hawk', 'W1', 1, 42, 'front');
+      final g = bench.arena('missile_hawk', 'W2', 1, 42, 'front');
       for (var i = 0; i < count; i++)
         g.enemies.add(
           Foe(g.position + Offset((i - .5) * 80, -180), 10000, 0, 12, 0),
@@ -70,7 +70,7 @@ void main() {
   test(
     'native gun bonus cannot bypass three boss openings even at extreme burst',
     () {
-      final g = bench.arena('gun_vulcan', 'W2', 40, 42, 'boss-front');
+      final g = bench.arena('gun_vulcan', 'W1', 40, 42, 'boss-front');
       final phases = <int>{};
       for (var i = 0; i < 1200 && g.boss != null && !g.resolvingBoss; i++) {
         phases.add(g.bossPhase);
@@ -80,7 +80,7 @@ void main() {
             Offset.zero,
             1000000,
             0,
-            weapon: 'part:W2:gun_vulcan',
+            weapon: 'part:W1:gun_vulcan',
           ),
         );
         g.update(.01);
@@ -91,117 +91,9 @@ void main() {
     },
   );
 
-  test('drone interception protects its chosen approach with real hull damage enabled', () {
-    final rows = <Map<String, dynamic>>[];
-    for (final seed in [1, 42, 667]) {
-      for (final mount in bench.mounts) {
-        final approach = switch (mount) {
-          'W1' => const Offset(-1, 0),
-          'W2' => const Offset(0, -1),
-          'W3' => const Offset(0, 1),
-          _ => const Offset(1, 0),
-        };
-        final damage = <String, double>{};
-        for (final weapon in ['gun_vulcan', 'drone_wasp']) {
-          final g = bench.arena(weapon, mount, 1, seed, 'front');
-          g.developerInvincible = false;
-          final initialHp = g.hp;
-          for (var frame = 0; frame < 12 * 60; frame++) {
-            if (frame % 54 == 0)
-              g.shots.add(
-                Shot(
-                  g.position + approach * 220,
-                  -approach * 160,
-                  8,
-                  4,
-                  life: 2,
-                ),
-              );
-            g.update(1 / 60);
-          }
-          damage[weapon] = initialHp - g.hp;
-        }
-        rows.add({'seed': seed, 'mount': mount, 'damageTaken': damage});
-        expect(damage['gun_vulcan'], greaterThan(0));
-        expect(
-          damage['drone_wasp'],
-          lessThan(damage['gun_vulcan']!),
-          reason: '$mount/$seed',
-        );
-      }
-    }
-    Directory('.local/module-v68').createSync(recursive: true);
-    File('.local/module-v68/interception.json')
-        .writeAsStringSync(jsonEncode(rows));
-    print('Interception damage: ${jsonEncode(rows)}');
-  });
-
-  test('equal-investment four-slot builds have encounter-dependent advantages', () {
-    final builds = {
-      'all-guns': List.filled(4, 'gun_vulcan'),
-      'all-missiles': List.filled(4, 'missile_hawk'),
-      'all-drones': List.filled(4, 'drone_wasp'),
-      'mixed': ['missile_hawk', 'gun_vulcan', 'missile_hawk', 'drone_wasp'],
-    };
-    final rows = <Map<String, dynamic>>[];
-    final averages = <String, Map<String, double>>{};
-    for (final scene in bench.scenes) {
-      final scores = averages[scene] = {};
-      for (final build in builds.entries) {
-        final parts = {
-          for (var i = 0; i < 4; i++)
-            bench.mounts[i]: OwnedModulePart('owned-$i', build.value[i], 10),
-        };
-        var sum = 0.0;
-        for (final seed in [1, 42, 667]) {
-          final row = bench.measure(
-            build.value[0],
-            'W1',
-            10,
-            seed,
-            scene,
-            parts: parts,
-          );
-          row['build'] = build.key;
-          rows.add(row);
-          sum += row['dps'] / 3;
-        }
-        scores[build.key] = sum;
-      }
-      print('$scene four-slot DPS: $scores');
-    }
-    final winners = averages.values
-        .map(
-          (scores) =>
-              (scores.entries.toList()
-                    ..sort((a, b) => b.value.compareTo(a.value)))
-                  .first
-                  .key,
-        )
-        .toSet();
-    expect(
-      winners.length,
-      greaterThan(1),
-      reason: 'One build must not win every encounter',
-    );
-    expect(
-      averages['boss-front']!['mixed'],
-      greaterThan(averages['boss-front']!['all-missiles']! * 1.05),
-    );
-    // Boss blast resistance intentionally removes the old all-missile flank advantage.
-    // Crowd specialization remains covered by ground and encounter-dependent winners.
-    expect(
-      averages['ground']!['all-missiles'],
-      greaterThan(averages['ground']!['all-guns']!),
-    );
-    File(
-      '${Platform.environment['MODULE_BALANCE_OUTPUT'] ?? '.local/module-v68'}/builds.json',
-    ).writeAsStringSync(jsonEncode({'rows': rows, 'averages': averages}));
-  }, timeout: const Timeout(Duration(minutes: 2)));
-
-  test('growth milestones and in-run upgrades preserve all twelve roles', () {
-    for (final weapon in bench.weapons) {
-      for (final mount in bench.mounts) {
+  test('growth milestones and in-run upgrades preserve every slot role', () {
+    for (final (weapon, mount) in bench.fits) {
+      {
         var previousDamage = 0.0;
         for (final level in [1, 5, 10, 30, 40]) {
           final part = OwnedModulePart('growth', weapon, level);

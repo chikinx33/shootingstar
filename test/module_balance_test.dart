@@ -8,8 +8,13 @@ import 'package:shootingstar/data/aircraft_assembly.dart';
 import 'package:shootingstar/data/ship_modules.dart';
 import 'package:shootingstar/game/engine.dart';
 
-const weapons = ['gun_vulcan', 'missile_hawk', 'drone_wasp'];
-const mounts = ['W1', 'W2', 'W3', 'W4'];
+/// v12.11: each slot takes only the device drawn there (mountAccepts).
+const fits = [
+  ('gun_vulcan', 'W1'),
+  ('missile_hawk', 'W2'),
+  ('gun_vulcan', 'W3'),
+  ('mortar_cat', 'W3'),
+];
 const scenes = [
   'front',
   'front-wide',
@@ -175,15 +180,13 @@ void main() {
     final rows = <Map<String, dynamic>>[];
     for (final level in [1, 10, 30]) {
       for (final scene in scenes) {
-        for (final weapon in weapons) {
-          for (final mount in mounts) {
-            for (final seed in [1, 42, 667])
-              rows.add(measure(weapon, mount, level, seed, scene));
-          }
+        for (final (weapon, mount) in fits) {
+          for (final seed in [1, 42, 667])
+            rows.add(measure(weapon, mount, level, seed, scene));
         }
       }
     }
-    expect(rows, hasLength(864));
+    expect(rows, hasLength(3 * scenes.length * fits.length * 3));
     expect(
       rows.every((r) => (r['dps'] as double).isFinite && r['dps'] >= 0),
       isTrue,

@@ -1,16 +1,16 @@
 import 'dart:math' as math;
 
-/// v11 airframe equipment: the cat's "RPG armour". Five body slots whose
+/// v11 airframe equipment: the cat's "RPG armour". Four body slots whose
 /// sprites replace the matching layers of the ship (see ShipSpriteArt), each
 /// with a set, a rarity and a level. Weapons stay in the module bays.
-enum CatGearSlot { nose, armor, wings, engines, shield }
+/// v12.11: the shield device moved to the weapons as the support slot.
+enum CatGearSlot { nose, armor, wings, engines }
 
 const catGearSlotNames = {
   CatGearSlot.nose: '기수',
   CatGearSlot.armor: '동체 장갑',
   CatGearSlot.wings: '날개',
   CatGearSlot.engines: '추진기',
-  CatGearSlot.shield: '보호막 장치',
 };
 
 /// Ship layout layers that show each slot (pairs mirror their left piece).
@@ -19,7 +19,6 @@ const catGearLayers = {
   CatGearSlot.armor: ['armor'],
   CatGearSlot.wings: ['wing_l'],
   CatGearSlot.engines: ['engine_l'],
-  CatGearSlot.shield: ['shield'],
 };
 
 /// File name of each slot's sprite inside a set folder.
@@ -28,16 +27,15 @@ const catGearFiles = {
   CatGearSlot.armor: 'armor.webp',
   CatGearSlot.wings: 'wing_left.webp',
   CatGearSlot.engines: 'engine_left.webp',
-  CatGearSlot.shield: 'shield.webp',
 };
 
 class CatGearSet {
-  const CatGearSet(this.id, this.name, this.three, this.five);
+  const CatGearSet(this.id, this.name, this.two, this.four);
   final String id;
   final String name;
 
-  /// Set effect text at 3 and 5 equipped pieces.
-  final String three, five;
+  /// Set effect text at 2 and 4 equipped pieces (v12.11: four gear slots).
+  final String two, four;
   String asset(CatGearSlot slot) =>
       'assets/art/ship_parts/$id/${catGearFiles[slot]}';
 }
@@ -89,7 +87,6 @@ class CatGearItem {
       CatGearSlot.armor => .04 * r + .008 * level,
       CatGearSlot.wings => .05 * r + .008 * level,
       CatGearSlot.engines => .02 * r + .003 * level,
-      CatGearSlot.shield => .012 * r + .0022 * level,
     };
   }
 
@@ -98,7 +95,6 @@ class CatGearItem {
     CatGearSlot.armor => '최대 선체',
     CatGearSlot.wings => '회수 범위',
     CatGearSlot.engines => '이동 속도',
-    CatGearSlot.shield => '피해 감소',
   };
 
   String get statText => '$statLabel +${(value * 100).toStringAsFixed(1)}%';
@@ -117,6 +113,24 @@ class CatGearItem {
   }
 
   int get dismantleStardust => const [1, 2, 4, 8, 16][rarity];
+
+  /// Everything spent on it plus the base salvage: what a retired piece
+  /// gives back in full (v12.11 shield devices).
+  int get refundChuru {
+    var spent = 0;
+    for (var l = 1; l < level; l++) {
+      spent += 40 + 18 * l * (rarity + 1);
+    }
+    return 20 + rarity * 30 + spent;
+  }
+
+  int get refundStardust {
+    var spent = 0;
+    for (var l = 1; l < level; l++) {
+      if (l % 5 == 4) spent += 2 + rarity * 2;
+    }
+    return dismantleStardust + spent;
+  }
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -226,27 +240,25 @@ class CatGearState {
           pickup += i.value;
         case CatGearSlot.engines:
           speed += i.value;
-        case CatGearSlot.shield:
-          reduction += i.value;
       }
     }
     final counts = setCounts;
     int n(String id) => counts[id] ?? 0;
-    if (n('sunshine') >= 5) {
+    if (n('sunshine') >= 4) {
       damage += .10;
-    } else if (n('sunshine') >= 3) {
+    } else if (n('sunshine') >= 2) {
       damage += .04;
     }
-    if (n('night') >= 5) {
+    if (n('night') >= 4) {
       hull += .14;
       reduction += .04;
-    } else if (n('night') >= 3) {
+    } else if (n('night') >= 2) {
       hull += .06;
     }
-    if (n('bloom') >= 5) {
+    if (n('bloom') >= 4) {
       pickup += .18;
       speed += .06;
-    } else if (n('bloom') >= 3) {
+    } else if (n('bloom') >= 2) {
       pickup += .08;
     }
     return CatGearBonuses(
@@ -282,12 +294,27 @@ class CatGearState {
     'nextId': nextId,
   };
 
+  /// Shield devices found in an old save (v12.11 moved them to the weapon
+  /// support slot): how many and their full refund, paid once by Profile.
+  int retiredShields = 0, retiredChuru = 0, retiredStardust = 0;
+
   static CatGearState restore(Object? raw) {
     if (raw is! Map) return CatGearState.starter();
+    final list = raw['items'] as List? ?? const [];
     final items = <CatGearItem>[
-      for (final i in (raw['items'] as List? ?? const []))
+      for (final i in list)
         if (CatGearItem.fromJson(i) case final item?) item,
     ];
+    var shields = 0, churu = 0, dust = 0;
+    for (final i in list) {
+      if (i is! Map || i['slot'] != 'shield') continue;
+      // priced as the same rarity/level piece of any slot
+      final piece = CatGearItem.fromJson({...i, 'slot': 'nose'});
+      if (piece == null) continue;
+      shields++;
+      churu += piece.refundChuru;
+      dust += piece.refundStardust;
+    }
     final ids = items.map((i) => i.id).toSet();
     final equipped = <CatGearSlot, int>{};
     final map = raw['equipped'];
@@ -307,8 +334,11 @@ class CatGearState {
       equipped,
       math.max(next is int ? next : 1, maxId + 1),
     );
-    if (items.isEmpty) return CatGearState.starter();
-    return state;
+    final out = items.isEmpty ? CatGearState.starter() : state;
+    return out
+      ..retiredShields = shields
+      ..retiredChuru = churu
+      ..retiredStardust = dust;
   }
 
   /// Rolls a gear drop for a won flight. Deeper worlds and finales give

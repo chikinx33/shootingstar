@@ -6,17 +6,38 @@ extension ModuleProfile on Profile {
     _convertModuleRewards(fleet);
     fleet.seed(selectedShip);
     fleet.grantMortar();
+    fleet.grantSupport();
+    final drones = fleet.retireDrones();
+    if (drones.isNotEmpty) {
+      // refunded like a salvage
+      var churu = 0, dust = 0;
+      for (final d in drones) {
+        churu += 20 + d.level * 5;
+        dust += 1 + d.level ~/ 3;
+      }
+      credits = (credits + churu).clamp(0, 9999999);
+      blueprints = (blueprints + dust).clamp(0, 999999);
+      addUpdateNotice(
+        '와스프 드론 ${drones.length}개는 기체에 붙는 장치가 아니어서 정리했습니다. 츄르 $churu · 별가루 $dust',
+      );
+    }
     return fleet;
   }
 
   ModuleSnapshot get moduleLoadout => shipModules.snapshot(selectedShip);
 
-  /// Sprite swaps on the cat airframe: equipped gear plus the rear mortar.
-  Map<String, String> get shipLayerAssets => {
-    ...catGear.layerAssets,
-    if (moduleLoadout.parts['W3']?.partId == 'mortar_cat')
-      'rear_gun': mortarMountAsset,
-  };
+  /// Sprite swaps on the cat airframe: equipped gear, the rear mortar and
+  /// the support device's own core in the middle.
+  Map<String, String> get shipLayerAssets {
+    final parts = moduleLoadout.parts;
+    return {
+      ...catGear.layerAssets,
+      if (parts['W3']?.partId == 'mortar_cat') 'rear_gun': mortarMountAsset,
+      if (parts['S1'] case final support?)
+        'shield': supportOrbAsset(support.partId),
+    };
+  }
+
   void _convertModuleRewards(ModuleFleet fleet) {
     for (final gear in inventory) {
       if (!fleet.convertedGear.add(gear.id)) continue;
@@ -59,7 +80,6 @@ extension ModuleProfile on Profile {
       (AircraftMount.wings, 'W1'),
       (AircraftMount.ground, 'W2'),
       (AircraftMount.rear, 'W3'),
-      (AircraftMount.auxiliary, 'W4'),
     ]) {
       final old = _assembly.parts[pair.$1];
       if (old == null || old == 'auxShield') {
@@ -90,7 +110,7 @@ extension ModuleProfile on Profile {
     final used = <String>{};
     var index = 1;
     for (final kind in desired) {
-      if (index > 3) break;
+      if (index > 1) break;
       if (!used.add(kind)) continue;
       final candidates = fleet.owned.values
           .where((p) => p.partId == kind)
@@ -116,7 +136,14 @@ extension ModuleProfile on Profile {
     final key = support ? 'supportSupplyCount' : 'weaponSupplyCount';
     final raw = fleet.legacyArchive[key];
     final count = raw is int && raw >= 0 ? raw : 0;
-    final catalog = moduleParts.where((p) => p.weapon != support).toList();
+    // v12.11: only devices that fit a slot (no drones)
+    final catalog = moduleParts
+        .where(
+          (p) =>
+              p.weapon != support &&
+              moduleProfiles.any((m) => mountAccepts(m.id, p)),
+        )
+        .toList();
     if (support) {
       petEggs--;
     } else {

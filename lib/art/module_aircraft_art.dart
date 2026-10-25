@@ -164,16 +164,6 @@ abstract final class ModuleAircraftArt {
       for (final x in [-.39, .39])
         for (final y in [-.32, .32])
           c.drawCircle(Offset(x, y), .045, fill(ink));
-    if (id == 'W4')
-      for (var i = 0; i < 6; i++)
-        c.drawCircle(
-          Offset(
-            math.cos(i * math.pi / 3) * .36,
-            math.sin(i * math.pi / 3) * .36,
-          ),
-          .04,
-          fill(ink),
-        );
     c.restore();
   }
 

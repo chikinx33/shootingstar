@@ -47,10 +47,14 @@ class MountProfile {
   };
 }
 
+/// v12.11 (user 2026-10-26): a slot exists only where its device is drawn
+/// on the airframe: the wing-tip gun pair, the wing missile pair, the tail
+/// gun and the round support device in the middle. The nose gun is the
+/// airframe's own signature weapon and is not a part slot.
 const moduleProfiles = <MountProfile>[
   MountProfile(
     'W1',
-    '날개끝',
+    '윙건',
     ModuleKind.wing,
     '전방 ±15°',
     'twin_outward',
@@ -63,26 +67,27 @@ const moduleProfiles = <MountProfile>[
     false,
     1,
   ),
+  // both wing missiles fire, alternating; missiles also strike the ground
   MountProfile(
     'W2',
-    '동체 하부',
-    ModuleKind.belly,
-    '전방 직선',
-    'single_heavy',
-    1.4,
-    .7,
-    1.3,
+    '미사일',
+    ModuleKind.wing,
+    '전방 유도',
+    'alternating_homing',
     1,
+    .8,
+    1.1,
+    2,
     0,
-    1,
+    0,
     true,
     1,
   ),
   MountProfile(
     'W3',
-    '후미',
+    '자주포',
     ModuleKind.tail,
-    '후방 60°',
+    '꼬리',
     'rear_fan',
     .6,
     1,
@@ -94,54 +99,8 @@ const moduleProfiles = <MountProfile>[
     1,
   ),
   MountProfile(
-    'W4',
-    '상부',
-    ModuleKind.top,
-    '360° 자동 조준',
-    'turret',
-    .6,
-    1,
-    .9,
-    1,
-    0,
-    0,
-    false,
-    .8,
-    droneFireRateMul: 1.4,
-  ),
-  MountProfile(
     'S1',
-    '보조 1',
-    ModuleKind.support,
-    '위치 효과 없음',
-    'support',
-    1,
-    1,
-    1,
-    1,
-    0,
-    0,
-    false,
-    1,
-  ),
-  MountProfile(
-    'S2',
-    '보조 2',
-    ModuleKind.support,
-    '위치 효과 없음',
-    'support',
-    1,
-    1,
-    1,
-    1,
-    0,
-    0,
-    false,
-    1,
-  ),
-  MountProfile(
-    'S3',
-    '보조 3',
+    '보조 장치',
     ModuleKind.support,
     '위치 효과 없음',
     'support',
@@ -155,6 +114,29 @@ const moduleProfiles = <MountProfile>[
     1,
   ),
 ];
+
+/// The support parts and the core each shows in the airframe's middle.
+const supportPartIds = [
+  'shield',
+  'repair',
+  'armor',
+  'sensor',
+  'capacitor',
+  'magnet',
+  'thruster',
+];
+String supportOrbAsset(String partId) =>
+    'assets/art/ship_parts/orbs/$partId.webp';
+
+/// Which parts each slot takes: only the kind of device drawn there.
+bool mountAccepts(String mount, ModulePart part) => switch (mount) {
+  'W1' => part.id == 'gun_vulcan',
+  'W2' => part.category == PartCategory.missile,
+  'W3' => part.id == 'mortar_cat' || part.id == 'gun_vulcan',
+  'S1' => part.category == PartCategory.support,
+  _ => false,
+};
+
 MountProfile mountProfile(String id) =>
     moduleProfiles.firstWhere((m) => m.id == id);
 
@@ -431,7 +413,7 @@ class ModuleSnapshot {
     for (final e in this.parts.entries) {
       if (!moduleProfiles.any((m) => m.id == e.key) ||
           !ids.add(e.value.instanceId) ||
-          mountProfile(e.key).weapon != e.value.definition.weapon ||
+          !mountAccepts(e.key, e.value.definition) ||
           (!e.value.definition.weapon && !supports.add(e.value.partId)))
         throw const FormatException('Invalid loadout');
     }
@@ -501,6 +483,44 @@ class ModuleFleet {
     }
   }
 
+  /// v12.11: the support device slot (S1) starts filled. A fleet from
+  /// before it gets one reinforced armor (an idle one it owns, else new).
+  bool supportGranted = false;
+  void grantSupport() {
+    if (supportGranted) return;
+    supportGranted = true;
+    for (final loadout in loadouts.values) {
+      if (loadout.containsKey('S1')) continue;
+      final idle = owned.values
+          .where(
+            (p) =>
+                p.partId == 'armor' &&
+                !loadouts.values.any((l) => l.containsValue(p.instanceId)),
+          )
+          .firstOrNull;
+      loadout['S1'] = (idle ?? add('armor')).instanceId;
+    }
+  }
+
+  /// v12.11: drones are not devices on the airframe, so they leave the
+  /// fleet. Returns the retired parts (the caller refunds them) once.
+  bool dronesRetired = false;
+  List<OwnedModulePart> retireDrones() {
+    if (dronesRetired) return const [];
+    dronesRetired = true;
+    final drones = [
+      for (final p in owned.values)
+        if (p.definition.category == PartCategory.drone) p,
+    ];
+    for (final d in drones) {
+      owned.remove(d.instanceId);
+      for (final l in loadouts.values) {
+        l.removeWhere((_, id) => id == d.instanceId);
+      }
+    }
+    return drones;
+  }
+
   OwnedModulePart add(String definition, {int level = 1, String? id}) {
     final item = OwnedModulePart(
       id ?? 'p${serial++}',
@@ -517,7 +537,7 @@ class ModuleFleet {
       'W1': add('gun_vulcan').instanceId,
       'W2': add('missile_hawk').instanceId,
       'W3': add('mortar_cat').instanceId,
-      'W4': add('drone_wasp').instanceId,
+      'S1': add('armor').instanceId,
     };
     airframeLevels.putIfAbsent(hull, () => 1);
   }
@@ -540,8 +560,7 @@ class ModuleFleet {
       next.remove(mount);
     } else {
       final item = owned[instance];
-      if (item == null || item.definition.weapon != mountProfile(mount).weapon)
-        return false;
+      if (item == null || !mountAccepts(mount, item.definition)) return false;
       // Same instance moves; independent copies may occupy other weapon mounts.
       next.removeWhere((k, v) => v == instance);
       if (!item.definition.weapon &&
@@ -562,6 +581,8 @@ class ModuleFleet {
     'convertedGear': convertedGear.toList()..sort(),
     'legacyArchive': legacyArchive,
     'mortarGranted': mortarGranted,
+    'supportGranted': supportGranted,
+    'dronesRetired': dronesRetired,
   };
   factory ModuleFleet.restore(dynamic raw) {
     if (raw is! Map ||
@@ -595,10 +616,22 @@ class ModuleFleet {
         if (h == null || h < 0 || h > 2 || e.value is! Map)
           throw const FormatException('Invalid hull loadout');
         final parts = <String, OwnedModulePart>{};
+        final spareSupports = <OwnedModulePart>[];
         for (final entry in (e.value as Map).entries) {
           final p = f.owned[entry.value];
           if (p == null) throw const FormatException('Missing part');
-          parts[entry.key as String] = p;
+          final mount = entry.key as String;
+          // v12.11: retired bays (W4 turret, S2, S3) and parts a slot no
+          // longer takes come off; a support from S2/S3 may move to S1.
+          if (moduleProfiles.any((m) => m.id == mount) &&
+              mountAccepts(mount, p.definition)) {
+            parts[mount] = p;
+          } else if (p.definition.category == PartCategory.support) {
+            spareSupports.add(p);
+          }
+        }
+        if (!parts.containsKey('S1') && spareSupports.isNotEmpty) {
+          parts['S1'] = spareSupports.first;
         }
         ModuleSnapshot(h, f.airframeLevels[h] ?? 1, parts);
         f.loadouts[h] = parts.map((k, v) => MapEntry(k, v.instanceId));
@@ -608,7 +641,10 @@ class ModuleFleet {
     if (raw['legacyArchive'] is Map)
       f.legacyArchive.addAll(Map<String, dynamic>.from(raw['legacyArchive']));
     f.mortarGranted = raw['mortarGranted'] == true;
+    f.supportGranted = raw['supportGranted'] == true;
+    f.dronesRetired = raw['dronesRetired'] == true;
     f.grantMortar();
+    f.grantSupport();
     return f;
   }
   ModuleFleet();
@@ -634,17 +670,16 @@ abstract final class ModuleGeometry {
     double angle,
   ) => center + direction(angle) * extent * tip(category);
   static String recoilKey(String id, int side) =>
-      id == 'W1' ? 'module-W1-$side' : 'module-$id';
+      id == 'W1' || id == 'W2' ? 'module-$id-$side' : 'module-$id';
   static List<Offset> anchors(String id) => switch (id) {
     'W1' => const [Offset(.10, .49), Offset(.90, .49)],
-    'W2' => const [Offset(.50, .64)],
+    'W2' => const [Offset(.22, .50), Offset(.78, .50)],
     'W3' => const [Offset(.50, .88)],
-    'W4' => const [Offset(.50, .40)],
     _ => const [],
   };
   static Size size(String id) => switch (id) {
     'W1' => const Size(.17, .17),
-    'W2' => const Size(.28, .15),
+    'W2' => const Size(.17, .17),
     'W3' => const Size(.18, .18),
     _ => const Size(.22, .22),
   };

@@ -2079,7 +2079,6 @@ class BattlePainter extends CustomPainter {
         AircraftGeometry.bodySize,
         game.moduleLoadout!,
         inBattle: true,
-        angles: {'W4': game.moduleVisualAngle('W4')},
         recoil: reducedEffects
             ? const {}
             : {

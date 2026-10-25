@@ -54,6 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final testing = WidgetsBinding.instance.runtimeType.toString().contains(
       'Test',
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showUpdateNotices());
     if (!p.prologueSeen && !p.developerMode && !testing) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
@@ -63,6 +64,30 @@ class _HomeScreenState extends State<HomeScreen> {
         ).push(MaterialPageRoute<void>(builder: (_) => const PrologueScreen()));
       });
     }
+  }
+
+  /// v12.11: what a save change gave back (retired shield devices, drones),
+  /// shown once.
+  Future<void> _showUpdateNotices() async {
+    p.shipModules; // runs the fleet's one-time slot changes
+    if (!mounted || p.updateNotices.isEmpty) return;
+    final lines = p.updateNotices.join('\n\n');
+    p.updateNotices.clear();
+    await showDialog<void>(
+      context: context,
+      builder: (dialog) => GameDialog(
+        title: '슬롯 정리 안내',
+        actions: [
+          GameActionButton(
+            label: '확인',
+            primary: true,
+            icon: Icons.check,
+            onPressed: () => Navigator.pop(dialog),
+          ),
+        ],
+        child: Text(tr(lines), textAlign: TextAlign.center),
+      ),
+    );
   }
 
   /// Decodes the next sortie's pictures while the player is in the lobby,

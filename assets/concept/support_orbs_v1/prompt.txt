@@ -1,0 +1,9 @@
+Image 1 is a game sprite: a round support device seen from straight above, with orange and sunny-yellow clamps, steel-gray rim, thick even dark navy outline, flat cel-shaded colors with small white highlights, and a glowing sky-blue hexagon-pattern core.
+Draw a 3 by 2 grid of six variants of EXACTLY this device on a solid pure magenta (#FF00FF) background. Every variant keeps the same outer frame, clamps, outline thickness, colors of the frame and top-down orthographic view as image 1; only the glowing round core in the middle changes color and shows one simple bold symbol:
+Row 1, left: steel-gray core with a white shield emblem.
+Row 1, middle: bright yellow core with a white lightning bolt.
+Row 1, right: red core with a white crosshair target reticle.
+Row 2, left: green core with a white plus cross.
+Row 2, middle: purple core with a white horseshoe U magnet.
+Row 2, right: orange core with a white upward double chevron arrow.
+Each device is centered in its own cell, fills about 70 percent of the cell, with generous magenta space between devices. No magenta or pink inside the devices. No shadows, no text, no labels, no grid lines.

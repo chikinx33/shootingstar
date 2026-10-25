@@ -11,12 +11,12 @@ import 'package:shootingstar/game/survival_skills.dart';
 
 import 'support/run_driver.dart' as driver;
 
+/// v12.11: slot -> part, each slot holding only its own device kind.
 const campaignBuilds = {
-  'starter': ['gun_vulcan', 'missile_hawk', 'gun_vulcan', 'drone_wasp'],
-  'guns': ['gun_vulcan', 'gun_vulcan', 'gun_vulcan', 'gun_vulcan'],
-  'missiles': ['missile_hawk', 'missile_hawk', 'missile_hawk', 'missile_hawk'],
-  'drones': ['drone_wasp', 'drone_wasp', 'drone_wasp', 'drone_wasp'],
-  'mixed': ['missile_hawk', 'gun_vulcan', 'missile_hawk', 'drone_wasp'],
+  'starter': {'W1': 'gun_vulcan', 'W2': 'missile_hawk', 'W3': 'mortar_cat'},
+  'guns': {'W1': 'gun_vulcan', 'W3': 'gun_vulcan'},
+  'missiles': {'W2': 'missile_hawk'},
+  'mixed': {'W1': 'gun_vulcan', 'W2': 'missile_hawk', 'W3': 'gun_vulcan'},
 };
 
 GameEngine campaignGame(
@@ -25,19 +25,13 @@ GameEngine campaignGame(
   String build,
   int seed, {
   bool defense = false,
+  String support = 'shield',
 }) {
   final parts = {
-    for (var i = 0; i < 4; i++)
-      'W${i + 1}': OwnedModulePart(
-        'owned-$i',
-        campaignBuilds[build]![i],
-        level,
-      ),
-    if (defense) ...{
-      'S1': OwnedModulePart('shield', 'shield', level),
-      'S2': OwnedModulePart('repair', 'repair', level),
-      'S3': OwnedModulePart('armor', 'armor', level),
-    },
+    for (final e in campaignBuilds[build]!.entries)
+      e.key: OwnedModulePart('owned-${e.key}', e.value, level),
+    // one support device: only the part fitted there works
+    if (defense) 'S1': OwnedModulePart(support, support, level),
   };
   return GameEngine(
     stageIndex: stage,
@@ -198,7 +192,7 @@ void main() {
     }
     for (final stage in (focused ? [99] : [0, 49, 99])) {
       for (final build
-          in (focused ? ['missiles'] : ['guns', 'missiles', 'drones', 'mixed']))
+          in (focused ? ['missiles'] : ['guns', 'missiles', 'mixed']))
         record(campaignRun(stage, 40, build, 11, false, defense: true));
     }
     expect(rows, hasLength(focused ? 5 : 72));

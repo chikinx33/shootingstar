@@ -58,6 +58,7 @@ abstract final class ShipSpriteArt {
           for (final slot in CatGearSlot.values) set.asset(slot),
         droneAsset,
         mortarMountAsset,
+        for (final id in supportPartIds) supportOrbAsset(id),
         for (final n in fxNames) fxAsset(n),
       };
       await Future.wait([
@@ -167,11 +168,10 @@ abstract final class ShipSpriteArt {
     final parts = loadout.parts;
     return {
       if (parts['W1'] == null) ...{'gun_l', 'gun_r'},
-      if (parts['W2'] == null && parts['W4'] == null) ...{
-        'missile_l',
-        'missile_r',
-      },
+      if (parts['W2'] == null) ...{'missile_l', 'missile_r'},
       if (parts['W3'] == null) 'rear_gun',
+      // the support device core: an empty slot leaves the socket bare
+      if (parts['S1'] == null) 'shield',
     };
   }
 
