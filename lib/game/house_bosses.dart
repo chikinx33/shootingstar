@@ -43,7 +43,6 @@ extension HouseBosses on GameEngine {
         // v12.9.7 (user 2026-10-25: bosses died too easily): about 2x
         (houseBossKind == HouseBossKind.duelist ? 6.0 : 4.4) *
         (1 + stage.sector * .12);
-    _hbFire = 1.6;
     _hbSpin = 0;
     _hbDodge = 0;
     if (houseBossKind != HouseBossKind.fortress) {
@@ -169,77 +168,27 @@ extension HouseBosses on GameEngine {
     );
   }
 
+  /// The reference phase for the boss's remaining health.
+  int houseBossPhase(Foe b, BossPatternSet set) {
+    final lost = 1 - (b.hp / b.maxHp).clamp(0.0, 1.0);
+    var edge = 0.0;
+    for (var i = 0; i < set.phases.length; i++) {
+      edge += set.phases[i].share;
+      if (lost < edge) return i;
+    }
+    return set.phases.length - 1;
+  }
+
   void updateHouseBoss(double dt) {
     final b = boss;
     if (b == null || b.hp <= 0) return;
     // the entrance: glide down onto the stage before shooting
     if (b.position.dy < houseBossHome.dy - 6 && b.phase < 2.5) return;
-    _hbFire -= dt;
-    _hbAim -= dt;
-    final phase = bossPhase;
-    final aim = math.atan2(
-      position.dy - b.position.dy,
-      position.dx - b.position.dx,
-    );
-    // every boss keeps a quick aimed shot going: standing still is never safe
-    if (_hbAim <= 0 && houseBossKind != HouseBossKind.duelist) {
-      final n = houseBossKind == HouseBossKind.barrage ? 5 : 3;
-      for (var i = 0; i < n; i++) {
-        _bossBullet(b.position, aim + (i - (n - 1) / 2) * .12, 185);
-      }
-      _hbAim = phase >= 2 ? 1.3 : 1.8;
-    }
-    switch (houseBossKind) {
-      case HouseBossKind.fortress:
-        if (_hbFire > 0) break;
-        if (houseBossShielded) {
-          // the core lobs slow aimed triples while the shield holds
-          for (var i = -1; i <= 1; i++) {
-            _bossBullet(b.position + const Offset(0, 40), aim + i * .22, 120);
-          }
-          _hbFire = 2.6;
-        } else {
-          // shield down: the core panics into wide rings
-          final n = 14 + phase * 4;
-          final off = _hbSpin += .17;
-          for (var i = 0; i < n; i++) {
-            _bossBullet(b.position, off + i * math.pi * 2 / n, 115);
-          }
-          _hbFire = phase >= 2 ? 1.5 : 2.1;
-        }
-      case HouseBossKind.barrage:
-        // breathe: 3.6 s of pattern, 1.1 s of rest to slip through
-        final cycle = b.phase % 4.7;
-        if (cycle > 3.6 || _hbFire > 0) break;
-        _hbSpin += .26;
-        final arms = 2 + phase;
-        for (var i = 0; i < arms; i++) {
-          _bossBullet(b.position, _hbSpin + i * math.pi * 2 / arms, 125);
-          if (phase >= 2) {
-            _bossBullet(b.position, -_hbSpin + i * math.pi * 2 / arms, 105);
-          }
-        }
-        if (phase >= 1 && (b.phase % 1.6) < dt) {
-          // a flower ring on the beat
-          for (var i = 0; i < 18; i++) {
-            _bossBullet(b.position, i * math.pi / 9 + _hbSpin * .5, 90);
-          }
-        }
-        _hbFire = .13;
-      case HouseBossKind.duelist:
-        if (_hbFire > 0) break;
-        // quick aimed bursts, leading the cat's movement
-        final lead = position + input * 70;
-        final a = math.atan2(lead.dy - b.position.dy, lead.dx - b.position.dx);
-        final burst = 3 + phase;
-        for (var i = 0; i < burst; i++) {
-          _bossBullet(
-            b.position + Offset(0, b.radius * .6),
-            a + (i - (burst - 1) / 2) * .07,
-            205 + i * 12,
-          );
-        }
-        _hbFire = phase >= 2 ? .9 : 1.25;
-    }
+    // v12.9.8 (user 2026-10-25): every house boss has its own reference
+    // pattern set (B1-B11); its phases follow the reference health shares,
+    // each phase several parts firing on their own cycles.
+    final set = BossPatterns.forStage(stageIndex);
+    final phase = houseBossPhase(b, set);
+    runDanmaku(b, set.phases[phase].emits, dt, damage: 12 * threat, limit: 200);
   }
 }

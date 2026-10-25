@@ -415,66 +415,25 @@ extension HouseWaves on GameEngine {
     if (e.pathTime < 2.4 || !screenRect.deflate(8).contains(e.position)) {
       return;
     }
-    final rage = e.hp < e.maxHp * .5;
-    e.eliteSpin += dt;
-    e.eliteTimer -= dt * (rage ? 1.4 : 1);
-    if (e.eliteTimer > 0) return;
+    // v12.9.8: each house fields its own mid-boss type (reference sets
+    // M1-M6) on the reference tempo ladder base / difficult / crazy, a
+    // little faster below half health.
     final depth = stage.sector + worldIndex * 2;
-    final speed = 140.0 + math.min(50, depth * 6);
-    final toCat = math.atan2(
-      position.dy - e.position.dy,
-      position.dx - e.position.dx,
+    final tier = depth < 3
+        ? 0
+        : depth < 7
+        ? 1
+        : 2;
+    final set =
+        MidBossPatterns.sets[stageIndex % MidBossPatterns.sets.length][tier];
+    runDanmaku(
+      e,
+      set,
+      dt,
+      tempo: e.hp < e.maxHp * .5 ? .8 : 1,
+      damage: 9 * threat,
+      limit: 140,
     );
-    void fire(double angle, [double pace = 1]) {
-      if (shots.where((s) => s.hostile).length >= hostileShotLimit) return;
-      shots.add(
-        Shot(
-          e.position,
-          _direction(angle) * speed * pace,
-          7 * threat,
-          4,
-          weapon: 'enemy-orb', // every mid-boss volley spreads
-          life: 6,
-          radius: hostileBulletRadius,
-        ),
-      );
-    }
-
-    void next(double pause) {
-      e.elitePattern++;
-      e.eliteVolley = 0;
-      e.eliteTimer = pause;
-    }
-
-    switch (e.elitePattern % 4) {
-      case 0:
-        for (var i = -2; i <= 2; i++) {
-          fire(toCat + i * .2);
-        }
-        e.eliteTimer = .32;
-        if (++e.eliteVolley >= 3) next(1.1);
-      case 1:
-        final count = rage ? 18 : 14;
-        for (var i = 0; i < count; i++) {
-          fire(i / count * math.pi * 2 + e.eliteVolley * .22, .85);
-        }
-        e.eliteTimer = .5;
-        if (++e.eliteVolley >= 2) next(1.2);
-      case 2:
-        for (final arm in [0.0, math.pi]) {
-          fire(e.eliteSpin * 3.2 + arm, .9);
-        }
-        e.eliteTimer = .09;
-        if (++e.eliteVolley >= 24) next(1.0);
-      default:
-        final shift = e.eliteVolley.isEven ? 0.0 : .07;
-        for (var i = -3; i <= 3; i++) {
-          fire(math.pi / 2 + i * .15 + shift, .8);
-        }
-        e.eliteTimer = .55;
-        if (++e.eliteVolley >= 3) next(1.3);
-    }
-    if (e.eliteVolley <= 1) onEvent?.call('enemy-fire');
   }
 
   /// True when [e] was the last of its formation and nobody slipped away:
@@ -519,6 +478,16 @@ extension HouseWaves on GameEngine {
     final doctrine = content.enemyDoctrines[e.role]!;
     if (!screenRect.deflate(8).contains(e.position)) {
       e.tell = 0;
+      return;
+    }
+    // v12.9.8: reference emitter patterns per role (N1-N12); miners keep
+    // their mines and rammers never shoot
+    final pattern = NormalPatterns.forRole(
+      e.role,
+      stage.sector + worldIndex * 2 >= 5,
+    );
+    if (pattern != null) {
+      runDanmaku(e, pattern, dt, damage: 7 * threat, limit: hostileShotLimit);
       return;
     }
     e.attackClock -= dt;

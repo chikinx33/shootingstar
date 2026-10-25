@@ -207,7 +207,7 @@ void main() {
       }
     });
 
-    test('mid-boss: sturdy elite cycling patterns, golden box drop', () async {
+    test('mid-boss: sturdy elite fires its reference set, golden box drop', () async {
       final g = await safeRun(seed: 5);
       Foe? elite() => g.enemies.where((e) => e.elite).firstOrNull;
       fly(g, 150, until: () => elite() != null);
@@ -215,8 +215,17 @@ void main() {
       expect(e.radius, 30);
       final escort = g.enemies.firstWhere((o) => !o.elite && o.kind != 3);
       expect(e.maxHp, greaterThan(escort.maxHp * 3));
-      fly(g, 12);
-      expect(e.elitePattern, greaterThanOrEqualTo(2));
+      // v12.9.8: the first house's mid-boss is the reference M1 three-way
+      // bomber: it lobs big orbs in fans
+      var bigOrbs = 0;
+      for (var i = 0; i < 12 * 40; i++) {
+        g.update(.025);
+        bigOrbs = math.max(
+          bigOrbs,
+          g.shots.where((s) => s.weapon == 'enemy-big').length,
+        );
+      }
+      expect(bigOrbs, greaterThanOrEqualTo(3));
       e.hp = 0;
       g.update(.025);
       final box = g.supplies.where((s) => s.kind == 9).single;

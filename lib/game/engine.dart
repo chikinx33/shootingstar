@@ -22,6 +22,8 @@ import 'weapon_roles.dart';
 import '../art/ship_sprite_art.dart';
 export 'weapon_roles.dart';
 
+import 'danmaku_patterns.dart';
+
 part 'enemy_behaviors.dart';
 part 'expanded_weapons.dart';
 part 'pilot_abilities.dart';
@@ -46,6 +48,7 @@ part 'house_bosses.dart';
 part 'weapon_growth.dart';
 part 'growth_arms.dart';
 part 'gear_combat.dart';
+part 'danmaku.dart';
 
 class UpgradeChoice {
   final String id, title, description, iconKey;
@@ -132,6 +135,9 @@ class Shot {
   double age = 0;
   double distanceTravelled = 0;
   bool closeRange = false, splitOnHit = false;
+
+  /// v12.9.8 enemy bullets: speed change in px/s² (negative stops it).
+  double accel = 0;
   bool triggersSynergies = true;
   double fuse = 0;
   bool get hostile => kind == 4 || kind == 17 || (kind >= 19 && kind <= 24);
@@ -283,12 +289,16 @@ class GameEngine {
   /// Keeps the pre-v12 free-roam arena (benchmarks of the old rules).
   bool legacyArena = false;
   int _waveId = 0;
-  double _hbFire = 0, _hbSpin = 0, _hbDodge = 0, _hbAim = 1.2;
+  double _hbSpin = 0, _hbDodge = 0;
   final Set<int> _leakedWaves = {};
   double _waveGap = 1.2, _waveTimer = 0;
   // v12.4 house stages: follow-touch steering target (field coordinates),
   // which map is under the cat and the cloud veil that swaps them.
   Offset? steerTarget;
+
+  /// v12.9.8 enemy pattern emitters per unit, and live telegraphs.
+  final _danmakuRuns = <Foe, _DanmakuRun>{};
+  final dangerLines = <DangerLine>[];
 
   /// v12.9.4 follow-touch: a very slight glide (user 2026-10-25: "아주 살짝
   /// 관성", never the slow drift of old). Drag steering stays dead-exact.
@@ -907,6 +917,7 @@ class GameEngine {
       updateHouseMap(dt);
       driftHouseLoot(dt);
     }
+    updateDanmaku(dt);
     if (boss == null && screenMode) {
       directWaves(dt);
     } else if (boss == null) {
@@ -1193,6 +1204,13 @@ class GameEngine {
           _unit(target.position - s.position) * 275,
           math.min(1, dt * 7),
         )!;
+      }
+      if (s.kind == 4 && s.accel != 0) {
+        final speed = s.velocity.distance;
+        if (speed > 0) {
+          s.velocity =
+              s.velocity / speed * (speed + s.accel * dt).clamp(0.0, 900.0);
+        }
       }
       s.position += s.velocity * dt;
       s.distanceTravelled += s.velocity.distance * dt;

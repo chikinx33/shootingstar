@@ -171,6 +171,34 @@ class BattlePainter extends CustomPainter {
     }
   }
 
+  /// v12.9.8 telegraphs: a blinking warning line before a snipe, a wider
+  /// glowing lane before a beam.
+  void _dangerLines(Canvas canvas) {
+    for (final l in game.dangerLines) {
+      final t = (1 - l.time / l.total).clamp(0.0, 1.0);
+      final blink = reducedEffects ? 1.0 : .6 + .4 * math.sin(l.time * 30);
+      final end = l.origin + Offset(math.cos(l.angle), math.sin(l.angle)) * 900;
+      if (l.beam) {
+        canvas.drawLine(
+          l.origin,
+          end,
+          Paint()
+            ..color = const Color(0xFFFF4D6A).withValues(alpha: .18 + .22 * t)
+            ..strokeWidth = 6 + 10 * t
+            ..strokeCap = StrokeCap.round
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+        );
+      }
+      canvas.drawLine(
+        l.origin,
+        end,
+        Paint()
+          ..color = const Color(0xFFFF6B7D).withValues(alpha: .75 * blink)
+          ..strokeWidth = l.beam ? 2.5 : 1.6,
+      );
+    }
+  }
+
   void _fxLegacy(
     Canvas canvas,
     int index,
@@ -884,13 +912,27 @@ class BattlePainter extends CustomPainter {
       case 4:
         // v12.9.7 (user 2026-10-25): spreading volleys are round orbs,
         // aimed shots stay long bars
-        if (shot.weapon == 'enemy-orb' || shot.weapon == 'boss-volley') {
+        if (shot.weapon == 'enemy-orb' ||
+            shot.weapon == 'boss-volley' ||
+            shot.weapon == 'enemy-big') {
           GlowShots.paint(
             canvas,
             GlowShape.orb,
             at,
-            math.max(14, shot.radius * 3.6),
+            shot.weapon == 'enemy-big' ? 26 : math.max(14, shot.radius * 3.6),
             GlowShots.pink,
+          );
+          return true;
+        }
+        if (shot.weapon == 'enemy-needle') {
+          // v12.9.8: long thin needle for fast snipes and needle trains
+          GlowShots.paint(
+            canvas,
+            GlowShape.bean,
+            at,
+            24,
+            GlowShots.violet,
+            angle: angle,
           );
           return true;
         }
@@ -1526,6 +1568,7 @@ class BattlePainter extends CustomPainter {
         }
       }
     }
+    _dangerLines(canvas);
     if (!game.resolvingBoss) CombatVfx.under(canvas, game, reducedEffects);
     for (final supply in game.supplies) {
       if (!onScreen(supply.position, 20)) continue;
