@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'support/tabs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/profile.dart';
-import 'package:shootingstar/data/content.dart';
 import 'package:shootingstar/data/cloud_sync.dart';
 import 'package:shootingstar/data/online_api.dart';
 import 'package:shootingstar/main.dart';
@@ -14,7 +13,6 @@ import 'package:shootingstar/ui/house_tree.dart';
 import 'package:shootingstar/ui/components.dart';
 import 'package:shootingstar/ui/guild_screen.dart';
 import 'package:shootingstar/ui/hangar_presets.dart';
-import 'package:shootingstar/ui/talent_screen.dart';
 import 'package:shootingstar/ui/campaign_selector.dart';
 
 import 'ui_actions.dart';
@@ -163,23 +161,8 @@ void main() {
           await tapUi(tester, action('삭제'));
           await tapUi(tester, action('취소'));
           expect(p.hangarPresets[0], isNotNull);
-          final levels = [p.attackLevel, p.hullLevel, p.magnetLevel],
-              credits = p.credits;
-          await mount(Scaffold(body: TalentScreen(profile: p)));
-          await tapUi(tester, find.byType(GameItemSlot).first);
-          await tapUi(tester, find.byKey(const ValueKey('research-attack-0')));
-          expect(p.attackLevel, levels[0] + 1);
-          expect(p.credits, credits - upgradeCost(0));
-          await tapUi(tester, find.byTooltip('닫기').last);
-          await tapUi(tester, tabWithText('선체'));
-          await tapUi(tester, find.byType(GameItemSlot).first);
-          await tapUi(tester, find.byKey(const ValueKey('research-hull-0')));
-          expect(p.hullLevel, levels[1] + 1);
-          await tapUi(tester, find.byTooltip('닫기').last);
-          await tapUi(tester, tabWithText('회수'));
-          await tapUi(tester, find.byType(GameItemSlot).first);
-          await tapUi(tester, find.byKey(const ValueKey('research-magnet-0')));
-          expect(p.magnetLevel, levels[2] + 1);
+          // v12.4.3: the research tab (TalentScreen) is the module workshop;
+          // the old per-branch research slot purchases no longer exist.
           p.clearedStages.add(0);
           await mount(Scaffold(body: CampaignSelector(profile: p)));
           await tapUi(tester, find.byKey(const ValueKey('house-node-1')));
@@ -312,7 +295,6 @@ void main() {
           final q = await Profile.load();
           expect(q.hangarPresets[0]?.name, '새 편성');
           expect(q.selectedStage, 1);
-          expect(q.attackLevel, 1);
           expect(q.mail.where((m) => m.id == 'qa-raid').length, 1);
           expect(
             jsonEncode(q.inventory.map((g) => g.toJson()).toList()),

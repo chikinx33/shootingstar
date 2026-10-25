@@ -16,7 +16,9 @@ GameEngine arena({String weapon = 'pulse'}) =>
       ..maxHp = 100000;
 
 void nextLevel(GameEngine g) {
+  // v12.4.1: a level-up only opens when a gem reaches the cat.
   g.xp = g.xpNeeded;
+  g.crystals.add(g.position);
   g.update(.001);
 }
 

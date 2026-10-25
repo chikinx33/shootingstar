@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shootingstar/art/arcade_aircraft.dart';
 import 'package:shootingstar/art/game_art.dart';
 import 'package:shootingstar/art/gear_art.dart';
 import 'package:shootingstar/art/menu_art.dart';
@@ -57,8 +56,10 @@ void main() {
   });
 
   testWidgets(
-    'lobby, hangar and live combat draw identical craft pixels without legacy atlases',
+    'legacy atlases stay unloaded and world floors tile without seams',
     (tester) async {
+      // The craft itself is drawn by ShipSpriteArt everywhere since v12.9
+      // (cat airframe sprites), so the old lobby/combat pixel match is gone.
       await tester.runAsync(() async {
         await RasterAssets.load();
         expect(GameArt.ready, isTrue);
@@ -69,36 +70,6 @@ void main() {
           expect(
             MenuArt.images[key],
             same(MenuArt.images[GameArt.address('ships', ship)]),
-          );
-          Future<List<int>> pixels(bool combat) async {
-            final recorder = ui.PictureRecorder(), canvas = Canvas(recorder);
-            if (combat) {
-              ArcadeAircraft.paintShip(canvas, const Offset(64, 64), 128, ship);
-            } else {
-              // Use the same local origin to avoid subpixel sampling noise.
-              canvas.translate(64, 64);
-              GameArt.paint(
-                canvas,
-                'ships',
-                ship,
-                const Rect.fromLTWH(-64, -64, 128, 128),
-              );
-            }
-            final picture = recorder.endRecording();
-            final image = await picture.toImage(128, 128);
-            final data = await image.toByteData(
-              format: ui.ImageByteFormat.rawRgba,
-            );
-            final bytes = data!.buffer.asUint8List().toList();
-            image.dispose();
-            picture.dispose();
-            return bytes;
-          }
-
-          expect(
-            await pixels(true),
-            await pixels(false),
-            reason: 'ship $ship changed after launch',
           );
         }
         for (var world = 0; world < 10; world++) {

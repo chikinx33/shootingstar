@@ -67,6 +67,8 @@ void main() {
   );
   test('level-up protection is silent, genuine damage flashes, and old checkpoints stay compatible', () {
     final g = arena()..xp = 1e8;
+    // Drafts open when a gem reaches the cat (v12.4.1).
+    g.crystals.add(g.position);
     g.update(.001);
     expect(g.choices, isNotEmpty);
     g.visuals.kick('main', const ui.Offset(0, 6));

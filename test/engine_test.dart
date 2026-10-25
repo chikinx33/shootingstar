@@ -88,8 +88,12 @@ void main() {
     game.choices = [GameEngine.catalog.first];
     expectFrozen();
   });
-  test('large XP grants one choice and banks the remainder during combat', () {
+  // v12.4.1: a draft opens only when a gem reaches the cat. v12.5.2: banked
+  // experience that still fills the gauge after a choice opens the next draft
+  // at once, so a large surplus chains drafts until it no longer fills a level.
+  test('large XP chains drafts on a gem pickup and banks the remainder', () {
     final game = makeGame()..xp = 200;
+    game.crystals.add(game.position);
     game.update(.05);
     final elapsed = game.elapsed;
     int selections = 0;
@@ -100,8 +104,12 @@ void main() {
       expect(game.elapsed, elapsed);
       expect(selections, lessThan(15));
     }
-    expect(selections, 1);
-    expect(game.xp, greaterThan(game.xpNeeded));
+    // 202 XP: level 2 costs 60, level 3 costs 60 + 2 * 16 = 92, leaving 50
+    // below the 108 needed for level 4.
+    expect(selections, 2);
+    expect(game.level, 3);
+    expect(game.xp, closeTo(50, .001));
+    expect(game.xp, lessThan(game.xpNeeded));
   });
   test('simultaneous player and boss death always awards defeat', () {
     for (int stage = 0; stage < 3; stage++) {
@@ -182,6 +190,8 @@ void main() {
     game.update(double.nan);
     expect(game.elapsed, 0);
     game.xp = game.xpNeeded;
+    // Drafts open when a gem reaches the cat (v12.4.1).
+    game.crystals.add(game.position);
     game.update(.05);
     expect(game.choices.length, 3);
     final time = game.elapsed;

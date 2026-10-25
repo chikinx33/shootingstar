@@ -242,7 +242,7 @@ class _SupplyShopState extends State<SupplyShop> {
                             '무기 파츠 보급',
                             'gear-cargo',
                             () => p.gearKeys,
-                            '건 · 미사일 · 드론 순환 획득 · 독립 Lv.1 파츠',
+                            '윙건 · 미사일 · 자주포 순환 획득 · 독립 Lv.1 파츠',
                             '무기 파츠 보급 열기',
                             () =>
                                 p.gearKeys > 0 &&

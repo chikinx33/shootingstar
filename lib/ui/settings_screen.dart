@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'game_decor.dart';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 
@@ -352,12 +353,13 @@ class _FlightSettingsState extends State<FlightSettings> {
                       textAlign: TextAlign.center,
                     ),
                     if (p.developerMode) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
+                      // a secondary-height button: the developer extras must
+                      // still fit 320x568 at 130% text
                       Center(
                         child: GameActionButton(
                           label: '테스트',
                           icon: Icons.science,
-                          primary: true,
                           onPressed: audible(
                             () => Navigator.push(
                               context,

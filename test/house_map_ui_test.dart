@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shootingstar/data/houses.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/ui/campaign_selector.dart';
 import 'package:shootingstar/ui/house_tree.dart';
@@ -41,7 +42,8 @@ void main() {
         await tester.tap(find.byKey(const ValueKey('house-node-1')));
         await tester.pump(const Duration(milliseconds: 400));
         expect(tester.takeException(), isNull);
-        expect(find.text('“허허, 감나무만은 안 된다.”'), findsOneWidget);
+        // v12.9.0: house lines are the guardian cat's own vow, not a human ask.
+        expect(find.text('“${houseOf(1).line}”'), findsOneWidget);
         await tapUi(tester, find.text('이 집 지키기'));
         expect(p.selectedStage, 1);
         p.dispose();
@@ -78,7 +80,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('house-node-10')));
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('“츄르 진열대만은 꼭 지켜 줘!”'), findsOneWidget);
+    expect(find.text('“${houseOf(10).line}”'), findsOneWidget);
     expect(tester.takeException(), isNull);
     p.dispose();
   });

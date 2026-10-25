@@ -7,6 +7,8 @@ import 'package:shootingstar/game/engine.dart';
 import 'package:shootingstar/main.dart';
 import 'package:shootingstar/ui/battle.dart';
 
+import 'ui_actions.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
@@ -37,7 +39,9 @@ void main() {
           armament: 'revolver',
           seed: 17,
         );
+        // v12.4.1: the level-up only opens when a gem reaches the cat.
         g.xp = g.xpNeeded;
+        g.crystals.add(g.position);
         g.update(.001);
         final app = ShootingstarApp(
           profile: p,
@@ -53,7 +57,8 @@ void main() {
             home: BattleScreen(profile: p, engineFactory: () => g),
           ),
         );
-        await tester.pump(const Duration(milliseconds: 300));
+        // v12.7 skill cards deal in from the bottom over ~1.15 s.
+        await tester.pump(const Duration(milliseconds: 1300));
         final branch = find.byKey(const Key('upgrade-main-railCharge'));
         await tester.ensureVisible(branch);
         await tester.pump();
@@ -64,8 +69,9 @@ void main() {
         await tester.tap(find.byTooltip('전투 정보'));
         await tester.pump(const Duration(milliseconds: 300));
         expect(find.text('주포 특화 · 축전 레일'), findsOneWidget);
+        await revealUi(tester, find.textContaining('중형 레일건'));
         expect(find.textContaining('중형 레일건'), findsOneWidget);
-        await tester.tap(find.byTooltip('전투 정보 닫기'));
+        await tapUi(tester, find.byTooltip('전투 정보 닫기').last);
         await tester.pump(const Duration(milliseconds: 300));
         final hud = tester.getRect(find.byKey(const Key('battle-hud-panel')));
         final field = tester.getRect(

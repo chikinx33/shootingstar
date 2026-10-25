@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shootingstar/data/campaign.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/main.dart';
 import 'package:shootingstar/ui/boss_gear_hangar.dart';
@@ -46,7 +47,8 @@ void main() {
           await tapUi(
             tester,
             find.byWidgetPredicate(
-              (w) => w is GameItemSlot && w.title == '잔광 외곽',
+              // v12.4.3 renamed the worlds (world 0 = '동네 하늘').
+              (w) => w is GameItemSlot && w.title == worlds[0].name,
             ),
           );
           final before = p.inventory.length;
@@ -73,8 +75,8 @@ void main() {
           p.equipItem(ids[1]);
           await tester.pumpAndSettle();
           expect(p.activeBossSetWorld, 0);
-          expect(find.textContaining('활성: 잔광 외곽 2피스'), findsOneWidget);
-          await revealUi(tester, find.text('특이점 심장'));
+          expect(find.textContaining('활성: ${worlds[0].name} 2피스'), findsOneWidget);
+          await revealUi(tester, find.text(worlds[9].name));
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox());
           await p.save();

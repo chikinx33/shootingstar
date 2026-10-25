@@ -62,6 +62,10 @@ void main() {
           await tester.pump(const Duration(milliseconds: 32));
           expect(p.campaignRewards.routes, {0});
           final balance = p.credits;
+          // v12.4.3: the one-page result keeps details behind the '보상' button.
+          await tapUi(tester, find.byKey(const Key('result-rewards')));
+          await tester.pump(const Duration(milliseconds: 350));
+          expect(find.text('보상·기록'), findsOneWidget);
           final receipt = find.widgetWithText(FilledButton, '보상 내역');
           await revealUi(tester, receipt);
           expect(tester.getSize(receipt).height, greaterThanOrEqualTo(64));

@@ -139,7 +139,9 @@ void main() {
     },
   );
   test('rerolls are limited and preserve level, XP, slots and pause', () {
-    final g = game()..xp = 18;
+    // First level costs 60 XP (v12.9.7) and opens on a gem pickup (v12.4.1).
+    final g = game()..xp = GameEngine.firstGrowthCost;
+    g.crystals.add(g.position);
     g.update(.01);
     final first = g.choices.map((c) => c.id).toSet();
     for (int n = 0; n < 3; n++) {
@@ -169,7 +171,8 @@ void main() {
       });
       g.maxHp += 72;
       g.hp = g.maxHp;
-      g.xp = 18;
+      g.xp = GameEngine.firstGrowthCost;
+      g.crystals.add(g.position);
       g.update(.01);
       expect(g.replacePassive('hull', 'projectile'), true);
       expect(g.passives.length, 6);

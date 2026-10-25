@@ -43,7 +43,9 @@ void main() {
             mainCycleLink: true,
             seed: 17,
           );
+          // v12.4.1: the level-up only opens when a gem reaches the cat.
           g.xp = g.xpNeeded;
+          g.crystals.add(g.position);
           g.update(.001);
           final app = ShootingstarApp(
             profile: p,
@@ -60,13 +62,16 @@ void main() {
           await tester.pumpWidget(
             wrap(BattleScreen(profile: p, engineFactory: () => g)),
           );
-          await tester.pump(const Duration(milliseconds: 32));
+          // v12.7 skill cards deal in from the bottom over ~1.15 s.
+          await tester.pump(const Duration(milliseconds: 1300));
           final card = find.byKey(const Key('upgrade-main-voidDrift'));
           await tester.ensureVisible(card);
           await tester.pump();
           expect(tester.getSize(card).height, greaterThanOrEqualTo(88));
           await tester.tap(card);
-          await tester.pump(const Duration(milliseconds: 300));
+          await tester.pump();
+          // The choice lands after the card's pick celebration (≤2 s).
+          await tester.pump(const Duration(milliseconds: 2100));
           expect(g.mainBranch, MainBranch.voidDrift);
           await tester.tap(find.byTooltip('전투 정보'));
           await tester.pump(const Duration(milliseconds: 300));

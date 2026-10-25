@@ -4,10 +4,8 @@ import 'support/tabs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/main.dart';
-import 'package:shootingstar/ui/components.dart';
 import 'package:shootingstar/ui/developer_screen.dart';
 import 'package:shootingstar/ui/item_slots.dart';
-import 'package:shootingstar/ui/talent_screen.dart';
 
 void main() {
   for (final size in [
@@ -18,9 +16,8 @@ void main() {
   ]) {
     for (final scale in [1.0, 1.3]) {
       testWidgets(
-        'picture selectors persist and completed research is compact $size $scale',
+        'developer picture selectors persist across a session reload $size $scale',
         (tester) async {
-          final semantics = tester.ensureSemantics();
           tester.view.physicalSize = size;
           tester.view.devicePixelRatio = 1;
           addTearDown(tester.view.resetPhysicalSize);
@@ -100,7 +97,12 @@ void main() {
           columns();
           await choose('test-route-8');
           await dev.save();
+          // The developer session never writes the normal save.
+          expect(prefs.getString(Profile.storageKey), before);
+          // A restart reloads (and may re-save) the normal profile itself;
+          // from then on the restored developer session must not touch it.
           final reload = await Profile.load();
+          final reloaded = prefs.getString(Profile.storageKey);
           await reload.restoreDeveloperSession();
           final restored = reload.developerSession!;
           expect(restored.activeArmamentIndex, 4);
@@ -115,38 +117,15 @@ void main() {
                 .selected,
             isTrue,
           );
-          restored.developerConfigure(researchLevel: 3);
-          await mount(TalentScreen(profile: restored));
-          await tester.tap(find.byType(GameItemSlot).first);
-          await tester.pumpAndSettle();
-          expect(
-            tester.getSize(find.byKey(const Key('game-dialog-panel'))).height,
-            lessThan(300),
-          );
-          expect(find.text('연구 완료'), findsOneWidget);
-          final labels = <String>[];
-          void visit(dynamic node) {
-            labels.add(node.getSemanticsData().label as String);
-            node.visitChildren((dynamic child) {
-              visit(child);
-              return true;
-            });
-          }
-
-          visit(
-            tester.binding.pipelineOwner.semanticsOwner!.rootSemanticsNode!,
-          );
-          expect(labels.join('\n'), contains('연구 완료'));
-          expect(find.byType(GameActionButton), findsNothing);
-          expect(find.byKey(const Key('game-page-next')), findsNothing);
+          // v12.4.3: the research tab (TalentScreen) became the module
+          // workshop, so the old completed-research popup check is gone.
           expect(tester.takeException(), isNull);
-          expect(prefs.getString(Profile.storageKey), before);
+          expect(prefs.getString(Profile.storageKey), reloaded);
           await tester.pumpWidget(const SizedBox());
           normal.dispose();
           dev.dispose();
           restored.dispose();
           reload.dispose();
-          semantics.dispose();
         },
       );
     }

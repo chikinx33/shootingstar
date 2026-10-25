@@ -88,9 +88,11 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 400));
 
-        Future<void> checkActions() async {
+        // Pause: resume, statistics, return. v12.8 result: next sortie and a
+        // row of rewards, statistics and lobby.
+        Future<void> checkActions(int count) async {
           final actions = find.byType(GameActionButton, skipOffstage: false);
-          expect(actions, findsNWidgets(3));
+          expect(actions, findsNWidgets(count));
           for (final element in actions.evaluate().toList()) {
             final action = element.widget as GameActionButton;
             final actionFinder = find.byWidgetPredicate(
@@ -110,7 +112,8 @@ void main() {
             final label = tester.widget<Text>(
               find.descendant(
                 of: actionFinder,
-                matching: find.text(action.label),
+                // v12.8: a short visible displayLabel, full label in semantics
+                matching: find.text(action.displayLabel ?? action.label),
               ),
             );
             expect(
@@ -129,19 +132,21 @@ void main() {
           expect(tester.takeException(), isNull);
         }
 
-        await checkActions();
+        await checkActions(3);
         await revealUi(tester, find.text('계속 비행'));
         await tester.tap(find.text('계속 비행'));
         await tester.pump(const Duration(milliseconds: 32));
         expect(game.paused, isFalse);
         await tester.tap(find.byTooltip('일시정지'));
         await tester.pump();
-        final exit = find.widgetWithText(GameActionButton, '귀환 · 현재 보상 정산');
+        final exit = find.byWidgetPredicate(
+          (w) => w is GameActionButton && w.label == '귀환 · 현재 보상 정산',
+        );
         await revealUi(tester, exit);
         await tester.tap(exit);
         await tester.pump(const Duration(milliseconds: 100));
         expect(game.finished, isTrue);
-        await checkActions();
+        await checkActions(4);
         final credits = profile.credits;
         await tester.pump(const Duration(seconds: 1));
         expect(profile.credits, credits);

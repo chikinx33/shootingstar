@@ -136,8 +136,10 @@ void main() {
     expect(g.hazardCenter, center);
     expect(g.position.dx, greaterThan(g.hazardCenter.dx));
   });
+  // v12.4.0/v12.4.2: the floating joystick was replaced by finger-follow
+  // steering (the default): the cat flies to a point just above the finger.
   testWidgets(
-    'touch reverses after long drag, ignores second finger, freezes for skill choice',
+    'finger-follow steering reverses with the finger, ignores second finger, freezes for skill choice',
     (tester) async {
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1;
@@ -153,28 +155,37 @@ void main() {
       );
       final g =
           (tester.widget<CustomPaint>(field).painter! as BattlePainter).game;
+      expect(p.controls.followTouch, isTrue);
+      final start = g.position;
       final finger = await tester.startGesture(
         const Offset(70, 650),
         pointer: 1,
       );
       await finger.moveTo(const Offset(310, 650));
+      final right = g.steerTarget!;
+      expect(right.dx, greaterThan(start.dx));
+      // The cat settles above the finger so the thumb never hides it.
+      expect(right.dy, lessThan(g.screenOrigin.dy + 650 * 420 / 390));
       await tester.pump(const Duration(milliseconds: 50));
-      expect(g.input.dx, greaterThan(.9));
+      expect(g.position.dx, greaterThan(start.dx));
       final other = await tester.startGesture(
         const Offset(120, 700),
         pointer: 2,
       );
       await other.moveTo(const Offset(40, 700));
       await other.up();
-      expect(g.input.dx, greaterThan(.9));
+      expect(g.steerTarget, right);
       await finger.moveTo(const Offset(250, 650));
+      expect(g.steerTarget!.dx, lessThan(right.dx));
       await tester.pump(const Duration(milliseconds: 50));
-      expect(g.input.dx, lessThan(0));
-      g.crystals.addAll(List.filled(9, g.position));
+      // The draft opens when a gem reaches the cat (v12.4.1, first level 60).
+      g.xp = g.xpNeeded;
+      g.crystals.add(g.position);
       await tester.pump(const Duration(milliseconds: 50));
       expect(g.level, 2);
       expect(g.choices.length, 3);
       expect(g.input, Offset.zero);
+      expect(g.steerTarget, isNull);
       final time = g.elapsed, hp = g.hp;
       final position = g.position;
       await finger.moveTo(const Offset(100, 600));
@@ -190,12 +201,14 @@ void main() {
       await tester.pump(const Duration(milliseconds: 2100));
       expect(g.choices, isEmpty);
       expect(g.input, Offset.zero);
-      final next = await tester.startGesture(const Offset(100, 650));
-      await next.moveTo(const Offset(145, 650));
+      expect(g.steerTarget, isNull);
+      final next = await tester.startGesture(const Offset(340, 650));
+      await next.moveTo(const Offset(380, 650));
       await tester.pump(const Duration(milliseconds: 50));
       expect(g.position.dx, greaterThan(position.dx));
       await next.cancel();
       expect(g.input, Offset.zero);
+      expect(g.steerTarget, isNull);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
       p.dispose();

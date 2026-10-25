@@ -5,7 +5,6 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shootingstar/art/arcade_aircraft.dart';
 import 'package:shootingstar/art/aircraft_assembly_art.dart';
 import 'package:shootingstar/art/gear_art.dart';
 import 'package:shootingstar/data/aircraft_geometry.dart';
@@ -15,12 +14,10 @@ import 'package:shootingstar/data/gear_traits.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/game/engine.dart';
 import 'package:shootingstar/game/combat_cues.dart';
-import 'package:shootingstar/ui/lobby_aircraft.dart';
-import 'package:shootingstar/ui/components.dart';
-import 'package:shootingstar/ui/item_slots.dart';
 
-import 'ui_actions.dart';
-
+// v12.6: the lobby no longer shows an aircraft or armament buttons, and the
+// old LobbyAircraft eye/slot overlay now only wraps ModuleAircraftPreview,
+// whose sockets are covered by ship_modules_test.dart.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() => SharedPreferences.setMockInitialValues({}));
@@ -77,166 +74,6 @@ void main() {
       expect(cues.followOffset('supportRear').distance, lessThan(.001));
     },
   );
-  testWidgets('320px eye, owned equipment, traits, arrows, equip and restore', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(320, 568);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    final p = await Profile.load();
-    p.gearAt(0)
-      ..rank = 1
-      ..level = 1;
-    p.inventory.addAll([GearItem(100, 1, rank: 2, level: 3), GearItem(101, 0)]);
-    await tester.runAsync(AircraftAssemblyArt.load);
-    Directory('.local/lobby-v65').createSync(recursive: true);
-    File('.local/lobby-v65/fixture.json')
-        .writeAsStringSync(jsonEncode(p.exportProgress()));
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: LobbyAircraft(
-              profile: p,
-              width: 184,
-              height: 400,
-              onSelectShip: () {},
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(
-      tester.widget<ArcadeAircraft>(find.byType(ArcadeAircraft)).visualScale,
-      1,
-    );
-    final beforeArt = tester.widget<ArcadeAircraft>(
-      find.byType(ArcadeAircraft),
-    );
-    final beforeRect = tester.getRect(find.byType(ArcadeAircraft));
-    expect(find.byKey(const Key('lobby-equipment-slots')), findsNothing);
-    await tester.tap(find.byKey(const Key('lobby-slot-eye')));
-    await tester.pumpAndSettle();
-    final afterArt = tester.widget<ArcadeAircraft>(find.byType(ArcadeAircraft));
-    expect(afterArt.assembly!.toJson(), beforeArt.assembly!.toJson());
-    expect(afterArt.assembly!.gearSpecs, beforeArt.assembly!.gearSpecs);
-    expect(tester.getRect(find.byType(ArcadeAircraft)), beforeRect);
-    final view = AssemblyViewport.layout(
-      beforeRect.size,
-      p.aircraftAssembly,
-      targetSize: 48,
-    );
-    for (final socket in AircraftAssemblyArt.sockets(p.aircraftAssembly)) {
-      final actual = tester.getRect(
-        find.byKey(ValueKey('socket-outline-${socket.id}')),
-      );
-      final expected = view.project(socket.rect).shift(beforeRect.topLeft);
-      expect((actual.center - expected.center).distance, lessThan(.001));
-      expect(actual.width, closeTo(expected.width, .001));
-      expect(actual.height, closeTo(expected.height, .001));
-    }
-    expect(find.byType(PopupMenuButton<int>), findsNothing);
-    expect(find.bySemanticsLabel('날개 슬롯'), findsNWidgets(2));
-    expect(find.bySemanticsLabel('우측 지원 슬롯'), findsOneWidget);
-    final main = find.bySemanticsLabel('주무장 슬롯');
-    final beforeChoice = jsonEncode(p.exportProgress());
-    await tester.tapAt(tester.getCenter(main));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('slot-overlap-choices')), findsOneWidget);
-    expect(find.byKey(const Key('socket-choice-gear-0')), findsOneWidget);
-    expect(find.byKey(const Key('socket-choice-main')), findsOneWidget);
-    await tester.tap(find.byTooltip('닫기').last);
-    await tester.pumpAndSettle();
-    expect(jsonEncode(p.exportProgress()), beforeChoice);
-    await tester.tapAt(tester.getCenter(main));
-    await tester.pumpAndSettle();
-    await tapUi(tester, find.byKey(const Key('socket-choice-gear-0')));
-    await tester.pumpAndSettle();
-    expect(find.byType(GameItemSlot), findsNWidgets(3));
-    expect(
-      find.descendant(
-        of: find.byType(GearComparisonMark),
-        matching: find.byIcon(Icons.arrow_drop_up),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(
-        of: find.byType(GearComparisonMark),
-        matching: find.byIcon(Icons.arrow_drop_down),
-      ),
-      findsOneWidget,
-    );
-    final higher = find.byWidgetPredicate(
-      (w) => w is GameItemSlot && w.title == '유성 추적기',
-    );
-    await tapUi(tester, higher);
-    await tester.pumpAndSettle();
-    expect(find.text(gearTraitDescription(1)), findsOneWidget);
-    final equip = find.byWidgetPredicate(
-      (w) => w is GameActionButton && w.label == '장착',
-    );
-    await tapUi(tester, equip);
-    await tester.pumpAndSettle();
-    expect(p.equippedGear[0], 100);
-    await p.save();
-    final copy = await Profile.load();
-    expect(copy.equippedGear[0], 100);
-    copy.dispose();
-    await tester.tap(find.byTooltip('닫기').last);
-    await tester.pumpAndSettle();
-    await tester.tapAt(
-      tester.getCenter(find.byKey(const Key('socket-wings-0'))),
-    );
-    await tester.pumpAndSettle();
-    if (find.byKey(const Key('slot-overlap-choices')).evaluate().isNotEmpty) {
-      await tapUi(tester, find.byKey(const Key('socket-choice-wings')));
-      await tester.pumpAndSettle();
-    }
-    expect(
-      find.byWidgetPredicate((w) => w is GameItemSlot && w.title == '날개 포드'),
-      findsOneWidget,
-    );
-    await tester.tap(find.byTooltip('닫기').last);
-    await tester.pumpAndSettle();
-    await tester.tapAt(tester.getCenter(find.bySemanticsLabel('우측 지원 슬롯')));
-    await tester.pumpAndSettle();
-    if (find.byKey(const Key('slot-overlap-choices')).evaluate().isNotEmpty) {
-      await tapUi(tester, find.byKey(const Key('socket-choice-supportRight')));
-      await tester.pumpAndSettle();
-    }
-    await tapUi(
-      tester,
-      find.byWidgetPredicate((w) => w is GameItemSlot && w.title == '축전 포드'),
-    );
-    await tester.pumpAndSettle();
-    await tapUi(
-      tester,
-      find.byWidgetPredicate((w) => w is GameActionButton && w.label == '장착'),
-    );
-    await tester.pumpAndSettle();
-    expect(p.aircraftAssembly.parts[AircraftMount.supportRight], 'capacitor');
-    expect(p.aircraftAssembly.parts[AircraftMount.supportLeft], isNull);
-    await p.save();
-    final supportCopy = await Profile.load();
-    expect(
-      supportCopy.aircraftAssembly.parts[AircraftMount.supportRight],
-      'capacitor',
-    );
-    supportCopy.dispose();
-    await tester.tap(find.byTooltip('닫기').last);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('lobby-slot-eye')));
-    await tester.pumpAndSettle();
-    expect(find.bySemanticsLabel('날개 슬롯'), findsNothing);
-    expect(find.bySemanticsLabel('주무장 슬롯'), findsNothing);
-    expect(find.bySemanticsLabel('우측 지원 슬롯'), findsNothing);
-    expect(tester.takeException(), isNull);
-    await tester.pumpWidget(const SizedBox());
-    p.dispose();
-  });
   test('every hull and equipment variant uses physical painted rectangles', () async {
     await AircraftAssemblyArt.load();
     for (var hull = 0; hull < 3; hull++) {

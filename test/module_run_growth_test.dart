@@ -83,17 +83,22 @@ void main() {
     },
   );
 
-  test('first draft waits eight real combat seconds and pause does not advance growth', () {
+  // v12.4.1: a draft opens only when a gem reaches the cat. v12.5.2: the
+  // hidden 8-second wait before a draft is gone, so the first gem that
+  // reaches the cat with a full gauge opens it at once.
+  test('first draft opens on the next gem without a wait and pause does not advance growth', () {
     final g = run.campaignGame(0, 1, 'starter', 11)..xp = 100;
+    g.crystals.add(g.position);
     g.setPaused(true);
     for (var i = 0; i < 200; i++) g.update(.05);
     expect(g.combatTime, 0);
-    g.setPaused(false);
-    for (var i = 0; i < 159; i++) g.update(.05);
+    expect(g.level, 1);
     expect(g.choices, isEmpty);
+    expect(g.crystals, hasLength(1));
+    g.setPaused(false);
     g.update(.05);
-    g.update(.001);
     expect(g.level, 2);
     expect(g.choices, isNotEmpty);
+    expect(g.combatTime, lessThan(.1));
   });
 }

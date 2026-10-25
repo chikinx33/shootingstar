@@ -8,6 +8,7 @@ import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/game/engine.dart';
 import 'package:shootingstar/main.dart';
 import 'package:shootingstar/ui/battle.dart';
+import 'package:shootingstar/ui/components.dart';
 
 import 'ui_actions.dart';
 
@@ -132,8 +133,9 @@ void main() {
           ),
         );
         await tester.pump(const Duration(milliseconds: 32));
-        await revealUi(tester, find.text('100개 항로 완주'));
-        expect(find.text('CAMPAIGN COMPLETE'), findsOneWidget);
+        // v12.4.3/v12.8: one fixed result page with a ribbon title.
+        await revealUi(tester, find.text('모든 동네 완주!'));
+        expect(find.text('모든 동네 완주!'), findsOneWidget);
         expect(p.campaignLoop, 4);
         expect(p.selectedStage, 0);
         expect(p.clearedStages.length, 100);
@@ -141,9 +143,14 @@ void main() {
         final credits = p.credits;
         await tester.pump(const Duration(milliseconds: 100));
         expect(p.credits, credits);
-        await tapUi(tester, find.text('다음 회차 출격'));
+        await tapUi(
+          tester,
+          find.byWidgetPredicate(
+            (w) => w is GameActionButton && w.label == '다음 회차 출격',
+          ),
+        );
         expect(launches, 2);
-        expect(find.text('100개 항로 완주'), findsNothing);
+        expect(find.text('모든 동네 완주!'), findsNothing);
         expect(p.campaignLoop, 4);
         expect(p.selectedStage, 0);
         expect(p.canStage(1), false);

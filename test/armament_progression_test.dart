@@ -137,10 +137,16 @@ void main() {
     expect(p.selectedArmament, 0);
     p.hangarPresets[0] = HangarPreset.capture(p, '펄스');
     p.selectedArmament = 5;
+    // Presets restore the module loadout only; the main gun is fixed to the
+    // airframe, so a stale weapon index can never grant or select ownership.
     final locked = HangarPreset.capture(p, '미보유');
-    final before = p.exportProgress();
-    expect(locked.apply(p), false);
-    expect(p.exportProgress(), before);
+    expect(locked.apply(p), true);
+    expect(p.armamentCollection.owns(armaments[5].id), false);
+    expect(p.armamentCollection.toJson(), {
+      'pulse': 0,
+      'kunai': 10,
+      'shotgun': 4,
+    });
     await p.replaceProgress(Profile.freshProgress());
     expect(p.armamentCollection.toJson(), {'pulse': 0});
     expect(p.activeArmamentLevel, 0);

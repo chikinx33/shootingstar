@@ -50,18 +50,26 @@ void main() {
           await tester.pumpAndSettle();
         }
 
-        for (final child in <Widget>[
-          SupplyShop(profile: p),
-          ArmamentHangar(profile: p),
-          ShipHangar(profile: p),
-          ContentHub(profile: p, initialPage: 1, showNavigation: false),
-          ContentHub(profile: p, initialPage: 2, showNavigation: false),
-          BossGearHangar(profile: p),
-          const EvolutionCodex(),
-          TalentScreen(profile: p),
-          HangarPresets(profile: p),
+        // v12.8.1 the supply tab is a shelf of big crate cards and v12.10 the
+        // weapon tab is the airframe slot screen, so neither is a slot grid;
+        // the supply exchange tab and the pet row still are.
+        Future<void> exchangeTab() async {
+          await tester.tap(find.text('교환'));
+          await tester.pumpAndSettle();
+        }
+
+        for (final (child, prepare) in <(Widget, Future<void> Function()?)>[
+          (SupplyShop(profile: p), exchangeTab),
+          (ArmamentHangar(profile: p), null),
+          (ShipHangar(profile: p), null),
+          (ContentHub(profile: p, initialPage: 2, showNavigation: false), null),
+          (BossGearHangar(profile: p), null),
+          (const EvolutionCodex(), null),
+          (TalentScreen(profile: p), null),
+          (HangarPresets(profile: p), null),
         ]) {
           await mount(child);
+          await prepare?.call();
           final slots = find.byType(GameItemSlot);
           expect(slots.evaluate().length, greaterThanOrEqualTo(3));
           final a = tester.getRect(slots.at(0)),
@@ -73,12 +81,15 @@ void main() {
           expect(c.right, lessThanOrEqualTo(size.width));
           expect(tester.takeException(), isNull);
         }
+        // The first supply crate's details open the real weapon part supply.
         await mount(SupplyShop(profile: p));
-        final inventory = p.inventory.length;
-        await tester.tap(find.byType(GameItemSlot).first);
+        // developer profiles remember the exchange tab picked above
+        await tester.tap(find.text('보급'));
         await tester.pumpAndSettle();
-        // Detail choices are fixed pages; seek the actual purchase action.
-        final action = find.widgetWithText(GameActionButton, '장비 보급 열기');
+        final owned = p.shipModules.owned.length;
+        await tester.tap(find.bySemanticsLabel('무기 파츠 보급 상세'));
+        await tester.pumpAndSettle();
+        final action = find.widgetWithText(GameActionButton, '무기 파츠 보급 열기');
         for (
           var i = 0;
           i < 8 && !action.hitTestable().evaluate().isNotEmpty;
@@ -89,7 +100,7 @@ void main() {
         }
         await tester.tap(action);
         await tester.pumpAndSettle();
-        expect(p.inventory.length, inventory + 1);
+        expect(p.shipModules.owned.length, owned + 1);
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox());
         p.dispose();

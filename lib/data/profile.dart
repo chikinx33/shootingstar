@@ -630,7 +630,11 @@ class Profile extends ChangeNotifier with ContentSystems {
           throw const FormatException('Invalid profile');
         }
         profile._restore(decoded);
-        if (decoded['aircraft'] == null) {
+        // Saves write 'legacyAircraft' + 'moduleFleet'; only a save with
+        // neither is from before the modular aircraft. One-time slot
+        // refunds (updateNotices) are written back too.
+        if (profile.updateNotices.isNotEmpty) migrated = true;
+        if (decoded['aircraft'] == null && decoded['moduleFleet'] == null) {
           final backupKey = '$storageKey.beforeModularAircraft';
           if (!prefs.containsKey(backupKey))
             await prefs.setString(backupKey, raw);

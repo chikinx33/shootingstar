@@ -75,12 +75,12 @@ const englishCatalog = <String, String>{
   "무기 파츠 보급 열기": "Open weapon supply",
   "보조 파츠 보급 열기": "Open support supply",
   "보조 보급권": "Support supply key",
-  "건 · 미사일 · 드론 순환 획득 · 독립 Lv.1 파츠":
-      "Cycles through gun, missile and drone · New level 1 parts",
+  "윙건 · 미사일 · 자주포 순환 획득 · 독립 Lv.1 파츠":
+      "Cycles through wing gun, missile and mortar · New level 1 parts",
   "방어 · 공격 보조 · 유틸 7종 순환 획득":
       "Cycles through 7 defense, attack support and utility parts",
   "보급에서 파츠를 획득하세요.": "Get parts from supplies.",
-  "보유 파츠 {0}/240 · 장착 7슬롯": "Parts {0}/240 · 7 mounts",
+  "보유 파츠 {0}/240 · 장착 {1}칸": "Parts {0}/240 · {1} mounts",
   "기체 모듈": "Ship modules",
   "날개끝": "Wingtips",
   "동체 하부": "Belly",

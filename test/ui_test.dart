@@ -11,7 +11,8 @@ import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/game/battle_painter.dart';
 import 'package:shootingstar/ui/battle.dart';
 import 'package:shootingstar/ui/game_dialog.dart';
-import 'package:shootingstar/ui/game_pages.dart';
+import 'package:shootingstar/ui/module_workshop.dart';
+import 'package:shootingstar/ui/ship_hangar.dart';
 
 void main() {
   Future<Profile> setup(WidgetTester tester, Size size) async {
@@ -33,7 +34,8 @@ void main() {
     tester,
   ) async {
     final p = await setup(tester, const Size(360, 800));
-    expect(find.text('슈팅스타'), findsOneWidget);
+    // v12.6: the lobby header has no title; the launch button is the anchor.
+    expect(find.byKey(const Key('launch')), findsOneWidget);
     expect(find.text(AppVersion.label), findsNothing);
     expect(tester.takeException(), isNull);
     await tester.tap(find.byTooltip('설정'));
@@ -44,9 +46,15 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('격납고'));
     await tester.pumpAndSettle();
-    expect(find.text('출격 편성'), findsOneWidget);
-    await revealUi(tester, find.bySemanticsLabel('기체 선택'));
-    expect(find.bySemanticsLabel('기체 선택').hitTestable(), findsOneWidget);
+    // The hangar tab is the embedded module workshop (weapon bays on the
+    // airframe); its 기체 선택 button opens the one-screen ship hangar.
+    expect(find.byType(ModuleWorkshop), findsOneWidget);
+    for (final m in ['W1', 'W2', 'W3', 'S1']) {
+      expect(find.bySemanticsLabel('$m 모듈 편집'), findsOneWidget, reason: m);
+    }
+    await tapUi(tester, find.text('기체 선택'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ShipHangar), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
     p.dispose();

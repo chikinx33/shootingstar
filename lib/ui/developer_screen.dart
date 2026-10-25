@@ -475,7 +475,23 @@ class _DeveloperTestScreenState extends State<DeveloperTestScreen> {
         3 => ContentHub(profile: p, initialPage: 2, showNavigation: false),
         4 => TalentScreen(profile: p),
         5 => GamePages(children: grantFields()),
-        6 => CollectionScreen(profile: p),
+        // its own screen (title bar, tabs, pages) would leave a 60px page
+        // under the developer headers on a small phone: open it full size
+        6 => GamePages(
+          children: [
+            GameActionButton(
+              label: '수집품 화면 열기',
+              icon: Icons.auto_awesome,
+              onPressed: audible(
+                () => Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => CollectionScreen(profile: p),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
         7 => HangarPresets(profile: p),
         _ => BossGearHangar(profile: p),
       };

@@ -3,26 +3,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/profile.dart';
+import 'package:shootingstar/data/ship_modules.dart';
 import 'package:shootingstar/main.dart';
 import 'package:shootingstar/ui/armament_hangar.dart';
 import 'package:shootingstar/ui/game_ui.dart';
+import 'package:shootingstar/ui/item_slots.dart';
+import 'package:shootingstar/ui/module_workshop.dart';
 
-Future<void> reveal(WidgetTester tester, Finder target) async {
-  if (target.hitTestable().evaluate().isNotEmpty) return;
-  for (final direction in ['previous', 'next']) {
-    for (int i = 0; i < 30; i++) {
-      final arrow = find.byKey(Key('game-page-$direction')).last;
-      if (arrow.evaluate().isEmpty ||
-          tester.widget<IconButton>(arrow).onPressed == null)
-        break;
-      await tester.tap(arrow);
-      await tester.pump(const Duration(milliseconds: 40));
-      if (target.hitTestable().evaluate().isNotEmpty) return;
-    }
-  }
-  fail('Unreachable decision: $target');
-}
+import 'ui_actions.dart';
 
+// v12.9+: the old ten-weapon armament list is gone (the main gun is fixed to
+// the airframe). Every "주무기" entry point now opens the module workshop, so
+// owned part growth and salvage refunds must be reachable there instead.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
@@ -33,9 +25,10 @@ void main() {
   for (final width in [320.0, 360.0, 390.0, 430.0])
     for (final scale in [1.0, 1.3]) {
       testWidgets(
-        'owned growth and refund use reachable fixed pages $width / $scale',
+        'module growth and salvage refund are reachable on one screen $width / $scale',
         (tester) async {
-          tester.view.physicalSize = Size(width, width == 320 ? 568 : 844);
+          final height = width == 320 ? 568.0 : 844.0;
+          tester.view.physicalSize = Size(width, height);
           tester.view.devicePixelRatio = 1;
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
@@ -58,33 +51,59 @@ void main() {
             ),
           );
           await tester.pumpAndSettle();
-          final detail = find.byKey(const ValueKey('armament-detail-pulse'));
-          await tester.ensureVisible(detail);
-          await tester.pumpAndSettle();
-          expect(tester.getSize(detail).height, greaterThanOrEqualTo(64));
-          await tester.tap(detail);
-          await tester.pumpAndSettle();
-          final upgrade = find.byKey(const ValueKey('armament-upgrade-pulse'));
-          await reveal(tester, upgrade);
-          expect(tester.getSize(upgrade).height, greaterThanOrEqualTo(64));
+          expect(find.byType(ModuleWorkshop), findsOneWidget);
           expect(
-            tester.getRect(upgrade).bottom,
-            lessThanOrEqualTo(width == 320 ? 568 : 844),
+            find.byType(GameItemSlot),
+            findsNWidgets(moduleProfiles.length),
           );
+          expect(tester.takeException(), isNull);
+
+          // Growth: the equipped wing gun is upgraded from its detail popup.
+          final id = p.moduleLoadout.parts['W1']!.instanceId;
+          final level = p.shipModules.owned[id]!.level;
+          final cost = p.moduleUpgradeCredits(level),
+              plans = p.moduleUpgradePlans(level);
+          await tapUi(tester, find.bySemanticsLabel('W1 모듈 편집'));
+          await tester.pumpAndSettle();
+          await tapUi(tester, find.byKey(ValueKey('module-item-$id')));
+          await tester.pumpAndSettle();
+          final upgrade = find.widgetWithText(GameActionButton, '파츠 강화');
+          await revealUi(tester, upgrade);
+          expect(tester.getRect(upgrade).bottom, lessThanOrEqualTo(height));
           await tester.tap(upgrade);
           await tester.pumpAndSettle();
-          expect(p.activeArmamentLevel, 1);
-          expect([p.credits, p.blueprints], [2880, 29]);
-          final reset = find.byKey(const ValueKey('armament-reset-pulse'));
-          await reveal(tester, reset);
-          await tester.tap(reset);
+          expect(p.shipModules.owned[id]!.level, level + 1);
+          expect([p.credits, p.blueprints], [3000 - cost, 30 - plans]);
+          expect(tester.takeException(), isNull);
+          await tester.tap(find.byTooltip('닫기').last);
           await tester.pumpAndSettle();
-          final confirm = find.widgetWithText(GameActionButton, '반환·초기화');
-          await reveal(tester, confirm);
-          await tester.tap(confirm);
+          await tester.tap(find.byTooltip('닫기').last);
           await tester.pumpAndSettle();
-          expect(p.activeArmamentLevel, 0);
-          expect([p.credits, p.blueprints], [3000, 30]);
+
+          // Refund: a spare part is salvaged after an explicit confirmation.
+          final spare = p.shipModules.add('gun_vulcan', level: 3);
+          final credits = p.credits, dust = p.blueprints;
+          await tapUi(tester, find.bySemanticsLabel('W1 모듈 편집'));
+          await tester.pumpAndSettle();
+          await tapUi(
+            tester,
+            find.byKey(ValueKey('module-item-${spare.instanceId}')),
+          );
+          await tester.pumpAndSettle();
+          final salvage = find.widgetWithText(GameActionButton, '파츠 분해');
+          await revealUi(tester, salvage);
+          expect(tester.getRect(salvage).bottom, lessThanOrEqualTo(height));
+          await tester.tap(salvage);
+          await tester.pumpAndSettle();
+          final confirm = find.widgetWithText(GameActionButton, '분해');
+          await tapUi(tester, confirm);
+          await tester.pumpAndSettle();
+          expect(p.shipModules.owned.containsKey(spare.instanceId), isFalse);
+          expect([p.credits, p.blueprints], [
+            credits + 20 + 3 * 5,
+            dust + 1 + 3 ~/ 3,
+          ]);
+          expect(p.moduleLoadout.parts['W1']!.instanceId, id);
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox());
           p.dispose();

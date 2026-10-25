@@ -9,6 +9,7 @@ import 'package:shootingstar/data/aircraft_geometry.dart';
 import 'package:shootingstar/data/content.dart';
 import 'package:shootingstar/data/hangar_preset.dart';
 import 'package:shootingstar/data/profile.dart';
+import 'package:shootingstar/data/ship_modules.dart';
 import 'package:shootingstar/game/engine.dart';
 
 GameEngine arena({
@@ -226,8 +227,12 @@ void main() {
       expect(() => BattleCheckpoint.restore(bad), throwsFormatException);
     },
   );
-  test('profile migration, ownership, support positions, presets and cloud replacement persist', () async {
-    final legacy = Profile.freshProgress()..remove('aircraft');
+  test('profile migration, ownership, support device, presets and cloud replacement persist', () async {
+    // v12.11: the old pet support mounts became owned S1 support devices.
+    final legacy = Profile.freshProgress()
+      ..remove('aircraft')
+      ..remove('legacyAircraft')
+      ..remove('moduleFleet');
     legacy['credits'] = 876;
     legacy['unlockedShips'] = [0, 1];
     (legacy['content'] as Map)['petLevels'] = [3, 2, 0];
@@ -237,36 +242,43 @@ void main() {
     });
     final p = await Profile.load();
     expect(p.credits, 876);
-    expect(
-      p.aircraftAssembly.parts.values,
-      containsAll(['capacitor', 'repair']),
-    );
+    final owned = p.shipModules.owned;
+    expect(owned['legacy-support-0']?.partId, 'capacitor');
+    expect(owned['legacy-support-0']?.level, 3);
+    expect(owned['legacy-support-1']?.partId, 'repair');
+    expect(owned['legacy-support-1']?.level, 2);
+    expect(owned.containsKey('legacy-support-2'), false);
     final prefs = await SharedPreferences.getInstance();
     expect(
       prefs.containsKey('${Profile.storageKey}.beforeModularAircraft'),
       true,
     );
-    final next = p.aircraftAssembly
-        .withHull(1)
-        .equip(AircraftMount.supportLeft, null)
-        .equip(AircraftMount.supportRear, 'capacitor')
-        .equip(AircraftMount.auxiliary, 'auxShield');
+    p.selectShip(1);
+    expect(p.equipModule('S1', 'legacy-support-1'), true);
+    final next = p.aircraftAssembly;
+    expect(next.hull, 1);
+    expect(next.modules!.parts['S1']!.partId, 'repair');
     expect(p.setAircraftAssembly(next), true);
+    // Locked hulls and parts that are not owned are rejected.
     expect(p.setAircraftAssembly(next.withHull(2)), false);
+    final foreign = ModuleSnapshot(1, 1, {
+      'S1': OwnedModulePart('not-owned', 'capacitor', 1),
+    });
     expect(
-      p.setAircraftAssembly(next.equip(AircraftMount.supportLeft, 'ward')),
+      p.setAircraftAssembly(AircraftAssembly(hull: 1, modules: foreign)),
       false,
     );
-    expect(p.setAircraftAssembly(next.equip(AircraftMount.main, null)), false);
+    expect(p.moduleLoadout.parts['S1']!.partId, 'repair');
     p.hangarPresets[0] = HangarPreset.capture(p, 'assembly');
     await p.save();
     final reload = await Profile.load();
-    expect(reload.aircraftAssembly.toJson(), next.toJson());
-    reload.setAircraftAssembly(AircraftAssembly.initial(0));
+    expect(reload.moduleLoadout.toJson(), next.modules!.toJson());
+    expect(reload.equipModule('S1', 'legacy-support-0'), true);
+    expect(reload.moduleLoadout.parts['S1']!.partId, 'capacitor');
     expect(reload.hangarPresets[0]!.apply(reload), true);
-    expect(reload.aircraftAssembly.toJson(), next.toJson());
+    expect(reload.moduleLoadout.toJson(), next.modules!.toJson());
     await reload.replaceProgress(p.exportProgress());
-    expect(reload.aircraftAssembly.toJson(), next.toJson());
+    expect(reload.moduleLoadout.toJson(), next.modules!.toJson());
     expect(reload.petLevels, [3, 2, 0]);
     expect(reload.credits, 876);
   });

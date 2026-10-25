@@ -3,6 +3,7 @@ import 'ui_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shootingstar/data/cat_gear.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/data/daily_challenge.dart';
 import 'package:shootingstar/main.dart';
@@ -125,28 +126,21 @@ void main() {
         }
 
         await mount(Scaffold(body: ContentHub(profile: p)));
-        await tap(
-          find
-              .byWidgetPredicate(
-                (w) =>
-                    w is Semantics &&
-                    (w.properties.label ?? '').startsWith('주무장 '),
-              )
-              .first,
-        );
+        // v12.10: the growth screen opens one slot popup (list, details and
+        // equip/upgrade/lock/dismantle tiles) instead of the old inventory
+        // detail with merge; legacy GearItem stock must stay untouched.
+        final nose = p.catGear.equippedIn(CatGearSlot.nose)!;
+        await tap(find.byKey(const Key('cat-gear-slot-nose')));
         expect(find.byType(GameDialog), findsOneWidget);
+        expect(find.byKey(const Key('cat-gear-list-nose')), findsOneWidget);
         checkDecisions();
-        final cost = p.itemUpgradeCost(p.gearAt(0));
-        await tap(find.widgetWithText(GameActionButton, '강화'));
-        expect(p.gearAt(0).level, 1);
+        final cost = nose.upgradeChuru;
+        await tap(find.byKey(const Key('cat-gear-upgrade')));
+        expect(nose.level, 2);
         expect(p.credits, 5000 - cost);
-        await tap(find.widgetWithText(FilledButton, '합성'));
-        expect(find.text('합성 재료 확인'), findsOneWidget);
-        checkDecisions();
         await tap(find.byTooltip('닫기').last);
+        expect(find.byType(GameDialog), findsNothing);
         expect(p.inventory.map((g) => g.id).toList(), inventoryIds);
-        await tester.tap(find.byTooltip('장비 상세 닫기'));
-        await tester.pumpAndSettle();
 
         await mount(PetBondScreen(profile: p, pet: 0));
         await tap(find.widgetWithText(GameActionButton, '먹이 10 선물'));
@@ -229,7 +223,7 @@ void main() {
         final restored = await Profile.load();
         expect(restored.inventory.map((g) => g.id).toList(), inventoryIds);
         expect(restored.equippedGear, equipped);
-        expect(restored.gearAt(0).level, 1);
+        expect(restored.catGear.equippedIn(CatGearSlot.nose)!.level, 2);
         expect(restored.petBond.favor[0], 60);
         expect(restored.petBond.awakening[0], 1);
         expect(restored.dailyChallenge.purchases[2], 1);

@@ -94,16 +94,17 @@ void main() {
       );
       final active = rows.where((r) => r['active'] == true);
       expect(active.every((r) => r['victory'] == true), true);
+      // v12.9.1/v12.9.7: calmer level-ups (first level 60 XP, then
+      // 60 + level * 16; house gems 4, wiped formation 8) mean fewer, later
+      // drafts than the v10.0.62 18 XP curve. v12.5.2 removed the hidden
+      // 8-second wait between drafts: every level opens exactly one draft.
       for (final row in active) {
-        expect(row['level'], inInclusiveRange(8, 14));
-        expect(row['firstDraft'], inInclusiveRange(8, 26));
-        expect(row['bossSeconds'], inInclusiveRange(12, 80));
+        expect(row['level'], inInclusiveRange(5, 10));
+        expect(row['firstDraft'], inInclusiveRange(20, 70));
+        expect(row['drafts'], (row['level'] as int) - 1);
+        expect(row['bossSeconds'], inInclusiveRange(8, 80));
         expect(row['peakCrystals'], lessThan(100));
         expect(row['bossPatterns'].length, 3);
-        final times = row['draftTimes'] as List<double>;
-        for (var i = 1; i < times.length; i++) {
-          expect(times[i] - times[i - 1], greaterThanOrEqualTo(7.999));
-        }
       }
     }
   });

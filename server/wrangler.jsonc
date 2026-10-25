@@ -22,7 +22,7 @@
     }
   ],
   "vars": {
-    "APP_VERSION": "12.11.0",
+    "APP_VERSION": "12.11.1",
     "ALLOW_LOCAL_ORIGIN": "false"
   },
   "triggers": {

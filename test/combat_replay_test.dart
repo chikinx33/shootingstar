@@ -54,8 +54,12 @@ class Seen {
         (g.damageByWeapon['common-ultimate'] ?? 0) > 0;
     block |= g.visuals.active.any((c) => c.kind == CombatCueKind.shield);
     armed |= g.shieldCounterPending;
+    // The replay flies the modular demo aircraft, whose main gun fires
+    // module bullets (kind 6) rather than the legacy pulse shots (kind 0).
     counterVolley |= g.shots.any(
-      (s) => s.kind == 0 && (s.damage - 17 * g.damageFactor * 1.5).abs() < .001,
+      (s) =>
+          (s.kind == 0 || s.kind == 6) &&
+          (s.damage - 17 * g.damageFactor * 1.5).abs() < .001,
     );
   }
 

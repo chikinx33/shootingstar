@@ -617,6 +617,7 @@ abstract final class BattleCheckpoint {
       ...game.evolved,
     }) {
       if (!survivalSkills.any((s) => s.id == id) &&
+          !pawSkills.any((s) => s.id == id) &&
           !(mountedSkills.contains(id) &&
               !game.passives.containsKey(id) &&
               !game.evolved.contains(id))) {
@@ -780,7 +781,10 @@ abstract final class BattleCheckpoint {
             'magnet',
             'repair',
             ...mountedSkills,
-          }.contains(_s(v['id'])))
+            // item attacks (paw weapons) and weapon growth steps
+            for (final paw in pawSkills) paw.id,
+          }.contains(_s(v['id'])) &&
+          !RegExp(r'^(enh|evo|ult)\|').hasMatch(_s(v['id'])))
         throw const FormatException('Invalid module upgrade choice');
       game.choices.add(
         UpgradeChoice(

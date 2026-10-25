@@ -92,17 +92,20 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('보급'));
       await tester.pumpAndSettle();
-      await tapUi(tester, find.bySemanticsLabel('장비 보급 상세'));
-      await revealUi(tester, find.widgetWithText(GameActionButton, '장비 보급 열기'));
+      // v12.4+: the gear ticket opens the weapon part supply (a module).
+      final owned = p.shipModules.owned.keys.toSet();
+      await tapUi(tester, find.bySemanticsLabel('무기 파츠 보급 상세'));
+      final open = find.widgetWithText(GameActionButton, '무기 파츠 보급 열기');
+      await revealUi(tester, open);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('장비 보급 열기'));
+      await tester.tap(open);
       await tester.pumpAndSettle();
       expect(p.gearKeys, 0);
-      expect(p.inventory.length, 7);
-      final earned = p.inventory.last.id;
+      final earned = p.shipModules.owned.keys.toSet().difference(owned);
+      expect(earned, hasLength(1));
       final restored = await Profile.load();
       expect(restored.gearKeys, 0);
-      expect(restored.inventory.last.id, earned);
+      expect(restored.shipModules.owned.keys, containsAll(earned));
       expect(restored.credits, p.credits);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());

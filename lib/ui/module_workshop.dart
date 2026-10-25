@@ -705,7 +705,10 @@ class ModuleWorkshop extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(8),
             child: Text(
-              tr('보유 파츠 ${profile.shipModules.owned.length}/240 · 장착 7슬롯'),
+              message('보유 파츠 {0}/240 · 장착 {1}칸', [
+                profile.shipModules.owned.length,
+                moduleProfiles.length,
+              ]),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 14),
             ),

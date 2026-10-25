@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,8 +7,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/art/aircraft_assembly_art.dart';
 import 'package:shootingstar/data/aircraft_assembly.dart';
 import 'package:shootingstar/data/profile.dart';
+import 'package:shootingstar/data/ship_modules.dart';
 import 'package:shootingstar/l10n/app_language.dart';
 import 'package:shootingstar/ui/aircraft_design_screen.dart';
+import 'package:shootingstar/ui/item_slots.dart';
+import 'package:shootingstar/ui/module_workshop.dart';
 
 void main() {
   testWidgets(
@@ -131,17 +136,17 @@ void main() {
     },
   );
   testWidgets(
-    '320px live assembly saves changes and respects ownership and mandatory cannon',
+    '320px live design entry opens the module workshop without saving',
     (t) async {
+      // v12.11: the live hangar edits module slots (W1/W2/W3/S1); the old
+      // category/weapon/support part tabs only remain in the preview screen.
       t.view.physicalSize = const Size(320, 568);
       t.view.devicePixelRatio = 1;
       addTearDown(t.view.resetPhysicalSize);
       addTearDown(t.view.resetDevicePixelRatio);
       SharedPreferences.setMockInitialValues({});
       final profile = await Profile.load();
-      await t.runAsync(() async {
-        await AircraftAssemblyArt.load();
-      });
+      final before = jsonEncode(profile.exportProgress());
       await t.pumpWidget(
         LanguageScope(
           child: MaterialApp(
@@ -150,43 +155,17 @@ void main() {
           ),
         ),
       );
-      await t.runAsync(() => Future<void>.delayed(Duration.zero));
       await t.pumpAndSettle();
-      Future<void> tap(String key) async {
-        await t.ensureVisible(find.byKey(ValueKey(key)));
-        await t.pumpAndSettle();
-        await t.tap(find.byKey(ValueKey(key)));
-        await t.pumpAndSettle();
-        expect(t.takeException(), isNull);
+      expect(find.byType(ModuleWorkshop), findsOneWidget);
+      expect(find.byType(GameItemSlot), findsNWidgets(moduleProfiles.length));
+      for (final mount in moduleProfiles) {
+        expect(find.bySemanticsLabel('${mount.id} 모듈 편집'), findsOneWidget);
       }
-
-      await tap('assembly-hull-1');
-      expect(profile.selectedShip, 0);
-      await tap('assembly-category-1');
-      await tap('assembly-weapon-0');
-      await tap('assembly-part-empty');
-      expect(profile.aircraftAssembly.parts[AircraftMount.main], 'cannon');
-      await tap('assembly-weapon-1');
-      await tap('assembly-part-auxShield');
-      expect(
-        profile.aircraftAssembly.parts[AircraftMount.auxiliary],
-        'auxShield',
-      );
-      await tap('assembly-category-3');
-      await tap('assembly-support-2');
-      await tap('assembly-part-ward');
-      expect(profile.aircraftAssembly.parts.values.contains('ward'), false);
-      await t.runAsync(() async {
-        await profile.save();
-        final restored = await Profile.load();
-        expect(
-          restored.aircraftAssembly.toJson(),
-          profile.aircraftAssembly.toJson(),
-        );
-      });
-      expect(find.text('자동 저장 · 다음 출격에 적용'), findsOneWidget);
+      expect(find.byKey(const Key('assembly-category-1')), findsNothing);
+      expect(jsonEncode(profile.exportProgress()), before);
       expect(t.takeException(), isNull);
       await t.pumpWidget(const SizedBox());
+      profile.dispose();
     },
   );
 }

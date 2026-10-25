@@ -10,6 +10,7 @@ import 'package:shootingstar/art/gear_art.dart';
 import 'package:shootingstar/art/aircraft_assembly_art.dart';
 import 'package:shootingstar/art/game_art.dart';
 import 'package:shootingstar/data/aircraft_assembly.dart';
+import 'package:shootingstar/data/cat_gear.dart';
 import 'package:shootingstar/data/content_catalog.dart';
 import 'package:shootingstar/data/gear_traits.dart';
 import 'package:shootingstar/data/profile.dart';
@@ -266,7 +267,9 @@ void main() {
     expect(copy.equippedGear, p.equippedGear);
     expect(copy.credits, p.credits);
     expect(copy.aircraftAssembly.toJson(), p.aircraftAssembly.toJson());
-    expect(copy.aircraftAssembly.gearSpecs[0], 1);
+    // v11+: the flown airframe takes its body gear from catGear, so the
+    // legacy GearItem loadout survives only as saved profile data.
+    expect(copy.gearSpecs[0], 1);
     expect(copy.item(gun.id)!.spentCredits, 1234);
     expect(copy.item(gun.id)!.locked, true);
     final hull = copy.inventory.firstWhere((g) => g.spec == 12),
@@ -302,17 +305,19 @@ void main() {
       );
     }
   });
+  // v12.10: the old inventory filter / card list is gone; each growth slot
+  // opens a popup listing the owned pieces with their own art and the picked
+  // piece's set traits.
   testWidgets(
-    '320px inventory filters and paged equipment details show per-item art and traits',
+    '320px gear slot popup shows per-item art and set traits',
     (t) async {
       t.view.physicalSize = const Size(320, 568);
       t.view.devicePixelRatio = 1;
       addTearDown(t.view.resetPhysicalSize);
       addTearDown(t.view.resetDevicePixelRatio);
       final p = await Profile.load();
-      for (var spec = 0; spec < 32; spec++) {
-        p.grantItem(spec);
-      }
+      final night = p.catGear.add('night', CatGearSlot.nose, 2);
+      p.catGear.add('bloom', CatGearSlot.nose, 3);
       await t.pumpWidget(
         LanguageScope(
           child: MaterialApp(
@@ -326,19 +331,27 @@ void main() {
         ),
       );
       await t.pumpAndSettle();
-      // Overview has separate equipped and inventory entries; open the second primary.
-      final open = find
-          .byWidgetPredicate(
-            (w) =>
-                w is Semantics && (w.properties.label ?? '').startsWith('주무장 '),
-          )
-          .first;
-      await t.tap(open);
+      await t.tap(find.byKey(const Key('cat-gear-slot-nose')));
       await t.pumpAndSettle();
       expect(t.takeException(), isNull);
-      expect(find.text(baseGearTraits[0]), findsOneWidget);
-      expect(find.byType(GearIcon), findsWidgets);
-      await t.tap(find.byTooltip('장비 상세 닫기'));
+      final list = find.byKey(const Key('cat-gear-list-nose'));
+      expect(list, findsOneWidget);
+      final art = find
+          .descendant(of: list, matching: find.byType(Image))
+          .evaluate()
+          .map((e) => ((e.widget as Image).image as AssetImage).assetName)
+          .toSet();
+      expect(art, {
+        for (final set in ['sunshine', 'night', 'bloom'])
+          catGearSet(set).asset(CatGearSlot.nose),
+      });
+      // the equipped starter is picked first
+      expect(find.textContaining(catGearSet('sunshine').two), findsOneWidget);
+      await t.tap(find.byKey(ValueKey('cat-gear-item-${night.id}')));
+      await t.pumpAndSettle();
+      expect(find.textContaining(catGearSet('night').two), findsOneWidget);
+      expect(t.takeException(), isNull);
+      await t.tap(find.byTooltip('닫기').last);
       await t.pumpAndSettle();
       expect(t.takeException(), isNull);
       await t.pumpWidget(const SizedBox());

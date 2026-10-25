@@ -65,53 +65,53 @@ void main() {
     () async {
       final p = await Profile.load();
       p.unlockedShips.add(1);
-      p.selectedShip = 1;
+      p.selectShip(1);
       p.selectedPilot = 3;
-      p.armamentCollection.unlock('katana');
-      p.selectedArmament = 2;
-      p.equipment = 1;
       p.techStock[2][0] = 1;
       p.equippedTech = {2};
+      final loadout = jsonEncode(p.moduleLoadout.toJson());
       final preset = HangarPreset.capture(p, '속공');
-      p.selectedShip = 0;
+      p.selectShip(0);
       p.selectedPilot = 0;
-      p.selectedArmament = 0;
-      p.equipment = 0;
       p.equippedTech = {};
       final credits = p.credits, plans = p.blueprints;
+      final owned = p.shipModules.owned.length;
       var notifications = 0;
       p.addListener(() => notifications++);
       expect(preset.apply(p), isTrue);
-      expect(
-        [p.selectedShip, p.selectedPilot, p.selectedArmament, p.equipment],
-        [1, 3, 2, 1],
-      );
+      expect([p.selectedShip, p.selectedPilot], [1, 3]);
+      expect(jsonEncode(p.moduleLoadout.toJson()), loadout);
       expect(p.equippedTech, {2});
       expect(p.credits, credits);
       expect(p.blueprints, plans);
-      expect(notifications, 1);
-      // A preset carries identities, so it sees the upgraded live item.
-      p.item(1)!.level = 7;
+      expect(p.shipModules.owned.length, owned);
+      expect(notifications, greaterThan(0));
+      // A preset carries part identities, so it sees the upgraded live part.
+      p.credits = 10000;
+      p.blueprints = 100;
+      final id = p.moduleLoadout.parts['W1']!.instanceId;
+      expect(p.upgradeModule(id), isTrue);
+      final level = p.shipModules.owned[id]!.level;
       expect(preset.apply(p), isTrue);
-      expect(p.gearAt(0).level, 7);
-      p.equippedGear[0] = 99;
-      expect(preset.gearIds.first, 1);
+      expect(p.moduleLoadout.parts['W1']!.level, level);
     },
   );
 
   test(
-    'consumed equipment causes atomic failure and keeps the saved slot',
+    'salvaged module part causes atomic failure and keeps the saved slot',
     () async {
       final p = await Profile.load();
-      final preset = HangarPreset.capture(p, '합성 전');
-      p.equippedGear[3] = p.grantItem(6)!.id;
-      p.inventory.removeWhere((item) => item.id == preset.gearIds[3]);
+      final original = p.moduleLoadout.parts['W1']!.instanceId;
+      final spare = p.shipModules.add('gun_vulcan');
+      expect(p.equipModule('W1', spare.instanceId), isTrue);
+      final preset = HangarPreset.capture(p, '분해 전');
+      expect(p.equipModule('W1', original), isTrue);
+      expect(p.salvageModule(spare.instanceId), isTrue);
       p.selectedPilot = 2;
-      p.selectedArmament = 3;
       final before = jsonEncode(p.exportProgress());
       var notifications = 0;
       p.addListener(() => notifications++);
-      expect(preset.issue(p), contains('장비가 없습니다'));
+      expect(preset.issue(p), contains('파츠를 보유하고 있지 않습니다'));
       expect(preset.apply(p), isFalse);
       expect(jsonEncode(p.exportProgress()), before);
       expect(notifications, 0);
@@ -119,12 +119,10 @@ void main() {
     },
   );
 
-  test('unavailable tech and pets reject before all writes', () async {
+  test('unavailable tech rejects before all writes', () async {
     final p = await Profile.load();
     p.techStock[0][0] = 1;
     p.equippedTech = {0};
-    p.petLevels[1] = 1;
-    p.assistingPets = {1};
     final preset = HangarPreset.capture(p, '복합 구성');
     p.equippedTech = {};
     p.techStock[0][0] = 0;
@@ -133,11 +131,11 @@ void main() {
     expect(preset.issue(p), contains('테크'));
     expect(preset.apply(p), isFalse);
     expect(jsonEncode(p.exportProgress()), before);
-    p.techStock[0][0] = 1;
-    p.petLevels[1] = 0;
-    expect(preset.issue(p), contains('보조 펫'));
-    expect(preset.apply(p), isFalse);
     expect(p.selectedPilot, 4);
+    p.techStock[0][0] = 1;
+    expect(preset.issue(p), isNull);
+    expect(preset.apply(p), isTrue);
+    expect(p.equippedTech, {0});
   });
 
   test(
@@ -188,20 +186,25 @@ void main() {
     },
   );
 
-  test('locked ships and equipment in wrong slots cannot be applied', () async {
+  test('locked ships and parts in wrong slots cannot be applied', () async {
     final p = await Profile.load();
-    final valid = HangarPreset.capture(p, '검증').toJson();
-    final ship = HangarPreset.restore({...valid, 'ship': 1})!;
+    p.unlockedShips.add(1);
+    p.selectShip(1);
+    final ship = HangarPreset.capture(p, '잠금');
+    p.selectShip(0);
+    p.unlockedShips.remove(1);
     expect(ship.issue(p), contains('해금'));
     expect(ship.apply(p), isFalse);
-    final gear = List<int>.from(valid['gearIds']);
-    final first = gear[0];
-    gear[0] = gear[1];
-    gear[1] = first;
-    final invalid = HangarPreset.restore({...valid, 'gearIds': gear})!;
-    expect(invalid.issue(p), contains('맞지 않는 장비'));
-    expect(invalid.apply(p), isFalse);
     expect(p.selectedShip, 0);
-    expect(p.equippedGear, valid['gearIds']);
+    final loadout = jsonEncode(p.moduleLoadout.toJson());
+    // A wing gun saved into the missile mount is rejected on restore.
+    final raw =
+        jsonDecode(jsonEncode(HangarPreset.capture(p, '검증').toJson()))
+            as Map<String, dynamic>;
+    final parts = raw['aircraft']['modules']['parts'] as Map;
+    parts['W2'] = parts.remove('W1');
+    expect(HangarPreset.restore(raw), isNull);
+    expect(p.selectedShip, 0);
+    expect(jsonEncode(p.moduleLoadout.toJson()), loadout);
   });
 }

@@ -141,6 +141,8 @@ void main() {
       final g = arena(a.id)
         ..xpNeeded = 8
         ..xp = 8;
+      // v12.4.1: a level-up only opens when a gem reaches the cat.
+      g.crystals.add(g.position);
       g.update(.001);
       final pair = g.choices.where((c) => c.specialization).toList();
       expect(pair.length, 2, reason: a.id);

@@ -9,6 +9,7 @@ import 'package:shootingstar/art/menu_art.dart';
 import 'package:shootingstar/art/raster_assets.dart';
 import 'package:shootingstar/data/content.dart';
 import 'package:shootingstar/data/profile.dart';
+import 'package:shootingstar/data/ship_modules.dart';
 import 'package:shootingstar/game/engine.dart';
 import 'package:shootingstar/game/flight_coach.dart';
 import 'package:shootingstar/ui/hangar_board.dart';
@@ -75,78 +76,10 @@ void main() {
     expect(g.mainRate + g.mainPower + g.mainCount, 0);
   });
 
-  for (final size in const [
-    Size(320, 568),
-    Size(360, 640),
-    Size(390, 844),
-    Size(430, 932),
-  ]) {
-    for (final scale in [1.0, 1.3]) {
-      testWidgets(
-        'preparation fixed pages and pilot/module choice $size/$scale',
-        (tester) async {
-          tester.view.physicalSize = size;
-          tester.view.devicePixelRatio = 1;
-          addTearDown(tester.view.resetPhysicalSize);
-          addTearDown(tester.view.resetDevicePixelRatio);
-          SharedPreferences.setMockInitialValues({});
-          final p = await Profile.load();
-          await tester.pumpWidget(
-            MaterialApp(
-              theme: ThemeData.dark(),
-              builder: (context, child) => MediaQuery(
-                data: MediaQuery.of(context)
-                    .copyWith(textScaler: TextScaler.linear(scale)),
-                child: child!,
-              ),
-              home: Scaffold(
-                body: SafeArea(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 104),
-                      Expanded(child: HangarBoard(profile: p)),
-                      const SizedBox(height: 88),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-          await tester.pumpAndSettle();
-          expect(tester.takeException(), isNull);
-          for (final label in ['기체 선택', '주무기 선택·강화', '편성 저장·불러오기', '영구 연구']) {
-            await revealUi(tester, find.bySemanticsLabel(label).last);
-            expect(
-              find.bySemanticsLabel(label).last.hitTestable(),
-              findsOneWidget,
-            );
-          }
-          await tapUi(tester, find.text('파일럿').last);
-          await tapUi(
-            tester,
-            find.bySemanticsLabel('${pilots[1].name} 파일럿 상세'),
-          );
-          await tapUi(tester, find.bySemanticsLabel('파일럿 선택').last);
-          expect(p.selectedPilot, 1);
-          await tapUi(tester, find.text('모듈').last);
-          await tapUi(
-            tester,
-            find.bySemanticsLabel('${equipmentOptions[1].name} 모듈 상세'),
-          );
-          await tapUi(tester, find.bySemanticsLabel('모듈 장착').last);
-          expect(p.equipment, 1);
-          expect(p.credits, 150);
-          expect(p.blueprints, 0);
-          expect(tester.takeException(), isNull);
-          await tester.pumpWidget(const SizedBox());
-          p.dispose();
-        },
-      );
-    }
-  }
-
+  // Keep this before the widget tests: an asset load first started inside
+  // fake time would never complete here and the test would hang.
   testWidgets(
-    'boot omits enemy payloads and ten weapon silhouettes render differently',
+    'boot omits enemy payloads and the shared main cannon icon draws',
     (tester) async {
       await tester.runAsync(() async {
         await RasterAssets.load();
@@ -181,7 +114,9 @@ void main() {
           picture.dispose();
         });
       }
-      expect(signatures.length, 10);
+      // v12.4.3: every main-gun family is fired by the same forward cannon,
+      // so all armament icons draw that one part (ArmamentArt).
+      expect(signatures.length, 1);
       await tester.runAsync(() async {
         await GameArt.loadBattle();
         expect(GameArt.battleReady, true);
@@ -192,6 +127,68 @@ void main() {
       });
     },
   );
+  for (final size in const [
+    Size(320, 568),
+    Size(360, 640),
+    Size(390, 844),
+    Size(430, 932),
+  ]) {
+    for (final scale in [1.0, 1.3]) {
+      testWidgets(
+        'preparation board keeps airframe and module slots reachable $size/$scale',
+        (tester) async {
+          tester.view.physicalSize = size;
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          SharedPreferences.setMockInitialValues({});
+          final p = await Profile.load();
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: ThemeData.dark(),
+              builder: (context, child) => MediaQuery(
+                data: MediaQuery.of(context)
+                    .copyWith(textScaler: TextScaler.linear(scale)),
+                child: child!,
+              ),
+              home: Scaffold(
+                body: SafeArea(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 104),
+                      Expanded(child: HangarBoard(profile: p)),
+                      const SizedBox(height: 88),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+          // v12.9.2: the cat is the pilot, so there is no pilot choice; the
+          // board is the module workshop with the airframe's mounts (v12.11).
+          for (final label in ['기체 선택', '기체 정보']) {
+            await revealUi(tester, find.text(label));
+            expect(find.text(label).hitTestable(), findsOneWidget);
+          }
+          for (final mount in moduleProfiles) {
+            final slot = find.bySemanticsLabel('${mount.id} 모듈 편집');
+            await revealUi(tester, slot.last);
+            expect(slot.last.hitTestable(), findsOneWidget);
+          }
+          await tapUi(tester, find.bySemanticsLabel('W1 모듈 편집').last);
+          await tester.pumpAndSettle();
+          expect(find.text('W1 · ${moduleProfiles.first.name}'), findsWidgets);
+          expect(p.credits, 150);
+          expect(p.blueprints, 0);
+          expect(tester.takeException(), isNull);
+          await tester.pumpWidget(const SizedBox());
+          p.dispose();
+        },
+      );
+    }
+  }
   testWidgets(
     'defeat cause and next action remain reachable at 320px and 130 percent',
     (tester) async {
@@ -217,10 +214,17 @@ void main() {
         ),
       );
       await tester.pump(const Duration(milliseconds: 100));
-      await revealUi(tester, find.text('마지막 피격: 적탄'));
-      expect(find.text('마지막 피격: 적탄').hitTestable(), findsOneWidget);
-      await revealUi(tester, find.text(defeated.damageAdvice));
-      expect(find.text(defeated.damageAdvice).hitTestable(), findsOneWidget);
+      // v12.4.3: the one-page result names the last hit; the advice lives in
+      // the reward/record popup.
+      await revealUi(tester, find.text('마지막 피격 · 적탄'));
+      expect(find.text('마지막 피격 · 적탄').hitTestable(), findsOneWidget);
+      await tapUi(tester, find.byKey(const Key('result-rewards')));
+      await tester.pump(const Duration(milliseconds: 400));
+      await revealUi(tester, find.textContaining(defeated.damageAdvice));
+      expect(
+        find.textContaining(defeated.damageAdvice).hitTestable(),
+        findsOneWidget,
+      );
       expect(p.credits, 150);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());

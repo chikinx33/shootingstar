@@ -46,7 +46,8 @@ void main() {
         expect(tester.takeException(), isNull);
         await tester.tap(find.text('성장'));
         await tester.pumpAndSettle();
-        for (final label in ['장비', '펫', '테크', '장착', '보관', '관리']) {
+        // v12.10: growth is one gear/weapon screen plus inline chick pets.
+        for (final label in ['장비', '무기', '병아리']) {
           final chip = tabWithText(label).first;
           expect(tester.getRect(chip).right, lessThanOrEqualTo(size.width));
           // Larger readable navigation may occupy more height than the old 230px cap.
@@ -77,7 +78,12 @@ void main() {
             rect.topLeft +
             (painter.game.position - painter.game.camera) * (rect.width / 420);
         expect(playerOnScreen.dx, closeTo(size.width / 2, .01));
-        expect(playerOnScreen.dy, closeTo(rect.center.dy, .01));
+        // v12.4.3 house defense: a fixed screen with the cat low in the field
+        // (screenOrigin = spawn - 74% of the viewport, house_waves.dart).
+        expect(
+          playerOnScreen.dy,
+          closeTo(rect.top + rect.height * .74, .5),
+        );
         expect(
           painter.game.viewportHeight,
           closeTo(rect.height * 420 / rect.width, .01),

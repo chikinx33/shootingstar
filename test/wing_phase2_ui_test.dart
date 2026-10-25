@@ -71,7 +71,8 @@ void main() {
         await tester.pumpWidget(
           wrap(BattleScreen(profile: p, engineFactory: () => g)),
         );
-        await tester.pump(const Duration(milliseconds: 32));
+        // v12.7 skill cards deal in from the bottom over ~1.15 s.
+        await tester.pump(const Duration(milliseconds: 1300));
         await tester.longPress(find.byKey(const Key('upgrade-missile')));
         await tester.pump(const Duration(milliseconds: 300));
         await revealUi(tester, find.textContaining('우선 표적 · 폭발').last);
@@ -80,7 +81,9 @@ void main() {
         await tester.ensureVisible(card);
         await tester.pump();
         await tester.tap(card);
-        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+        // The choice lands after the card's pick celebration (≤2 s).
+        await tester.pump(const Duration(milliseconds: 2100));
         expect(g.upgrades['missile'], 1);
         await tester.tap(find.byTooltip('전투 정보'));
         await tester.pump(const Duration(milliseconds: 300));

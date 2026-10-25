@@ -1,79 +1,58 @@
-import 'package:shootingstar/ui/item_slots.dart';
-
-import 'ui_actions.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'support/tabs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/ui/content_hub.dart';
-import 'package:shootingstar/ui/game_ui.dart';
+
+import 'support/tabs.dart';
+import 'ui_actions.dart';
 
 void main() {
-  testWidgets(
-    '360px content tabs, merge review and pet feeding work without overflow',
-    (tester) async {
-      tester.view.physicalSize = const Size(360, 800);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      SharedPreferences.setMockInitialValues({});
-      final p = await Profile.load();
-      p.grantItem(0);
-      p.grantItem(0);
-      p.blueprints = 2;
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData.dark(),
-          home: Scaffold(body: ContentHub(profile: p)),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
-      await tester.tap(
-        find
-            .byWidgetPredicate(
-              (w) =>
-                  w is Semantics &&
-                  (w.properties.label ?? '').startsWith('주무장 '),
-            )
-            .first,
-      );
-      await tester.pumpAndSettle();
-      await tapUi(tester, find.text('합성'));
-      await tester.pumpAndSettle();
-      expect(find.text('합성 재료 확인'), findsOneWidget);
-      await tester.tap(find.text('합성 확정'));
-      await tester.pumpAndSettle();
-      expect(p.gearAt(0).rank, 1);
-      await tapUi(tester,find.byTooltip('장비 상세 닫기').last);
-      await tester.tap(tabWithText('펫'));
-      await tester.pumpAndSettle();
-      await tapUi(
-        tester,
-        find.byWidgetPredicate(
-          (w) => w is GameItemSlot && w.title.startsWith('삐약'),
-        ),
-      );
-      await tapUi(tester, find.bySemanticsLabel('펫 육성').last);
-      await tester.pumpAndSettle();
-      expect(p.petLevels[0], 2);
-      expect(tester.takeException(), isNull);
-      await tapUi(tester, find.byTooltip('닫기').last);
-      await tester.tap(tabWithText('테크'));
-      await tester.pumpAndSettle();
-      for (final name in ['보급', '시즌']) {
-        await tester.tap(tabWithText('장비'));
-        await tester.pumpAndSettle();
-        await tester.tap(tabWithText('관리'));
-        await tester.pumpAndSettle();
-        await tapUi(tester, find.widgetWithText(GameActionButton, name));
-        await tester.pumpAndSettle();
-        expect(tester.takeException(), isNull);
-      }
-      await tester.pumpWidget(const SizedBox());
-      p.dispose();
-    },
-  );
+  // v12.10: the growth hub has three tabs (장비 · 무기 · 병아리). Equipment and
+  // weapons share the slot screen; pets show their details inline. The old
+  // merge review, 테크 tab and 관리 shortcuts were removed.
+  testWidgets('360px growth tabs swap slots and pet feeding works inline', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({});
+    final p = await Profile.load();
+    p.petFood = 100;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.dark(),
+        home: Scaffold(body: ContentHub(profile: p)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    for (final slot in ['nose', 'armor', 'wings', 'engines']) {
+      expect(find.byKey(Key('cat-gear-slot-$slot')), findsOneWidget);
+    }
+    await tester.tap(tabWithText('무기'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('cat-gear-slot-nose')), findsNothing);
+    for (final m in ['main', 'W1', 'W2', 'W3', 'S1']) {
+      expect(find.byKey(Key('weapon-slot-$m')), findsOneWidget, reason: m);
+    }
+    expect(tester.takeException(), isNull);
+    await tester.tap(tabWithText('병아리'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('pet-detail')), findsOneWidget);
+    expect(find.byType(Dialog), findsNothing);
+    final level = p.petLevels[0];
+    await tapUi(tester, find.byKey(const Key('pet-feed')));
+    await tester.pumpAndSettle();
+    expect(p.petLevels[0], level + 1);
+    expect(tester.takeException(), isNull);
+    await tester.tap(tabWithText('장비'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('cat-gear-slot-nose')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+    p.dispose();
+  });
 }

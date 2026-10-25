@@ -56,12 +56,15 @@ void main() {
           equipmentIndex: 0,
           seed: 623,
         )..developerInvincible = true;
+        // v12.4.1: the level-up only opens when a gem reaches the cat.
         g.xp = g.xpNeeded;
+        g.crystals.add(g.position);
         g.update(.01);
         await tester.pumpWidget(
           mount(BattleScreen(profile: p, engineFactory: () => g)),
         );
-        await tester.pump(const Duration(milliseconds: 350));
+        // v12.7 skill cards deal in from the bottom over ~1.15 s.
+        await tester.pump(const Duration(milliseconds: 1300));
         expect(find.byKey(const Key('upgrade-dark-backdrop')), findsOneWidget);
         expect(g.choices.length, 3);
         final choiceIds = g.choices.map((c) => c.id).toList();

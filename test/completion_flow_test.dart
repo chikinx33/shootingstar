@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shootingstar/data/cat_gear.dart';
 import 'package:shootingstar/data/houses.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/data/flight_record.dart';
@@ -12,6 +13,7 @@ import 'package:shootingstar/game/engine.dart';
 import 'package:shootingstar/ui/item_slots.dart';
 import 'package:shootingstar/ui/flight_history_screen.dart';
 import 'package:shootingstar/ui/campaign_selector.dart';
+import 'package:shootingstar/ui/components.dart';
 import 'package:shootingstar/ui/content_hub.dart';
 
 import 'ui_actions.dart';
@@ -108,7 +110,8 @@ void main() {
           );
           await tester.pumpAndSettle();
           await tapUi(tester, find.byKey(const ValueKey('house-node-0')));
-          await revealUi(tester, find.text('“냥이야, 내 트램펄린 지켜 줘!”'));
+          // v12.9.0: the house line is the guardian cat's own vow.
+          await revealUi(tester, find.text('“${houseOf(0).line}”'));
           await revealUi(tester, find.text(houseBossStyles.first));
           await tapUi(tester, find.bySemanticsLabel('이 집 지키기').last);
           expect(p.selectedStage, 0);
@@ -120,11 +123,13 @@ void main() {
     }
   }
   testWidgets(
-    'removed equipment detail keeps an explanation and a working close action',
+    'gear slot popup survives its piece vanishing and keeps a working close action',
     (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       final p = await Profile.load();
-      p.grantItem(0);
-      final item = p.inventory.last;
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -132,24 +137,27 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      // Equipped slot is available without hidden inventory navigation.
-      final equipped = p.gearAt(0);
-      final slot = find
-          .byWidgetPredicate(
-            (w) =>
-                w is Semantics && (w.properties.label ?? '').startsWith('주무장 '),
-          )
-          .first;
-      await tapUi(tester, slot);
-      p.equipItem(item.id);
-      p.inventory.removeWhere((g) => g.id == equipped.id);
+      // v12.10: growth > equipment is CatGearScreen; the equipped slot opens
+      // its owned-piece popup without hidden inventory navigation.
+      final equipped = p.catGear.equipped[CatGearSlot.nose]!;
+      await tapUi(tester, find.byKey(const Key('cat-gear-slot-nose')));
+      await tester.pumpAndSettle();
+      expect(find.byType(GameDialog), findsOneWidget);
+      // The equipped piece is picked first and offers its actions.
+      expect(find.byKey(const Key('cat-gear-equip')), findsOneWidget);
+      // A restore from another device drops the shown piece mid-popup.
+      p.catGear.items.removeWhere((i) => i.id == equipped);
+      p.catGear.equipped.remove(CatGearSlot.nose);
       p.contentChanged();
       await tester.pumpAndSettle();
-      expect(find.text('장비 정보 변경'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('cat-gear-equip')), findsNothing);
+      expect(find.text('보유한 부품이 없습니다. 출격 보상으로 얻을 수 있습니다.'), findsOneWidget);
       await tapUi(tester, find.byTooltip('닫기').last);
       await tester.pumpAndSettle();
-      expect(find.text('장비 정보 변경'), findsNothing);
-      expect(p.item(item.id), isNotNull);
+      expect(find.byType(GameDialog), findsNothing);
+      expect(p.catGear.equipped[CatGearSlot.nose], isNull);
+      expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
       p.dispose();
     },

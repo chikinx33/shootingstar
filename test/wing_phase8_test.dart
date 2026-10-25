@@ -51,18 +51,21 @@ void main() {
         patterns.add(g.bossPattern);
         final life = g.boss!.maxHp, chapter = g.elapsed;
         final attackBefore = g.bossAttacks;
-        tick(g, 1.05);
+        // v10.0.62 cycle: 1.1 s warning -> attack -> core opens at 3.2 s.
+        tick(g, 1.1);
         expect(g.bossAttacks, attackBefore + 1);
         expect(
           g.bossCharging || g.shots.any((s) => s.hostile),
           true,
           reason: 'world $world phase $p',
         );
-        tick(g, 1.3);
+        tick(g, 2.15);
         expect(g.bossExposed, true);
         expect(g.boss!.maxHp, life);
         expect(g.elapsed, chapter);
-        expect(g.shots.any((s) => s.weapon.startsWith('boss-')), false);
+        // Radial volleys may still be in flight at the later 3.2 s opening;
+        // what matters is that no second attack starts before the core opens.
+        expect(g.bossAttacks, attackBefore + 1);
       }
       expect(order.toSet().length, 3);
       profiles.add(order.join(','));
@@ -70,21 +73,32 @@ void main() {
     expect(profiles.length, 10);
     expect(patterns, {0, 1, 2, 3, 4, 5});
   });
-  test('later stages alternate familiar attacks after a full opening, first stage repeats', () {
+  // v10.0.62: every stage rotates the world's three attacks, one per 5.8 s
+  // round (the old "first stage repeats" rule was replaced).
+  test('every stage rotates the three world attacks after each full round', () {
     for (var world = 0; world < 10; world++) {
       final g = arena(world);
-      final first = g.bossPattern;
-      tick(g, 4.22);
-      expect(g.bossPattern, first);
-      phase(g, 1);
-      final second = g.bossPattern;
-      tick(g, 4.22);
-      expect(g.bossPattern, isNot(second));
-      tick(g, 4.22);
-      expect(g.bossPattern, second);
-      phase(g, 2);
-      expect(g.bossRound, 0);
-      expect(g.bossWarning, true);
+      for (var p = 0; p < 3; p++) {
+        if (p > 0) {
+          phase(g, p);
+          expect(g.bossRound, 0);
+          expect(g.bossWarning, true);
+        }
+        final seen = <int>[g.bossPattern];
+        for (var round = 0; round < 3; round++) {
+          final before = g.bossRound;
+          for (var i = 0; i < 600 && g.bossRound == before; i++) {
+            g.update(.01);
+            // Keep the cat's own gun from pushing the boss into a new stage.
+            g.shots.removeWhere((s) => !s.hostile);
+          }
+          expect(g.bossRound, before + 1, reason: 'one round per 5.8 s');
+          seen.add(g.bossPattern);
+        }
+        expect(seen[1], isNot(seen[0]), reason: 'world $world phase $p');
+        expect(seen.take(3).toSet().length, 3, reason: 'world $world phase $p');
+        expect(seen[3], seen[0], reason: 'world $world phase $p');
+      }
     }
   });
   test('fixed lasers, artillery and mines do not retarget during the warning or pause', () {
@@ -188,7 +202,7 @@ void main() {
     () {
       final g = arena(4);
       phase(g, 1);
-      tick(g, 1.05);
+      tick(g, 1.1);
       expect(g.enemies.length, greaterThan(1));
       final kills = g.kills;
       g.shots.add(Shot(g.position, Offset.zero, 10, 17, weapon: 'boss-mine'));
@@ -203,7 +217,8 @@ void main() {
     for (final world in [4, 5, 7, 9]) {
       final g = arena(world);
       phase(g, 2);
-      for (var i = 0; i < 3400; i++) {
+      // Eight 5.8 s rounds.
+      for (var i = 0; i < 4700; i++) {
         g.update(.01);
         expect(
           g.enemies.where((e) => e.kind != 3).length,
@@ -227,7 +242,7 @@ void main() {
       g.update(.01);
       expect(g.boss!.hp, closeTo(max * .65 + .01, .00001));
       expect(g.bossPhase, 0);
-      tick(g, 2.2);
+      tick(g, 3.2); // core opens at 3.2 s (v10.0.62)
       g.shots.add(Shot(g.boss!.position, Offset.zero, 1000000, 0));
       g.update(.01);
       g.update(.01);

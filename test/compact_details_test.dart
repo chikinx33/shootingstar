@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shootingstar/data/cat_gear.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/main.dart';
 import 'package:shootingstar/ui/components.dart';
 import 'package:shootingstar/ui/content_hub.dart';
+import 'package:shootingstar/ui/item_slots.dart';
 
 import 'ui_actions.dart';
 
@@ -16,8 +18,13 @@ void main() {
     const Size(430, 932),
   ]) {
     for (final scale in [1.0, 1.3]) {
+      // v12.10: the gear slot popup (list + details + one strip of
+      // equip / upgrade / lock / dismantle tiles) replaced the old inventory
+      // detail with refund and merge pages. Keep the intent: every decision
+      // fits and is reachable, there is only the header close, and locked or
+      // equipped pieces cannot be dismantled.
       testWidgets(
-        'equipment decisions fit; no empty refund or duplicate close $size/$scale',
+        'equipment decisions fit; one header close and guarded dismantle $size/$scale',
         (tester) async {
           tester.view.physicalSize = size;
           tester.view.devicePixelRatio = 1;
@@ -27,8 +34,8 @@ void main() {
           final p = await Profile.load();
           p.credits = 5000;
           p.blueprints = 100;
-          p.grantItem(0);
-          p.grantItem(0);
+          final starter = p.catGear.equippedIn(CatGearSlot.nose)!;
+          final spare = p.catGear.add('night', CatGearSlot.nose, 1);
           final app = ShootingstarApp(
             profile: p,
           ).build(tester.element(find.byType(View).first)) as MaterialApp;
@@ -44,60 +51,59 @@ void main() {
             ),
           );
           await tester.pumpAndSettle();
-          await tester.tap(
-            find
-                .byWidgetPredicate(
-                  (w) =>
-                      w is Semantics &&
-                      (w.properties.label ?? '').startsWith('주무장 '),
-                )
-                .first,
+          await tapUi(tester, find.byKey(const Key('cat-gear-slot-nose')));
+          await tester.pumpAndSettle();
+          expect(find.byType(GameDialog), findsOneWidget);
+          expect(find.widgetWithText(GameActionButton, '닫기'), findsNothing);
+          expect(find.byTooltip('닫기'), findsOneWidget);
+          final ids = p.catGear.items.map((i) => i.id).toList();
+          GameActionTile tile(String key) =>
+              tester.widget<GameActionTile>(find.byKey(Key(key)));
+
+          // The equipped starter is picked first: it cannot be dismantled.
+          await revealUi(tester, find.byKey(const Key('cat-gear-dismantle')));
+          expect(tile('cat-gear-equip').onPressed, isNull);
+          expect(tile('cat-gear-dismantle').onPressed, isNull);
+
+          // Pick the spare, equip and upgrade it.
+          await tapUi(tester, find.byKey(ValueKey('cat-gear-item-${spare.id}')));
+          await tester.pumpAndSettle();
+          await tapUi(tester, find.byKey(const Key('cat-gear-equip')));
+          await tester.pumpAndSettle();
+          expect(p.catGear.equipped[CatGearSlot.nose], spare.id);
+          final cost = spare.upgradeChuru;
+          await tapUi(tester, find.byKey(const Key('cat-gear-upgrade')));
+          await tester.pumpAndSettle();
+          expect(spare.level, 2);
+          expect(p.credits, 5000 - cost);
+
+          // The unequipped starter: locking guards it, unlocking frees it.
+          await tapUi(
+            tester,
+            find.byKey(ValueKey('cat-gear-item-${starter.id}')),
           );
           await tester.pumpAndSettle();
-          expect(find.widgetWithText(GameActionButton, '닫기'), findsNothing);
-          expect(find.text('재료 반환'), findsNothing);
-          expect(find.byTooltip('장비 상세 닫기'), findsOneWidget);
-          final gear = p.gearAt(0),
-              original = p.inventory.map((g) => g.id).toList();
-          final cost = p.itemUpgradeCost(gear);
-          final upgrade = find.widgetWithText(GameActionButton, '강화');
-          await revealUi(tester, upgrade);
-          await tester.tap(upgrade);
+          await tapUi(tester, find.byKey(const Key('cat-gear-lock')));
           await tester.pumpAndSettle();
-          expect(gear.level, 1);
-          expect(p.credits, 5000 - cost);
-          expect(p.blueprints, 99);
-          final refund = find.text('재료 반환');
-          await revealUi(tester, refund);
-          await tester.tap(refund);
+          expect(starter.locked, isTrue);
+          await revealUi(tester, find.byKey(const Key('cat-gear-dismantle')));
+          expect(tile('cat-gear-dismantle').onPressed, isNull);
+          expect(p.catGear.items.map((i) => i.id).toList(), ids);
+          await tapUi(tester, find.byKey(const Key('cat-gear-lock')));
           await tester.pumpAndSettle();
-          final confirm = find.widgetWithText(GameActionButton, '반환 확정');
-          await revealUi(tester, confirm);
-          await tester.tap(confirm);
+          expect(starter.locked, isFalse);
+          final credits = p.credits, refund = starter.dismantleChuru;
+          await tapUi(tester, find.byKey(const Key('cat-gear-dismantle')));
           await tester.pumpAndSettle();
-          expect(gear.level, 0);
-          expect(p.credits, 5000);
-          expect(p.blueprints, 100);
-          final merge = find.widgetWithText(FilledButton, '합성');
-          await revealUi(tester, merge);
-          await tester.tap(merge);
-          await tester.pumpAndSettle();
-          expect(find.text('합성 재료 확인'), findsOneWidget);
-          // Cancelling via the sole header close must leave every item intact.
+          expect(p.catGear.item(starter.id), isNull);
+          expect(p.credits, credits + refund);
+          expect(tester.takeException(), isNull);
+
+          // The sole header close leaves the hub as it was.
           await tester.tap(find.byTooltip('닫기').last);
           await tester.pumpAndSettle();
-          expect(p.inventory.map((g) => g.id).toList(), original);
-          await revealUi(tester, merge);
-          await tester.tap(merge);
-          await tester.pumpAndSettle();
-          final accept = find.widgetWithText(GameActionButton, '합성 확정');
-          await revealUi(tester, accept);
-          await tester.tap(accept);
-          await tester.pumpAndSettle();
-          expect(gear.rank, 1);
-          expect(p.inventory.length, original.length - 2);
-          await tester.tap(find.byTooltip('장비 상세 닫기'));
-          await tester.pumpAndSettle();
+          expect(find.byType(GameDialog), findsNothing);
+          expect(find.byKey(const Key('cat-gear-slot-nose')), findsOneWidget);
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox());
           p.dispose();

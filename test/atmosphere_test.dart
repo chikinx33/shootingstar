@@ -25,6 +25,8 @@ void main() {
       expect(game.atmosphereTime, .05);
       game.setPaused(false);
       game.xp = game.xpNeeded;
+      // Drafts open when a gem reaches the cat (v12.4.1).
+      game.crystals.add(game.position);
       game.update(.05);
       expect(game.choices, isNotEmpty);
       final before = game.atmosphereTime;

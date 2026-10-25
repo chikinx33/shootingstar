@@ -71,6 +71,7 @@ Map<String, dynamic> campaignRun(
   bool active, {
   bool defense = false,
   GameEngine? game,
+  int maxFrames = 24000,
 }) {
   final g = game ?? campaignGame(stage, level, build, seed, defense: defense);
   final drafts = <Map<String, dynamic>>[], bosses = <Map<String, dynamic>>[];
@@ -79,7 +80,7 @@ Map<String, dynamic> campaignRun(
   Foe? currentBoss;
   var decisionFrames = 0;
   final mainRegressions = <Map<String, dynamic>>[];
-  for (var frame = 0; frame < 24000 && !g.finished; frame++) {
+  for (var frame = 0; frame < maxFrames && !g.finished; frame++) {
     if (g.choices.isNotEmpty) {
       final choices = g.choices.toList()
         ..sort((a, b) => campaignChoice(g, b).compareTo(campaignChoice(g, a)));
@@ -185,6 +186,7 @@ void main() {
                 seed,
                 active,
                 defense: tier.$2 > 1,
+                maxFrames: 60000,
               ),
             );
         }
@@ -193,9 +195,21 @@ void main() {
     for (final stage in (focused ? [99] : [0, 49, 99])) {
       for (final build
           in (focused ? ['missiles'] : ['guns', 'missiles', 'mixed']))
-        record(campaignRun(stage, 40, build, 11, false, defense: true));
+        record(
+          campaignRun(
+            stage,
+            40,
+            build,
+            11,
+            false,
+            defense: true,
+            maxFrames: 60000,
+          ),
+        );
     }
-    expect(rows, hasLength(focused ? 5 : 72));
+    // v12.11 builds: 3 tiers x builds x (active, stationary) x 2 seeds, plus
+    // 3 late stages x 3 builds.
+    expect(rows, hasLength(focused ? 5 : 3 * campaignBuilds.length * 4 + 9));
     expect(
       rows.every((r) => (r['hp'] as double).isFinite && r['finished'] == true),
       isTrue,

@@ -14,7 +14,7 @@ void main() {
     normal.credits = 327;
     await normal.save();
     final prefs = await SharedPreferences.getInstance();
-    final before = prefs.getString(Profile.storageKey);
+    var before = prefs.getString(Profile.storageKey);
     final dev = await normal.startDeveloperSession();
     dev.selectShip(2);
     dev.selectStage(77);
@@ -40,6 +40,10 @@ void main() {
     await dev.save();
     expect(prefs.getString(Profile.storageKey), before);
     final reloaded = await Profile.load();
+    // Loading the normal record refreshes its own activity clocks and shop
+    // defaults and may save them; from here on only the developer session runs.
+    before = prefs.getString(Profile.storageKey);
+    expect(jsonDecode(before!)['credits'], 327);
     await reloaded.restoreDeveloperSession();
     final restored = reloaded.developerSession!;
     expect(restored.selectedStage, 77);

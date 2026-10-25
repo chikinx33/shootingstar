@@ -50,6 +50,8 @@ void main() {
     for (int i = 0; i < 25; i++) {
       g.choices = [];
       g.xp = g.xpNeeded;
+      // Drafts open when a gem reaches the cat (v12.4.1).
+      g.crystals.add(g.position);
       g.update(.01);
       expect(g.choices, isNotEmpty);
       for (final c in g.choices.where(
@@ -88,10 +90,13 @@ void main() {
     'magnet supply collects distant experience, repair respects max hull',
     () {
       final g = engine();
+      // The magnet only reaches gems within 320 (v10.0.62); farther stock
+      // stays on the ground.
+      g.crystals.add(g.position + const Offset(200, 200));
       g.crystals.add(g.position + const Offset(400, 400));
       g.supplies.add(Supply(g.position, 1));
       g.update(.01);
-      expect(g.crystals, isEmpty);
+      expect(g.crystals.length, 1);
       expect(g.absorbingCrystals.length, 1);
       expect(g.xp, 0);
       for (var i = 0; i < 60; i++) {

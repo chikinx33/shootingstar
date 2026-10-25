@@ -128,11 +128,12 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.getRect(find.text('함대 보급')), heading);
         await tapUi(tester, find.text('교환'));
-        await tapUi(tester, find.bySemanticsLabel('먹이 교환 상세'));
-        final credits = p.credits, food = p.petFood;
-        await tapUi(tester, action('먹이 교환'));
-        expect(p.credits, credits - 60);
-        expect(p.petFood, food + 30);
+        // The pet food offer left the exchange; 별가루 is the cheapest one now.
+        await tapUi(tester, find.bySemanticsLabel('별가루 교환 상세'));
+        final credits = p.credits, plans = p.blueprints;
+        await tapUi(tester, action('별가루 교환'));
+        expect(p.credits, credits - 100);
+        expect(p.blueprints, plans + 3);
         expect(find.byType(RewardPopup), findsOneWidget);
         final earned = jsonEncode(p.exportProgress());
         await tapUi(tester, action('확인'));
