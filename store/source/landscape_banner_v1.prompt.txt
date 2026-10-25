@@ -1,0 +1,11 @@
+Mode: built-in image_gen
+Reference: store/source/splash_ref.png
+Output: store/source/landscape_banner_v1.png
+
+Use case: identity-preserve.
+Asset type: wide landscape key-art banner for a cute casual mobile shooter, 2:1 aspect ratio.
+Input image 1 is the edit target and exact character, fighter design, palette, and outline reference. Recompose its portrait scene into a wide landscape action banner.
+Scene: golden sunset over a cozy warm-lit neighborhood of small houses, fluffy peach clouds, purple upper sky and a few shooting stars. Match the reference's bright flat cartoon rendering, thick very dark outlines, warm orange/yellow and cool cyan palette, and simple cel-shaded highlights.
+Composition: Keep the entire LEFT 45 percent calm and simple, mostly soft sunset sky and clouds, suitable for adding a title later. No characters, ships, projectiles, strong streaks or busy foreground in this left area. Confine the action to the right 55 percent. A large orange tabby cat pilot in the same round orange-and-white rocket fighter flies dynamically toward the UPPER RIGHT, firing glowing cyan energy shots toward the fleeing enemies. Preserve the cat's round face, orange stripes, cream muzzle, tiny black eyes, curved cute mouth, brown aviator goggles with cyan lenses, red scarf, cream paws. Preserve the rounded orange hull with broad white stripe, blue bubble canopy, orange top fin and metallic rear rocket nozzle. Adapt only orientation, scale and placement needed for the new composition; do not redesign the hero or vehicle.
+Behind the hero in formation are exactly two smaller fighters, each with a clearly visible cute cat pilot: one gray cat and one black cat. Both remain entirely right of the 45-percent boundary. On the far right a few silly round vacuum-cleaner-shaped alien robot ships retreat toward the right, clear and playful rather than frightening. Maintain readable separation among all ships. Warm-lit houses form the bottom landscape, concentrated toward center and right, with left title area remaining quiet.
+Constraints: Same illustration art style, character identity and fighter geometry as input, except the explicitly requested new landscape framing, flight direction, added pilots/enemies and shots. No text, no letters, no logo, no watermark, no UI. One finished image, 2:1 landscape.

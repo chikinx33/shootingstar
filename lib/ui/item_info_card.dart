@@ -166,29 +166,35 @@ class ItemInfoCard extends StatelessWidget {
                     decoration: _boxStyle,
                     child: Column(
                       children: [
-                        Text(
-                          tr(stats[i].value),
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          softWrap: false,
-                          overflow: TextOverflow.fade,
-                          style: TextStyle(
-                            fontSize: 17,
-                            height: 1.2,
-                            fontWeight: FontWeight.w900,
-                            color: stats[i].color,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            tr(stats[i].value),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            softWrap: false,
+                            overflow: TextOverflow.fade,
+                            style: TextStyle(
+                              fontSize: 17,
+                              height: 1.2,
+                              fontWeight: FontWeight.w900,
+                              color: stats[i].color,
+                            ),
                           ),
                         ),
-                        Text(
-                          tr(stats[i].label),
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          softWrap: false,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            height: 1.2,
-                            fontWeight: FontWeight.w700,
-                            color: _muted,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            tr(stats[i].label),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            softWrap: false,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              height: 1.2,
+                              fontWeight: FontWeight.w700,
+                              color: _muted,
+                            ),
                           ),
                         ),
                       ],

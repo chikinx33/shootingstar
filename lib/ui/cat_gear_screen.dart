@@ -214,9 +214,9 @@ class _CatGearScreenState extends State<CatGearScreen>
     for (final set in catGearSets) {
       final n = counts[set.id] ?? 0;
       if (n >= 4) {
-        parts.add('${set.name} 4세트 · ${set.four}');
+        parts.add(message('{0} 4세트 · {1}', [set.name, set.four]));
       } else if (n >= 2) {
-        parts.add('${set.name} 2세트 · ${set.two}');
+        parts.add(message('{0} 2세트 · {1}', [set.name, set.two]));
       }
     }
     return parts.isEmpty ? '같은 세트 2·4부위를 장착하면 세트 효과' : parts.join('\n');
@@ -291,30 +291,35 @@ class _CatGearScreenState extends State<CatGearScreen>
                       excludeSemantics: true,
                       child: Column(
                         children: [
-                          Text(
-                            tr(shown),
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            softWrap: false,
-                            overflow: TextOverflow.fade,
-                            // a narrow phone keeps a gap between columns
-                            style: TextStyle(
-                              fontSize: box.maxWidth < 300 ? 14 : 16,
-                              height: 1.2,
-                              fontWeight: FontWeight.w900,
-                              color: color,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              tr(shown),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              softWrap: false,
+                              // a narrow phone keeps a gap between columns
+                              style: TextStyle(
+                                fontSize: box.maxWidth < 300 ? 14 : 16,
+                                height: 1.2,
+                                fontWeight: FontWeight.w900,
+                                color: color,
+                              ),
                             ),
                           ),
-                          Text(
-                            tr(label),
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            softWrap: false,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              height: 1.2,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFFB8C7DA),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              tr(label),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              softWrap: false,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                height: 1.2,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFFB8C7DA),
+                              ),
                             ),
                           ),
                         ],
@@ -710,7 +715,8 @@ class _CatGearScreenState extends State<CatGearScreen>
                         ('Lv.${part.level}/40', const Color(0xFFFFD43D)),
                         if (here) ('장착 중', const Color(0xFF7CE08A)),
                       ],
-                      tags: part.definition.effect.split(' · '),
+                      // translate the whole effect first, then split it into tags
+                      tags: tr(part.definition.effect).split(' · '),
                       stats: stats,
                       note: note,
                       churu: part.level >= 40
