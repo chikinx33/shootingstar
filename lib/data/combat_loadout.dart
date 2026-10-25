@@ -1,60 +1,21 @@
 class ArmamentSpec {
-  const ArmamentSpec(this.id, this.name, this.reference, this.detail);
-  final String id, name, reference, detail;
+  const ArmamentSpec(this.id, this.name, this.detail);
+  final String id, name, detail;
 }
 
-// Shared mechanical families; project names/assets remain original.
+// Main gun families (legacy save ids). v12.9.3 dropped the outside-game
+// reference names; project names and art are original.
 const armaments = [
-  ArmamentSpec('pulse', '펄스 주포', 'Shootingstar', '전방 직선탄 · 진화 시 관통·피해 강화'),
-  ArmamentSpec(
-    'kunai',
-    '유도 침',
-    'Kunai / Spirit Shuriken',
-    '전방 좁은 각도 유도탄 · 뒤로 돌지 않음',
-  ),
-  ArmamentSpec(
-    'katana',
-    '초승 파동검',
-    'Katana / Demon Blade',
-    '전방 중거리 파동 · 진화 시 관통·피해 강화',
-  ),
-  ArmamentSpec('bat', '중력 타격봉', 'Baseball Bat / Lucille', '짧고 넓은 전방 충격탄'),
-  ArmamentSpec(
-    'shotgun',
-    '산탄 캐논',
-    'Shotgun / Gatling',
-    '전방 부채꼴 산탄 · 진화 시 관통·피해 강화',
-  ),
-  ArmamentSpec(
-    'revolver',
-    '중형 레일건',
-    'Revolver / Reaper',
-    '전방 고위력탄 · 6회 사격 후 재장전',
-  ),
-  ArmamentSpec(
-    'lightchaser',
-    '광자 참격기',
-    'Lightchaser / Eternal Light',
-    '전방 장거리 광자 파동',
-  ),
-  ArmamentSpec(
-    'void',
-    '공허 투사기',
-    'Void Power / Gloom Nova',
-    '전방 중력탄 · 공중 적만 범위 폭발',
-  ),
-  ArmamentSpec(
-    'disorder',
-    '영혼 추적검',
-    'Sword of Disorder / Sword of Domination',
-    '전방 영혼탄 · 처치 중첩으로 피해 강화',
-  ),
-  ArmamentSpec(
-    'lance',
-    '쌍극 성창',
-    'Twin Lance / Starforged Havoc',
-    '전방 쌍발 광탄 · 진화 시 관통·피해 강화',
-  ),
+  ArmamentSpec('pulse', '펄스 주포', '전방 직선탄 · 진화 시 관통·피해 강화'),
+  ArmamentSpec('kunai', '유도 침', '전방 좁은 각도 유도탄 · 뒤로 돌지 않음'),
+  ArmamentSpec('katana', '초승 파동검', '전방 중거리 파동 · 진화 시 관통·피해 강화'),
+  ArmamentSpec('bat', '중력 타격봉', '짧고 넓은 전방 충격탄'),
+  ArmamentSpec('shotgun', '산탄 캐논', '전방 부채꼴 산탄 · 진화 시 관통·피해 강화'),
+  ArmamentSpec('revolver', '중형 레일건', '전방 고위력탄 · 6회 사격 후 재장전'),
+  ArmamentSpec('lightchaser', '광자 참격기', '전방 장거리 광자 파동'),
+  ArmamentSpec('void', '공허 투사기', '전방 중력탄 · 공중 적만 범위 폭발'),
+  ArmamentSpec('disorder', '영혼 추적검', '전방 영혼탄 · 처치 중첩으로 피해 강화'),
+  ArmamentSpec('lance', '쌍극 성창', '전방 쌍발 광탄 · 진화 시 관통·피해 강화'),
 ];
 
 /// v12.9.2 (user 2026-10-25): the cat is the pilot. Each guardian cat flies

@@ -1,48 +1,119 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
 
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../art/flight_scene_art.dart';
 import '../art/ship_sprite_art.dart';
 import '../data/houses.dart';
 import '../l10n/app_language.dart';
+import '../art/ui_kit.dart';
+import 'game_decor.dart';
+import 'lobby_cat_hero.dart';
 
-/// The sortie's opening beat: the cat's base pod drops in, then every part
-/// and weapon flies in and locks on, and "출격!" flashes. About 1.9 s,
-/// never blocks input (the run starts in slow motion until the first touch).
-class LaunchAssembly extends StatefulWidget {
-  const LaunchAssembly({
+/// The sortie's opening (v12.9.3, user 2026-10-25). The cat's base craft
+/// sits on the roof of its own home (top view) and takes off; clouds stream
+/// in like the boss transition and hide the town; above the clouds the craft
+/// assembles in three beats — base + pilot, wings + engines, then the
+/// weapons and gear — every part slamming in with a white flash and impact
+/// sparks; finally it shrinks to its combat size and spot while the clouds
+/// clear, and [onDone] starts the run. The battle is held until then.
+class SortieIntro extends StatefulWidget {
+  const SortieIntro({
     super.key,
     required this.hull,
     required this.hidden,
     required this.assets,
+    required this.target,
+    required this.onDone,
     this.stage,
+    this.onCue,
   });
 
-  /// v12: the house being defended — its owner asks the cat for help.
-  final int? stage;
   final int hull;
   final Set<String> hidden;
   final Map<String, String> assets;
 
+  /// The craft's battle spot in 420-wide view units (cat position minus
+  /// camera); its combat size is [shipCombatSide] view units per canvas unit.
+  final Offset target;
+  final VoidCallback onDone;
+
+  /// The house being defended; null for daily runs.
+  final int? stage;
+
+  /// Sound beats: 'launch' on take-off, 'equip' on each attach.
+  final void Function(String event)? onCue;
+
+  /// Total length in seconds.
+  static const seconds = 4.8;
+
+  /// Beat times (seconds): take-off, clouds full, wings, weapons, shrink.
+  static const takeOff = .5, cloudsFull = 1.9, wingsAt = 2.45;
+  static const weaponsAt = 3.2, shrinkAt = 3.8;
+
+  /// Which beat a layer joins: 1 base + pilot, 2 wings + engines, 3 the rest.
+  static int beatOf(String id) {
+    if (id == 'base' || id == 'canopy' || id == 'flame_base') return 1;
+    if (ShipSpriteArt.sidewaysLayer(id)) return 2;
+    return 3;
+  }
+
   @override
-  State<LaunchAssembly> createState() => _LaunchAssemblyState();
+  State<SortieIntro> createState() => _SortieIntroState();
 }
 
-class _LaunchAssemblyState extends State<LaunchAssembly>
+class _SortieIntroState extends State<SortieIntro>
     with SingleTickerProviderStateMixin {
   late final AnimationController _run = AnimationController(
     vsync: this,
-    duration: Duration(milliseconds: widget.stage == null ? 1900 : 2600),
+    duration: const Duration(milliseconds: 4800), // [SortieIntro.seconds]
   );
+  static ui.Image? _roof;
+  final _cued = <String>{};
+  bool _started = false;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_run.isAnimating && _run.value == 0) {
-      if (ShipSpriteArt.liveMotion(context)) {
-        _run.forward();
-      } else {
-        _run.value = 1; // tests / reduced motion: skip the beat
+  void initState() {
+    super.initState();
+    _run.addListener(_beats);
+    _run.addStatusListener((status) {
+      if (status == AnimationStatus.completed) widget.onDone();
+    });
+    unawaited(_prepare());
+  }
+
+  Future<void> _prepare() async {
+    try {
+      await ShipSpriteArt.load();
+      if (_roof == null) {
+        final data = await rootBundle.load('assets/art/houses_v12/house_9.jpg');
+        final codec = await ui.instantiateImageCodec(
+          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+          targetWidth: 720,
+        );
+        _roof = (await codec.getNextFrame()).image;
+        codec.dispose();
       }
+    } catch (_) {
+      // the beat still plays over the sky colour
     }
+    if (!mounted || _started) return;
+    _started = true;
+    _run.forward();
+  }
+
+  void _beats() {
+    final s = _run.value * SortieIntro.seconds;
+    void cue(String key, double at, String event) {
+      if (s >= at && _cued.add(key)) widget.onCue?.call(event);
+    }
+
+    cue('launch', SortieIntro.takeOff, 'launch');
+    cue('wings', SortieIntro.wingsAt, 'equip');
+    cue('weapons', SortieIntro.weaponsAt, 'equip');
   }
 
   @override
@@ -58,34 +129,34 @@ class _LaunchAssemblyState extends State<LaunchAssembly>
       child: AnimatedBuilder(
         animation: _run,
         builder: (context, _) {
-          final t = _run.value;
-          if (t >= 1 || !ShipSpriteArt.ready) return const SizedBox.shrink();
-          final fade = t > .82 ? (1 - t) / .18 : 1.0;
-          final word = t > .62 ? ((t - .62) / .12).clamp(0.0, 1.0) : 0.0;
-          return Opacity(
-            opacity: fade.clamp(0.0, 1.0),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                const ColoredBox(color: Color(0x99101A2C)),
-                if (widget.stage case final stage?)
-                  Align(
-                    alignment: const Alignment(0, -.78),
-                    child: Opacity(
-                      opacity: (t * 6).clamp(0.0, 1.0),
-                      child: _HousePlea(stage: stage),
-                    ),
-                  ),
-                CustomPaint(
-                  painter: _AssemblyPainter(
-                    ShipSpriteArt.shipFor(widget.hull),
-                    widget.hidden,
-                    widget.assets,
-                    t,
+          final s = _run.value * SortieIntro.seconds;
+          final title = _window(s, 2.0, 2.3, 3.6, 3.9);
+          final word = _window(s, 3.35, 3.5, 3.95, 4.15);
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              CustomPaint(
+                key: const Key('sortie-intro'),
+                painter: _SortiePainter(
+                  s: s,
+                  hull: widget.hull,
+                  hidden: widget.hidden,
+                  assets: widget.assets,
+                  target: widget.target,
+                  roof: _roof,
+                ),
+              ),
+              if (widget.stage case final stage? when title > 0)
+                Align(
+                  alignment: const Alignment(0, -.82),
+                  child: Opacity(
+                    opacity: title,
+                    child: _Resolve(stage: stage, hull: widget.hull),
                   ),
                 ),
+              if (word > 0)
                 Align(
-                  alignment: const Alignment(0, .62),
+                  alignment: const Alignment(0, .5),
                   child: Transform.scale(
                     scale: .6 + .4 * Curves.easeOutBack.transform(word),
                     child: Opacity(
@@ -110,85 +181,245 @@ class _LaunchAssemblyState extends State<LaunchAssembly>
                     ),
                   ),
                 ),
-              ],
-            ),
+            ],
           );
         },
       ),
     );
   }
+
+  /// 0 → 1 between [a] and [b], 1 until [c], back to 0 at [d].
+  static double _window(double s, double a, double b, double c, double d) {
+    if (s <= a || s >= d) return 0;
+    if (s < b) return (s - a) / (b - a);
+    if (s <= c) return 1;
+    return (d - s) / (d - c);
+  }
 }
 
-class _AssemblyPainter extends CustomPainter {
-  _AssemblyPainter(this.shipId, this.hidden, this.assets, this.t);
-  final String shipId;
+double _smooth(double t) {
+  final x = t.clamp(0.0, 1.0);
+  return x * x * (3 - 2 * x);
+}
+
+class _SortiePainter extends CustomPainter {
+  _SortiePainter({
+    required this.s,
+    required this.hull,
+    required this.hidden,
+    required this.assets,
+    required this.target,
+    required this.roof,
+  });
+  final double s;
+  final int hull;
   final Set<String> hidden;
   final Map<String, String> assets;
-  final double t;
+  final Offset target;
+  final ui.Image? roof;
+
+  /// The roof's middle on the home map (fractions of house_9.jpg).
+  static const _roofSpot = Offset(.5, .34);
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final shipId = ShipSpriteArt.shipFor(hull);
+    final k = size.width / 420;
     final b = ShipSpriteArt.bounds(shipId);
-    final side = (size.shortestSide * .62) / b.longestSide;
-    final center = Offset(size.width / 2, size.height * .42) - b.center * side;
+    final big = size.shortestSide * .56 / b.longestSide;
+    final park = big * .42;
+    final hover = Offset(size.width / 2, size.height * .46);
+
+    // 1. the home map under the roof, receding as the craft climbs
+    final climb = _smooth((s - SortieIntro.takeOff) / 1.2);
+    final cover = s < SortieIntro.shrinkAt
+        ? _smooth((s - 1.1) / (SortieIntro.cloudsFull - 1.1))
+        : 1 - _smooth((s - SortieIntro.shrinkAt) / 1.0);
+    if (s < SortieIntro.cloudsFull + .1) {
+      final art = roof;
+      if (art != null) {
+        final scale =
+            math.max(size.width / art.width, size.height / art.height) *
+            (1.55 - .5 * climb);
+        final w = art.width * scale, h = art.height * scale;
+        // the roof sits under the craft, then drifts down (flying forward)
+        final at = Offset(
+          hover.dx - _roofSpot.dx * w,
+          hover.dy - _roofSpot.dy * h + climb * size.height * .35,
+        );
+        canvas.drawImageRect(
+          art,
+          Rect.fromLTWH(0, 0, art.width.toDouble(), art.height.toDouble()),
+          at & Size(w, h),
+          Paint()..filterQuality = FilterQuality.medium,
+        );
+      } else {
+        canvas.drawRect(
+          Offset.zero & size,
+          Paint()..color = const Color(0xFF7FB3D9),
+        );
+      }
+    }
+
+    // 2. clouds stream in (the boss transition's veil) and later clear
+    FlightSceneArt.paintCloudVeil(canvas, size, cover, s * .9);
+
+    // 3. the craft: parked → climbing → assembling → shrinking into place
+    final shrink = _smooth((s - SortieIntro.shrinkAt) / 1.0);
+    final grown = park + (big - park) * climb;
+    final side = s < SortieIntro.shrinkAt
+        ? grown
+        : big + (shipCombatSide * k - big) * shrink;
+    final bob = s > SortieIntro.cloudsFull && s < SortieIntro.shrinkAt
+        ? math.sin(s * 5) * size.height * .006
+        : 0.0;
+    var center = s < SortieIntro.shrinkAt
+        ? hover + Offset(0, bob)
+        : Offset.lerp(hover, target * k, shrink)!;
+
+    // a hit-stop shake right after each attach
+    for (final at in [SortieIntro.wingsAt, SortieIntro.weaponsAt]) {
+      final d = s - at;
+      if (d >= 0 && d < .18) {
+        final amp = (1 - d / .18) * size.shortestSide * .012;
+        center += Offset(math.sin(d * 140) * amp, math.cos(d * 110) * amp);
+      }
+    }
+
+    double attach(String id) => switch (SortieIntro.beatOf(id)) {
+      1 => 1,
+      2 => (s - (SortieIntro.wingsAt - .22)) / .22,
+      _ => (s - (SortieIntro.weaponsAt - .22)) / .22,
+    };
+    double flashOf(double at) {
+      final d = s - at;
+      return d < 0 || d > .3 ? 0 : 1 - d / .3;
+    }
+
+    final flash = math.max(
+      flashOf(SortieIntro.wingsAt),
+      flashOf(SortieIntro.weaponsAt),
+    );
+    final fade = s > SortieIntro.seconds - .15
+        ? ((SortieIntro.seconds - s) / .15).clamp(0.0, 1.0)
+        : 1.0;
+
+    // its shadow on the roof shrinks away as it climbs
+    if (s < SortieIntro.cloudsFull) {
+      final lift = climb * size.height * .08;
+      canvas.saveLayer(
+        null,
+        Paint()
+          ..colorFilter = ColorFilter.mode(
+            const Color(0xFF0B1420).withValues(alpha: .38 * (1 - climb)),
+            BlendMode.srcIn,
+          ),
+      );
+      ShipSpriteArt.paint(
+        canvas,
+        shipId,
+        center + Offset(lift * .4, lift + park * .05) - b.center * side,
+        side * (1 - .25 * climb),
+        hidden: hidden,
+        assets: assets,
+        attach: attach,
+      );
+      canvas.restore();
+    }
     ShipSpriteArt.paint(
       canvas,
       shipId,
-      center,
+      center - b.center * side,
       side,
-      time: t * 2,
+      time: s,
       hidden: hidden,
       assets: assets,
-      // base pod first (0-.25), then each layer in .045 s steps
-      assembly: (order) => ((t * 1.9 - order * .07) / .32),
+      opacity: fade,
+      attach: attach,
+      flash: flash,
     );
+
+    // impact sparks where the parts locked on
+    for (final (at, beat) in [
+      (SortieIntro.wingsAt, 2),
+      (SortieIntro.weaponsAt, 3),
+    ]) {
+      final d = s - at;
+      if (d < 0 || d > .35) continue;
+      final grow = Curves.easeOutCubic.transform(d / .35);
+      for (final point in ShipSpriteArt.layerPoints(
+        shipId,
+        (id) => SortieIntro.beatOf(id) == beat,
+        hidden: hidden,
+      )) {
+        ShipSpriteArt.paintFx(
+          canvas,
+          'hit_spark',
+          center + (point - b.center) * side,
+          side * (.18 + .32 * grow),
+          d * 6,
+          opacity: 1 - d / .35,
+        );
+      }
+      ShipSpriteArt.paintFx(
+        canvas,
+        'level_burst',
+        center,
+        side * (.6 + 1.1 * grow),
+        0,
+        opacity: (1 - d / .35) * .7,
+      );
+    }
   }
 
   @override
-  bool shouldRepaint(_AssemblyPainter old) => old.t != t;
+  bool shouldRepaint(_SortiePainter old) =>
+      old.s != s || old.roof != roof || old.target != target;
 }
 
-class _HousePlea extends StatelessWidget {
-  const _HousePlea({required this.stage});
-  final int stage;
+/// "{House} 지키기" and the cat's own resolve for the people living there
+/// (humans never ask the cats for help, user 2026-10-25).
+class _Resolve extends StatelessWidget {
+  const _Resolve({required this.stage, required this.hull});
+  final int stage, hull;
   @override
   Widget build(BuildContext context) {
     final house = houseOf(stage);
+    // outlined lettering on a kit plate: readable over white clouds
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset(houseOwner(stage), width: 72, height: 72),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  message('{0} 지키기', [house.place]),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFFFFD43D),
-                    shadows: [Shadow(color: Color(0xFF3A1A00), blurRadius: 6)],
-                  ),
-                ),
-                Text(
-                  '“${tr(house.line)}”',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    shadows: [Shadow(color: Color(0xFF101A2C), blurRadius: 4)],
-                  ),
-                ),
-              ],
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: UiKitFrame(
+        'plate',
+        padding: const EdgeInsets.fromLTRB(14, 8, 22, 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              LobbyCatHero.faces[hull.clamp(0, LobbyCatHero.faces.length - 1)],
+              width: 56,
+              height: 56,
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Flexible(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GameLettering(message('{0} 지키기', [house.place]), size: 22),
+                  Text(
+                    '“${tr(house.line)}”',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

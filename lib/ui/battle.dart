@@ -104,7 +104,17 @@ class _BattleScreenState extends State<BattleScreen>
   String? _adStatus;
   Profile get p => widget.profile;
   bool get controlsLocked => blocked || game.resolvingBoss;
+
+  /// v12.9.3: the sortie intro (roof, clouds, assembly) holds the run.
+  bool _intro = false, _liveMotion = false, _motionChecked = false;
+  bool get _introAllowed =>
+      _liveMotion &&
+      !p.reducedEffects &&
+      !widget.presentationAutoplay &&
+      widget.engineFactory == null &&
+      game.moduleLoadout != null;
   bool get blocked =>
+      _intro ||
       _artLoading ||
       _artError ||
       game.paused ||
@@ -128,10 +138,27 @@ class _BattleScreenState extends State<BattleScreen>
     _ticker = createTicker(_tick)..start();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_motionChecked) {
+      _motionChecked = true;
+      _liveMotion = ShipSpriteArt.liveMotion(context);
+      _intro = _introAllowed;
+    }
+  }
+
   void _newGame() {
     if (p.online != null) p.online!.inBattle = true;
     _adStatus = null;
     _runId = DateTime.now().microsecondsSinceEpoch.toString();
+    // a retry flies the intro again (the first run decides after layout)
+    _intro =
+        _motionChecked &&
+        _liveMotion &&
+        !p.reducedEffects &&
+        !widget.presentationAutoplay &&
+        widget.engineFactory == null;
     // Equipped cat gear: stats for this run and its sprites on the ship.
     final gear = p.catGear.bonuses;
     ShipSpriteArt.battleAssets = p.shipLayerAssets;
@@ -623,6 +650,7 @@ class _BattleScreenState extends State<BattleScreen>
                                                 game,
                                                 reducedEffects:
                                                     p.reducedEffects,
+                                                hideHero: _intro,
                                               ),
                                               size: Size.infinite,
                                             ),
@@ -663,18 +691,24 @@ class _BattleScreenState extends State<BattleScreen>
                                         name: game.ultimateBanner,
                                         t: game.ultimateShow / 1.6,
                                       ),
-                                    if (!widget.presentationAutoplay &&
-                                        game.moduleLoadout != null)
-                                      LaunchAssembly(
+                                    if (_intro)
+                                      SortieIntro(
                                         key: ValueKey('launch-$_runId'),
                                         hull: game.shipIndex,
                                         hidden: ShipSpriteArt.hiddenFor(
                                           game.moduleLoadout,
                                         ),
                                         assets: ShipSpriteArt.battleAssets,
+                                        target: game.position - game.camera,
                                         stage: widget.dailyEntry == null
                                             ? game.stageIndex
                                             : null,
+                                        onCue: sound.play,
+                                        onDone: () {
+                                          if (mounted) {
+                                            setState(() => _intro = false);
+                                          }
+                                        },
                                       ),
                                     if (game.resolvingBoss)
                                       IgnorePointer(

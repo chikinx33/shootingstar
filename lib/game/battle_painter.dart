@@ -34,10 +34,14 @@ class BattlePainter extends CustomPainter {
   final bool reducedEffects;
   // The reference path is retained for pixel comparison and CPU diagnosis.
   final bool cacheProjectiles;
+
+  /// The sortie intro draws the cat's craft itself until it lands in place.
+  final bool hideHero;
   BattlePainter(
     this.game, {
     this.reducedEffects = false,
     this.cacheProjectiles = true,
+    this.hideHero = false,
   }) : super(repaint: RasterAssets.revision);
 
   /// Impact/explosion family (0-2, 15) → v11 cartoon explosion; sparks
@@ -1891,7 +1895,9 @@ class BattlePainter extends CustomPainter {
         _beam(canvas, Offset(x, 23), Offset(x, 23 + thrust), 7, opacity: .8);
       }
     }
-    if (game.moduleLoadout != null && ShipSpriteArt.ready) {
+    if (hideHero) {
+      // the sortie intro is still flying the craft in
+    } else if (game.moduleLoadout != null && ShipSpriteArt.ready) {
       // Authored cat airframe (ship assembly editor). The canvas is already
       // at combat scale, so one ship-canvas unit is shipCombatSide / scale.
       ShipSpriteArt.paint(

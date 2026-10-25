@@ -212,9 +212,27 @@ abstract final class ShipSpriteArt {
     /// Assembly animation: 0..1 progress for the n-th drawn layer (null =
     /// fully assembled). Parts fly in from outside along their own offset.
     double Function(int order)? assembly,
+
+    /// v12.9.3 sortie intro: 0..1 attach progress per layer id. Wings and
+    /// engines slam in sideways, everything else along its own offset,
+    /// speeding up into place so the lock-on lands as a hit.
+    double Function(String layerId)? attach,
+
+    /// 0..1 white flash over the whole ship (the beat of an attach).
+    double flash = 0,
   }) {
     final ship = book?.ships[shipId];
     if (ship == null) return false;
+    if (flash > 0) {
+      canvas.saveLayer(
+        null,
+        Paint()
+          ..colorFilter = ColorFilter.mode(
+            Colors.white.withValues(alpha: flash.clamp(0, 1)),
+            BlendMode.srcATop,
+          ),
+      );
+    }
     var order = -1;
     final ink = Paint()
       ..filterQuality = FilterQuality.medium
@@ -236,6 +254,18 @@ abstract final class ShipSpriteArt {
         dx = unit.dx * away * 1.6 * side;
         dy = unit.dy * away * 1.6 * side;
         alpha = opacity * math.min(1, t * 3);
+      } else if (attach != null) {
+        final t = attach(l.id).clamp(0.0, 1.0);
+        if (t <= 0) continue;
+        final away = 1 - Curves.easeInCubic.transform(t);
+        final sideways = sidewaysLayer(l.id);
+        final dir = sideways ? Offset(l.x < 0 ? -1 : 1, 0) : Offset(l.x, l.y);
+        final unit = dir.distance < .02
+            ? const Offset(0, -1)
+            : dir / dir.distance;
+        dx = unit.dx * away * 1.4 * side;
+        dy = unit.dy * away * 1.4 * side;
+        alpha = opacity * math.min(1, t * 4);
       }
       // Equipped gear swaps the sprite (a mirror follows its source layer);
       // the slot keeps its authored width, height follows the new art.
@@ -268,8 +298,27 @@ abstract final class ShipSpriteArt {
       );
       canvas.restore();
     }
+    if (flash > 0) canvas.restore();
     return true;
   }
+
+  /// Wings, engines and their flames attach from the sides.
+  static bool sidewaysLayer(String id) =>
+      id.startsWith('wing') ||
+      id.startsWith('engine') ||
+      id == 'flame_l' ||
+      id == 'flame_r';
+
+  /// Canvas-unit pivots of [shipId]'s visible layers chosen by [where]
+  /// (attach points for the sortie intro's impact sparks).
+  static List<Offset> layerPoints(
+    String shipId,
+    bool Function(String id) where, {
+    Set<String> hidden = const {},
+  }) => [
+    for (final l in book?.ships[shipId]?.resolved ?? const <ShipPartLayer>[])
+      if (l.visible && !hidden.contains(l.id) && where(l.id)) Offset(l.x, l.y),
+  ];
 }
 
 /// A ship drawn to fit its box, flames animating (lobby, hangar, menus).
