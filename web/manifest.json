@@ -1,11 +1,11 @@
 {
-  "name": "Shootingstar",
-  "short_name": "Shootingstar",
+  "name": "수호묘 특공대 · Purrtectors",
+  "short_name": "수호묘 특공대",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#f08a3c",
   "theme_color": "#f08a3c",
-  "description": "Offline orbital survival flight",
+  "description": "Purrtectors: Cat Sky Squad — guardian cats' sky shooter",
   "orientation": "portrait-primary",
   "prefer_related_applications": false,
   "icons": [

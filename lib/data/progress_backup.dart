@@ -58,7 +58,7 @@ class ProgressBackup {
         file['schema'] != 1 ||
         file['payload'] is! String ||
         file['sha256'] is! String) {
-      throw const FormatException('지원하는 슈팅스타 백업 파일이 아닙니다.');
+      throw const FormatException('지원하는 수호묘 특공대 백업 파일이 아닙니다.');
     }
     final payload = file['payload'] as String;
     if (await _digest(payload) != file['sha256']) {

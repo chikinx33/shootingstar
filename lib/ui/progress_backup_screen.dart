@@ -94,7 +94,7 @@ class _ProgressBackupScreenState extends State<ProgressBackupScreen> {
       final file = await openFile(
         acceptedTypeGroups: const [
           XTypeGroup(
-            label: '슈팅스타 백업',
+            label: '수호묘 특공대 백업',
             extensions: ['json'],
             mimeTypes: ['application/json'],
             uniformTypeIdentifiers: ['public.json'],

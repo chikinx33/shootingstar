@@ -8,6 +8,6 @@ external set _documentTitle(String value);
 void updateLanguageDocument(String code) {
   _documentLanguage = code;
   _documentTitle = code == 'en'
-      ? 'Shootingstar · Starlight Routes'
-      : 'Shootingstar · 잔광의 항로';
+      ? 'Purrtectors: Cat Sky Squad'
+      : '수호묘 특공대';
 }

@@ -50,7 +50,7 @@ class ShootingstarApp extends StatelessWidget {
       locale: AppLanguage.instance.locale,
       supportedLocales: const [Locale('ko'), Locale('en')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      onGenerateTitle: (_) => tr('Shootingstar · 잔광의 항로'),
+      onGenerateTitle: (_) => tr('수호묘 특공대'),
       navigatorObservers: [AudioNavigationObserver()],
       builder: (context, child) => AnimatedBuilder(
         animation: profile,
@@ -61,7 +61,7 @@ class ShootingstarApp extends StatelessWidget {
           ),
         ),
       ),
-      title: 'Shootingstar · 잔광의 항로',
+      title: '수호묘 특공대',
       theme: ThemeData(
         visualDensity: VisualDensity.standard,
         materialTapTargetSize: MaterialTapTargetSize.padded,
