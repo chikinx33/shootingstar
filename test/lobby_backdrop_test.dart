@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shootingstar/art/refit_art.dart';
+import 'package:shootingstar/art/game_backdrop.dart';
 import 'package:shootingstar/art/flight_scene_art.dart';
 
 void main() {
@@ -13,7 +13,7 @@ void main() {
     await t.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: RefitBackdrop(
+          body: GameBackdrop(
             launch: true,
             child: Builder(
               builder: (_) {
@@ -56,7 +56,7 @@ void main() {
     picture.dispose();
     Future<List<int>> centre() async {
       final r = ui.PictureRecorder();
-      RefitBackdropPainter(true).paint(Canvas(r), const Size(40, 60));
+      GameBackdropPainter(true).paint(Canvas(r), const Size(40, 60));
       final p = r.endRecording(), image = await p.toImage(40, 60);
       final data = (await image.toByteData(
         format: ui.ImageByteFormat.rawRgba,

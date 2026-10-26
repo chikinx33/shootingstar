@@ -165,10 +165,9 @@ void main() {
     await t.pumpAndSettle();
     AppLanguage.instance.select('en');
     await t.pumpAndSettle();
-    expect(find.text('Weekly missions'), findsOneWidget);
-    expect(find.text('Daily missions'), findsNothing);
+    expect(find.byKey(const Key('weekly-chests')), findsOneWidget);
     expect(tabWithText('Weekly'), findsOneWidget);
-    for (final label in ['Check-in', 'Missions', 'Routes', 'Patrol']) {
+    for (final label in ['Check-in', 'Missions', 'House', 'Patrol']) {
       final textFinder = find.descendant(
         of: find.byType(FleetActivityTabs),
         matching: find.text(label),

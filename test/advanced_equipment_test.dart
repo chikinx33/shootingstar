@@ -1,14 +1,8 @@
-import 'ui_actions.dart';
-
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/advanced_equipment.dart';
 import 'package:shootingstar/data/content_catalog.dart';
-import 'package:shootingstar/data/profile.dart';
-import 'package:shootingstar/ui/advanced_equipment_screen.dart';
 
 void main() {
   AdvancedEquipment ready(GearItem target, {int mode = 0}) {
@@ -345,69 +339,4 @@ void main() {
     expect(ledger.damageBonus([1]), 0);
     expect(ledger.highestReservedId, 0);
   });
-
-  testWidgets(
-    '320px advanced growth selects exact materials and restores them through its UI',
-    (tester) async {
-      tester.view.physicalSize = const Size(320, 568);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      SharedPreferences.setMockInitialValues({});
-      final p = await Profile.load();
-      p.credits = 5000;
-      p.blueprints = 100;
-      p.gearAt(0).rank = 2;
-      p.inventory.addAll([
-        GearItem(100, 0, rank: 1),
-        GearItem(101, 1, rank: 1),
-      ]);
-      await tester.pumpWidget(
-        MaterialApp(home: AdvancedEquipmentScreen(profile: p)),
-      );
-      await tester.pumpAndSettle();
-      Future<void> tapKey(String key) => tapUi(tester, find.byKey(Key(key)));
-
-      for (var n = 0; n < 3; n++) {
-        await tapKey('advanced-refine');
-      }
-      expect(p.advancedEquipment.entry(1)!.refinement, 3);
-      expect(p.credits, 4250);
-      await tapKey('advanced-mode-1');
-      expect(p.advancedEquipment.hullBonus([1]), closeTo(.0225, 1e-9));
-      // v12.4.3: fusion is its own section and materials open in a popup.
-      await tapKey('advanced-tab-1');
-      await tapKey('advanced-materials');
-      expect(find.text('융합 재료 선택'), findsOneWidget);
-      await tapKey('advanced-material-100');
-      await tapKey('advanced-material-101');
-      await tapKey('advanced-materials-done');
-      await tester.pumpAndSettle();
-      expect(find.text('융합 재료 선택'), findsNothing);
-      await tapKey('advanced-ascend');
-      expect(find.text('초월 융합 확인'), findsOneWidget);
-      await revealUi(tester, find.text('선택한 2개로 융합'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('선택한 2개로 융합'));
-      await tester.pumpAndSettle();
-      expect(p.advancedEquipment.entry(1)!.ascension, 1);
-      expect(p.item(100), isNull);
-      expect(p.item(101), isNull);
-      expect(p.gearAt(0).rank, 2);
-      expect(p.gearAt(0).id, 1);
-      await tapKey('advanced-reset');
-      await revealUi(tester, find.text('정밀 성장만 초기화'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('정밀 성장만 초기화'));
-      await tester.pumpAndSettle();
-      expect(p.advancedEquipment.entry(1), isNull);
-      expect(p.item(100)!.spec, 0);
-      expect(p.item(101)!.spec, 1);
-      expect(p.credits, 5000);
-      expect(p.blueprints, 100);
-      expect(tester.takeException(), isNull);
-      await tester.pumpWidget(const SizedBox());
-      await tester.pumpAndSettle();
-    },
-  );
 }

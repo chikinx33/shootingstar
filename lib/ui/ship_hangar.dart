@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import '../l10n/app_language.dart';
 
 import 'audio_feedback.dart';
-import 'aircraft_design_screen.dart';
+import 'module_workshop.dart';
 
 import 'package:flutter/material.dart';
 
@@ -11,6 +11,8 @@ import 'game_decor.dart';
 import 'game_motion.dart';
 import 'reward_popup.dart';
 
+import '../art/game_icons.dart';
+import 'item_info_card.dart';
 import '../art/ship_sprite_art.dart';
 import '../art/ui_kit.dart';
 import '../data/content.dart';
@@ -53,7 +55,7 @@ class _ShipHangarState extends State<ShipHangar> {
               () => Navigator.push(
                 context,
                 MaterialPageRoute<void>(
-                  builder: (_) => AircraftDesignScreen(profile: p),
+                  builder: (_) => ModuleWorkshop(profile: p),
                 ),
               ),
             ),
@@ -172,12 +174,7 @@ class _ShipHangarState extends State<ShipHangar> {
             if (!owned)
               Positioned(
                 bottom: pedestal * .42,
-                child: const Icon(
-                  Icons.lock,
-                  size: 54,
-                  color: Color(0xFFFFD43D),
-                  shadows: [Shadow(color: Colors.black, blurRadius: 6)],
-                ),
+                child: GameIconImage(GameIcons.lock, size: 58),
               ),
           ],
         );
@@ -249,9 +246,17 @@ class _ShipHangarState extends State<ShipHangar> {
                 // the smallest phones keep the gun line for the stats only
                 if (!compact) ...[
                   const SizedBox(height: 6),
-                  GameFactRow([
-                    GameFact('고유 주포', _guns[i], tone: GameTone.danger),
-                    GameFact('궁극기', _ultimates[i], tone: GameTone.gold),
+                  StatGrid([
+                    StatLine(
+                      label: '고유 주포',
+                      value: _guns[i],
+                      color: const Color(0xFFFF8A5C),
+                    ),
+                    StatLine(
+                      label: '궁극기',
+                      value: _ultimates[i],
+                      color: const Color(0xFFD9A8FF),
+                    ),
                   ]),
                 ],
                 if (compact) ...[
@@ -300,13 +305,12 @@ class _ShipHangarState extends State<ShipHangar> {
     padding: const EdgeInsets.symmetric(vertical: 2),
     child: Row(
       children: [
+        // v12.15: the stat is its picture (heart, boots, crosshair)
         SizedBox(
           width: 44,
-          child: Text(
-            tr(label),
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
-
-            textAlign: TextAlign.center,
+          child: Semantics(
+            label: tr(label),
+            child: GameIconImage(StatIcons.of(label), size: 28),
           ),
         ),
         Expanded(
@@ -344,10 +348,12 @@ class _ShipHangarState extends State<ShipHangar> {
           ? '장착 중'
           : owned
           ? '이 고양이로 출격'
-          : message('해금 · {0} 츄르', [ship.unlockCost]),
+          : message('해금 {0}', [ship.unlockCost]),
       icon: selected
           ? Icons.check
           : (owned ? Icons.play_arrow : Icons.lock_open),
+      // the unlock price is the churu picture beside its number
+      image: selected || owned ? null : GameIcons.churu,
       onPressed: selected || (!owned && p.credits < ship.unlockCost)
           ? null
           : () {

@@ -1,71 +1,34 @@
-# Shootingstar — V10 · v10.0.1
+# 수호묘 특공대 (Purrtectors) — v12.14.0
 
-v10.0.1 웹테스트 반영 (2026-10-18): 화면/답변의 버전을 `v10.0.1`로 간단히 표시하고 빌드 번호는 내부에만 남긴다. 일반 배포는 전체 회귀 대신 변경 시 정식 빌드·320px 실제 로비/출격 1회·활성 배포/API 확인으로 단축했다. 같은 입력/출력/SDK는 빌드를 재사용한다. `python tools/quick_web.py --deploy` 또는 `.\tools\run.ps1 deploy-web`가 기본 경로다. [빠른 테스트 사용법과 실측](docs/FAST_WEB_TESTING.md).
+집사가 돌보는 반려묘들이 자기 기체를 타고 동네 집을 지키는 Flutter 세로 슈팅 게임입니다. 전투 중 선택 성장·무기 강화/진화/궁극과 전투 밖 장비·병아리 성장을 결합합니다. 내부 id·저장소 이름은 호환 때문에 `shootingstar`를 유지합니다.
 
-v10.0.0+16 웹테스트 배포 (2026-10-18 15:27 KST): V10 전체 그래픽과 최신 콘텐츠/UI를 정식 웹에 반영했다. 메인 로비 하단과 로딩 화면에서 실행 버전을 확인할 수 있다. 이후 패치는 버전/빌드 번호를 올리고 공통 표시·서버 버전을 동기화하며, 배포 전 오래된 빌드를 검사한다. Flutter 테스트 250개, 실제 모바일 출격 8조건·공통 메뉴 17그룹·보급 8조건이 통과했다. Cloudflare 활성 배포 100%와 공개 D1 health를 확인했으며, 공개 정적 파일/화면의 직접 검증은 Access 로그인으로 제한됐다. [배포 및 검증 기록](docs/WEB_RELEASE_V10.md) · [이후 패치 버전 규칙](docs/WEB_RELEASE_VERSIONING.md).
+공개 웹: https://shootingstar-online.chikinx1.workers.dev
 
-v6.1.0+15 공개 배포 완료 (2026-10-16): 일반 적은 교전 거리를 유지하며 선회·사격·이탈하고, 일렬 충돌을 노리는 돌입 편대는 별도 유형으로 분리했다. 총알·고폭탄·유탄·유도탄·미사일·충전 레이저·기뢰를 구분하고 조준 고정·회피·재장전을 적용했다. Flutter 111개·웹 12장면과 공개 버전·실행 파일·D1 health를 확인했다. [비행·무장 규칙](docs/ENEMY_FLIGHT.md).
+## 먼저 읽을 문서
 
-v6.0.0+14 공개 배포 완료 (2026-10-16): 벡터로 그리던 적·세계별 보스·탄환·미사일·전투 효과와 UI 아이콘·카드·버튼·게이지를 이미지 아트로 교체했다. 생성 PNG 7장에 146개 셀을 구성했고 기존 전투 계산·밸런스·저장은 유지한다. 공개 이미지·실행 파일·D1 health와 실제 터치 조작을 확인했다. [아트 구성·출처·검증](docs/RASTER_ART.md).
-
-v5.0.0+13 공개 배포 완료 (2026-10-16): 10세계 × 10항로와 반복 순환, 10종 적 역할과 세계별 아트·보스, 독립 주포 R/P/N 보급, 보장 자석, 조종사 영구 성장, 주무기·일반 스킬·고유 모듈 확장. [캠페인 규칙·저장 이관](docs/CAMPAIGN.md) · [벤치마크 대응 범위](docs/SKILL_BENCHMARK.md). 공개 버전·실행 파일 SHA-256·D1 health 및 모바일 화면의 게스트 출격·이동·귀환을 확인했다.
-
-v4.5 변경 (v5.0 포함): 누적 보상, 진화 재료 안내·재추첨·보조 교체, 주포 관통 레이저, 무기 판정 수정, 첫 보스 희귀 테크 선택권. [전투 개정](docs/COMBAT.md) · [보상과 저장 호환](docs/CONTENT.md).
-
-v4.5.1: 보스의 고정 공격 예고·코어 개방·3단계 격벽, 낙뢰 단일 대상 연타 제한, 진화 드론 관통. 보스 체력과 계정 저장 데이터는 유지한다. 상세 수치·검증 범위는 전투 문서의 v4.5.1 항목 참고.
-
-Flutter 웹·Android 군집 생존 슈팅입니다. 전투에서 얻은 아이템을 장착·합성하고, 펫과 테크를 성장시켜 다시 출격하는 전체 순환을 구현했습니다.
-
-공개 게임: https://shootingstar-online.chikinx1.workers.dev
-
-계정 로그인·복구, 클라우드 저장, 다른 기기 이어하기, 온라인 길드를 추가했습니다. [사용법·배포·검증](docs/ONLINE.md)
-
-세로 모바일 홈·고정 출격 버튼·3열 장비 인벤토리·화면 중앙 고정 카메라·전체 화면 전투와 HUD 오버레이를 적용했습니다. [화면 규격과 검증](docs/PORTRAIT_UI.md)
-
-웨이브 편대·보스 결전·부유식 터치 조작을 개선했습니다. [전투 흐름과 검증](docs/COMBAT_FLOW.md)
-
-폐허 도시 지면과 천천히 흐르는 구름을 독립 레이어로 구성했습니다. [배경 구성](docs/LAYERED_BACKGROUND.md)
+- 작업 지침: `AGENTS.md`(Codex), `CLAUDE.md`(Claude Code)
+- 게임 방향·현재 규칙: [docs/GAME_DIRECTION.md](docs/GAME_DIRECTION.md)
+- UI·그림 규격(현재 그림 폴더 목록 포함): [docs/UI_DESIGN_SYSTEM.md](docs/UI_DESIGN_SYSTEM.md)
+- 세계관·고양이·적: [docs/CONCEPT_GUARDIAN_CATS.md](docs/CONCEPT_GUARDIAN_CATS.md)
+- 무기 성장: [docs/WEAPON_EVOLUTION_DESIGN.md](docs/WEAPON_EVOLUTION_DESIGN.md) · 적 탄막 근거: [docs/WING_FIGHTER_ENEMY_PATTERNS.md](docs/WING_FIGHTER_ENEMY_PATTERNS.md)
+- 빠른 테스트·배포: [docs/FAST_WEB_TESTING.md](docs/FAST_WEB_TESTING.md)
+- 계정·클라우드 저장·길드: [docs/ONLINE.md](docs/ONLINE.md) · 언어: [docs/LOCALIZATION.md](docs/LOCALIZATION.md)
+- 출시·수익: [docs/STORE_RELEASE_CHECKLIST.md](docs/STORE_RELEASE_CHECKLIST.md), [docs/GOOGLE_PLAY_MONETIZATION_PLAN.md](docs/GOOGLE_PLAY_MONETIZATION_PLAN.md)
 
 ## 개발 중 빌드 원칙
 
-게임이 완성될 때까지 Android APK 빌드를 실행하지 않습니다. 개발·검증은 웹 빌드로 진행합니다. (사용자 지시: 2026-10-12)
+게임이 완성될 때까지 Android APK 빌드를 실행하지 않습니다. 개발·검증은 Flutter 웹으로 진행합니다. 화면과 답변에는 `v12.14.0`처럼 버전명만 표시하고 `+빌드 번호`는 내부에만 둡니다.
 
 ## 실행
 
 `PLAY_SHOOTINGSTAR.cmd` 또는 `python tools/play_web.py` → http://127.0.0.1:8787
 
-- **성장**: 장비 / 펫 / 테크 / 보급 / 시즌 / 길드
-- **도전**: 챕터 도전, 성장 임무, 시즌·길드 바로가기
-- 결과 화면 **성장 정비 · 귀환** → 장비 정비 → 출격
-- Android 개발 APK: `build/app/outputs/flutter-apk/app-debug.apk`
-
-## 새 콘텐츠
-
-- 개별 ID를 가진 장비 12종, 6슬롯, 6등급. 장착·종류 필터·정렬·보호 잠금·강화·초기화·동일 종류/등급 3개 합성. 강화된 재료는 자동 소모하지 않습니다.
-- 펫 3가지 역할: 공격, 회복, 탄환 방어. 1마리 출전 + 2마리 보조, 먹이 육성·중복 유전자 각성·전투 중 쓰러짐과 근접 부활.
-- 테크 8종, 공격 3 + 방어 3슬롯. 등급별 피해 증가, 희귀 등급부터 관통·유도·범위·지속 시간 등의 실제 무기 효과.
-- 출격 아이템 획득, 보급권, 일일 재료 교환, 한국 시간 일일 임무, 최대 8시간 자동 순찰.
-- 월간 시즌 20단계, 전투/일일 임무 XP, 단계별 무료 보상, 미수령 달성 보상의 다음 시즌 우편 이월.
-- Cloudflare D1 온라인 길드: 계정 로그인·창설·초대 코드 가입·탈퇴·출석·코인 기여·회원 목록·주간 공동 토벌·일일 보급·중복 방지 보상 우편. 같은 서버에 접속한 실제 프로필만 표시합니다.
-
-## 아트와 저장
-
-이번 요청에서 승인된 OpenAI 기본 이미지 생성 **3회**로 장비 시트·테크 시트·로봇 여우 펫을 제작해 적용했습니다. 전투 아트 4종은 이전 버전을 유지합니다. 상세 모델과 정확한 과금은 도구에 제공되지 않았습니다. [아트 기록](docs/CONTENT_ART.md)
-
-기존 저장 키는 유지하고 내부 버전만 4로 올렸습니다. v2 장비 등급·강화·남은 슬롯 부품을 이전하며, 남은 부품은 인벤토리에서 개별 장비로 변환할 수 있습니다. 기존 기체·챕터·크레딧·임무는 보존합니다. 계정 진행과 온라인 길드는 Cloudflare D1에 저장됩니다. 이전 `.local/guild.sqlite3`는 보존되며 새 온라인 계정과 별개입니다.
-
-## 검증과 실제 범위
-
-[콘텐츠 규칙·운영 경계](docs/CONTENT.md), [검증 결과](docs/CONTENT_QA.md), [전투 규칙](docs/COMBAT.md).
-
-공개 HTTPS 서버에서 계정·클라우드 저장·온라인 길드를 운영합니다. 실시간 협동 전투, 서버 권위 전투 판정·치트 방지, 결제·광고·S/SS 장비·외부 랭킹은 포함하지 않습니다. 기존 게임의 모든 라이브 서비스와 99% 동일하다고 주장하지 않습니다. Android 실기기 검증·서명 배포도 별도입니다.
-
 ```powershell
-.\tools\run.ps1 test
+.\tools\run.ps1 test                                   # 버전·소스 계약만 빠르게
+.\tools\run.ps1 quick-web                              # 정식 웹 빌드 + 320px 로비/출격 1회
+.\tools\run.ps1 deploy-web -Version major.minor.patch+build
+.\tools\run.ps1 test-full                              # 전체 분석+Flutter 회귀(필요할 때만)
 python -m unittest discover -s tools -p test_guild_service.py -v
-.\tools\run.ps1 build-web
-.\tools\run.ps1 build-apk
-python tools/play_web.py --no-browser
 ```
 
-이번 변경 전 소스는 `docs/before-content-v3.zip`에 보존했습니다. v1/v2 브라우저 스크립트·캡처는 이전 UI 기준 기록입니다.
+결제·광고는 아직 실제 ID·기기 검증 전이라 운영에서 꺼져 있습니다. 출시 전 필수 작업은 `docs/STORE_RELEASE_CHECKLIST.md`에서 추적합니다.

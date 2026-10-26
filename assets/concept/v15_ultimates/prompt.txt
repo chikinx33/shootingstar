@@ -1,0 +1,7 @@
+Use case: style-transfer. Asset type: one mobile game skill emblem sprite sheet. Image 1 is the exact icon style reference (chunky cute cat-themed shooter kit, thick even dark navy outlines, bold simple shapes, flat colors with one cel-shade step and a small white highlight). Image 2 is the orange-and-cream round cat spaceship identity.
+Create exactly 4 emblems in a strict 4 columns x 1 row grid on a wide 4:1 canvas, each centered in its own square cell at about 70% of the cell, readable at 40 pixels, each a round badge-free standalone symbol:
+(1) MISSILE STORM: a fan burst of six small orange fish-shaped missiles flying outward from a central bright yellow star flash.
+(2) TWIN CLONES: three of the round orange-and-cream cat spaceships from Image 2 side by side seen from the top, the middle one solid, the left and right ones pale translucent cyan ghost copies.
+(3) INVINCIBLE: a big golden round shield with a white cat paw emblem and small star sparkles.
+(4) STAR CANNON: a glowing golden star with a cat ear notch and a short beam of light.
+Background: the whole canvas outside the emblems is perfectly flat solid pure magenta #FF00FF with generous space. No magenta pigment inside emblems, no diffuse glow or shadow on the background, no grid lines, no text.

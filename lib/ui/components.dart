@@ -63,32 +63,6 @@ class Surface extends StatelessWidget {
   }
 }
 
-class Stat extends StatelessWidget {
-  const Stat(this.value, this.label, {super.key});
-  final String value, label;
-  @override
-  Widget build(BuildContext context) {
-    AppLanguage.watch(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(
-          tr(value),
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 3),
-        Text(
-          tr(label),
-          style: const TextStyle(fontSize: 14, color: muted),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-}
-
 Widget gap([double height = 16]) => SizedBox(height: height);
 
 Future<void> showGuide(BuildContext context, VoidCallback done) async {

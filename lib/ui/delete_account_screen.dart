@@ -163,7 +163,7 @@ class _DeleteAccountState extends State<DeleteAccountScreen> {
                 ),
               GameActionButton(
                 label: '계정과 저장 영구 삭제',
-                icon: Icons.delete_forever,
+                image: 'assets/art/ui_v13/act_dismantle.webp',
                 onPressed: audible(canDelete ? remove : null),
               ),
               GameActionButton(

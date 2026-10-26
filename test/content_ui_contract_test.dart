@@ -2,6 +2,7 @@ import 'ui_actions.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'support/tabs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/cat_gear.dart';
 import 'package:shootingstar/data/profile.dart';
@@ -143,7 +144,7 @@ void main() {
         expect(p.inventory.map((g) => g.id).toList(), inventoryIds);
 
         await mount(PetBondScreen(profile: p, pet: 0));
-        await tap(find.widgetWithText(GameActionButton, '먹이 10 선물'));
+        await tap(find.widgetWithText(GameActionButton, '선물 10'));
         expect(p.petBond.favor[0], 60);
         expect(p.petFood, 490);
         // A live growth notice must not cover the fixed pagination controls.
@@ -166,7 +167,7 @@ void main() {
           expect(tester.widget<Text>(pageCounter).data, isNot(pageBefore));
         }
 
-        await tap(find.widgetWithText(GameActionButton, '각성 1단계 · 100 츄르'));
+        await tap(find.widgetWithText(GameActionButton, '각성 1단계'));
         expect(p.petBond.awakening[0], 1);
         expect(p.petFood, 470);
         await tap(find.text('신속 동행'));
@@ -189,7 +190,7 @@ void main() {
         expect(launched!.seed, p.dailyChallenge.begin(0)!.seed);
         await tester.drag(find.byType(ListView), const Offset(0, 10000));
         await tester.pumpAndSettle();
-        await tap(find.byKey(const ValueKey('daily-tab-exchange')));
+        await tap(tabWithText('토큰 교환'));
         final keys = p.collections.keys;
         await tap(find.byKey(const ValueKey('daily-exchange-2')));
         expect(find.byType(RewardPopup), findsOneWidget);
@@ -207,11 +208,8 @@ void main() {
 
         await mount(FleetActivityScreen(profile: p));
         final credits = p.credits;
-        await tap(
-          find.byWidgetPredicate(
-            (w) => w is GameActionButton && w.label == '오늘 출석 보상 받기',
-          ),
-        );
+        // v12.15: today's glowing day card claims on tap
+        await tap(find.text('1일'));
         expect(p.credits, credits + 30);
         expect(find.byType(RewardPopup), findsOneWidget);
         checkDecisions();

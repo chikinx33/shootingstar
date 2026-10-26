@@ -85,9 +85,8 @@ abstract final class FlightSceneArt {
 
   /// v11 per-world ground (far plane) and a shared cloud overlay (near
   /// plane). Loaded lazily; until one is ready a plain tinted sky draws.
-  static const worldRoot = 'assets/art/worlds_v11/';
+  static const cloudsAsset = 'assets/art/houses_v12/clouds.webp';
   static const worldCount = 10;
-  static final worldImages = <int, ui.Image>{};
   static ui.Image? clouds;
 
   /// v11 lobby: the cats' living room at dusk, loaded first at boot.
@@ -142,8 +141,6 @@ abstract final class FlightSceneArt {
     );
   }
 
-  static final _worldLoads = <int, Future<void>>{};
-
   static Future<ui.Image> _decodeAsset(String asset, int width) async {
     final data = await rootBundle.load(asset);
     final codec = await ui.instantiateImageCodec(
@@ -157,17 +154,16 @@ abstract final class FlightSceneArt {
     }
   }
 
-  static Future<void> ensureWorld(int world) {
-    final w = world.clamp(0, worldCount - 1);
-    return _worldLoads[w] ??= () async {
-      try {
-        worldImages[w] = await _decodeAsset('${worldRoot}world_$w.jpg', 720);
-        clouds ??= await _decodeAsset('${worldRoot}clouds.webp', 720);
-      } catch (_) {
-        _worldLoads.remove(w); // missing art keeps the plain sky
-      }
-    }();
-  }
+  /// The drifting cloud veil shared by every stage (the old per-world
+  /// grounds are gone; house stages draw their own street).
+  static Future<void> ensureWorld(int world) => _cloudLoad ??= () async {
+    try {
+      clouds ??= await _decodeAsset(cloudsAsset, 720);
+    } catch (_) {
+      _cloudLoad = null; // missing art keeps the plain sky
+    }
+  }();
+  static Future<void>? _cloudLoad;
 
   /// v12 house stages: a long top-down strip — the neighbourhood street
   /// (alternately mirrored so the tiles join) ending at the owner's house.
@@ -217,8 +213,7 @@ abstract final class FlightSceneArt {
                 streets[n] ??= await _decodeAsset(streetMap(stageIndex), 720),
             () async =>
                 houseImages[h] = await _decodeAsset(houseMap(stageIndex), 720),
-            () async =>
-                clouds ??= await _decodeAsset('${worldRoot}clouds.webp', 720),
+            () async => clouds ??= await _decodeAsset('$cloudsAsset', 720),
             () => part(1, 'assets/art/houses_v12/part_turret.webp', 200),
             () => part(2, 'assets/art/houses_v12/part_shield.webp', 200),
             () => part(3, 'assets/art/houses_v12/boss_barrage.webp', 360),
@@ -368,12 +363,10 @@ abstract final class FlightSceneArt {
     c.restore();
   }
 
-  /// Warms every world in the background so the campaign never waits.
+  /// Warms the lobby and the cloud veil in the background.
   static Future<void> preloadWorlds() async {
     await loadLobbyHome();
-    for (var w = 0; w < worldCount; w++) {
-      await ensureWorld(w);
-    }
+    await ensureWorld(0);
   }
 
   static void paint(
@@ -389,23 +382,6 @@ abstract final class FlightSceneArt {
     c.save();
     c.clipRect(rect);
     c.drawRect(rect, Paint()..color = const Color(0xFF122D43));
-    final ground = lobby ? null : worldImages[world.clamp(0, worldCount - 1)];
-    if (ground != null) {
-      // v11 world: its own ground under a drifting cloud overlay.
-      paintLayer(c, size, layers[0], ground, time: time, camera: camera);
-      if (clouds != null) {
-        // A light veil only: clouds must never hide bullets or enemies.
-        paintLayer(
-          c,
-          size,
-          layers[2],
-          clouds!,
-          time: time,
-          camera: camera,
-          opacity: .38,
-        );
-      }
-    }
     // Tint and a quiet contrast veil sit below all combat cues, not above them.
     const tones = [
       Color(0xFF3280A0),
@@ -419,15 +395,11 @@ abstract final class FlightSceneArt {
       Color(0xFF837DAB),
       Color(0xFF3E8298),
     ];
-    if (ground == null) {
-      c.drawRect(
-        rect,
-        Paint()
-          ..color = tones[world.clamp(0, 9)].withValues(
-            alpha: lobby ? .04 : .12,
-          ),
-      );
-    }
+    c.drawRect(
+      rect,
+      Paint()
+        ..color = tones[world.clamp(0, 9)].withValues(alpha: lobby ? .04 : .12),
+    );
     c.drawRect(
       rect,
       Paint()

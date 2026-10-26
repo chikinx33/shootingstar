@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shootingstar/art/refit_art.dart';
+import 'package:shootingstar/art/game_backdrop.dart';
 
 void main() {
   test('nested backdrop does not erase the header painted before it', () async {
@@ -14,7 +14,7 @@ void main() {
       );
       canvas.save();
       canvas.translate(0, 80);
-      RefitBackdropPainter(launch).paint(canvas, const Size(200, 220));
+      GameBackdropPainter(launch).paint(canvas, const Size(200, 220));
       canvas.restore();
       final picture = recorder.endRecording(),
           image = await picture.toImage(200, 300);

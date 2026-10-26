@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/data/ship_modules.dart';
 import 'package:shootingstar/main.dart';
-import 'package:shootingstar/ui/armament_hangar.dart';
 import 'package:shootingstar/ui/game_ui.dart';
 import 'package:shootingstar/ui/item_slots.dart';
 import 'package:shootingstar/ui/module_workshop.dart';
@@ -47,11 +46,10 @@ void main() {
                     .copyWith(textScaler: TextScaler.linear(scale)),
                 child: child!,
               ),
-              home: ArmamentHangar(profile: p),
+              home: ModuleWorkshop(profile: p),
             ),
           );
           await tester.pumpAndSettle();
-          expect(find.byType(ModuleWorkshop), findsOneWidget);
           expect(
             find.byType(GameItemSlot),
             findsNWidgets(moduleProfiles.length),
@@ -67,7 +65,8 @@ void main() {
           await tester.pumpAndSettle();
           await tapUi(tester, find.byKey(ValueKey('module-item-$id')));
           await tester.pumpAndSettle();
-          final upgrade = find.widgetWithText(GameActionButton, '파츠 강화');
+          // v12.15: the part popup's actions are one strip of tiles
+          final upgrade = find.byKey(const Key('part-detail-upgrade'));
           await revealUi(tester, upgrade);
           expect(tester.getRect(upgrade).bottom, lessThanOrEqualTo(height));
           await tester.tap(upgrade);
@@ -90,7 +89,7 @@ void main() {
             find.byKey(ValueKey('module-item-${spare.instanceId}')),
           );
           await tester.pumpAndSettle();
-          final salvage = find.widgetWithText(GameActionButton, '파츠 분해');
+          final salvage = find.byKey(const Key('part-detail-salvage'));
           await revealUi(tester, salvage);
           expect(tester.getRect(salvage).bottom, lessThanOrEqualTo(height));
           await tester.tap(salvage);

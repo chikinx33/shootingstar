@@ -1,7 +1,7 @@
 # Wing Fighter 1.7.850 적 공격 패턴 분석 (정적 분석)
 
 조사일: 2026-10-25. 대상: `F:\Download\ETC\Wing+Fighter_1.7.850_APKPure.xapk` (Unity IL2CPP, `com.minigame.wszj.android.gp`).
-범위: 일반 적, 중간 보스(엘리트), 스테이지 보스의 탄막 패턴. 플레이어 쪽 시스템은 `docs/WING_FIGHTER_ANALYSIS.md`에 정리되어 있어 여기서는 다루지 않는다.
+범위: 일반 적, 중간 보스(엘리트), 스테이지 보스의 탄막 패턴. 플레이어 쪽 시스템은 다루지 않는다.
 방법: OBB 안의 Unity 번들을 UnityPy로 읽었다(타입트리가 남아 있음). 게임은 실행하지 않았고 서버에도 접속하지 않았다. 그림은 복사하지 않았고, 숫자와 동작 방식만 가져왔다.
 
 표기:

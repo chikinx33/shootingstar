@@ -14,10 +14,11 @@ import '../data/profile.dart';
 import '../data/ship_modules.dart';
 import '../l10n/app_language.dart';
 import 'audio_feedback.dart';
-import 'arcade_home_widgets.dart' show CurrencyArt;
 import 'game_dialog.dart';
 import 'game_info.dart';
 import 'game_ui.dart';
+import 'game_slots.dart';
+import '../art/game_icons.dart';
 import 'item_info_card.dart';
 import 'item_slots.dart';
 import 'module_workshop.dart' show showAirframeDetails;
@@ -143,31 +144,9 @@ class _CatGearScreenState extends State<CatGearScreen>
     );
   }
 
-  /// A part drawn with the very sprite it shows on the airframe (v12.11,
-  /// user 2026-10-26): wing gun, wing missile, tail gun or mortar, or the
-  /// support device core.
-  static Widget partSprite(ModulePart part, double size, {String? mount}) {
-    const root = 'assets/art/ship_parts/sunshine/';
-    final asset = switch (part.category) {
-      PartCategory.missile => '${root}missile.webp',
-      PartCategory.support => supportOrbAsset(part.id),
-      PartCategory.drone => ShipSpriteArt.droneAsset,
-      PartCategory.gun when part.id == 'mortar_cat' => mortarMountAsset,
-      PartCategory.gun when mount == 'W3' => '${root}reargun.webp',
-      PartCategory.gun => '${root}winggun.webp',
-    };
-    final image = Image.asset(
-      asset,
-      width: size,
-      height: size,
-      fit: BoxFit.contain,
-      filterQuality: FilterQuality.medium,
-    );
-    // the mortar's sprite is stored upside down for the tail layer
-    return part.id == 'mortar_cat'
-        ? RotatedBox(quarterTurns: 2, child: image)
-        : image;
-  }
+  /// A part drawn with the very sprite it shows on the airframe.
+  static Widget partSprite(ModulePart part, double size, {String? mount}) =>
+      ShipSpriteArt.partSprite(part, size, mount: mount);
 
   Widget _weaponSlot(String mount, double size) {
     final part = p.moduleLoadout.parts[mount];
@@ -221,7 +200,7 @@ class _CatGearScreenState extends State<CatGearScreen>
         parts.add(message('{0} 2세트 · {1}', [set.name, set.two]));
       }
     }
-    return parts.isEmpty ? '같은 세트 2·4부위를 장착하면 세트 효과' : parts.join('\n');
+    return parts.isEmpty ? '세트 효과 없음' : parts.join('\n');
   }
 
   static String _percent(double v) {
@@ -294,6 +273,7 @@ class _CatGearScreenState extends State<CatGearScreen>
                       excludeSemantics: true,
                       child: Column(
                         children: [
+                          GameIconImage(StatIcons.of(label), size: 24),
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
@@ -318,7 +298,7 @@ class _CatGearScreenState extends State<CatGearScreen>
                               maxLines: 1,
                               softWrap: false,
                               style: const TextStyle(
-                                fontSize: 12,
+                                fontSize: GameUi.caption,
                                 height: 1.2,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFFB8C7DA),
@@ -339,8 +319,9 @@ class _CatGearScreenState extends State<CatGearScreen>
             textAlign: TextAlign.center,
             maxLines: 2,
             style: const TextStyle(
-              fontSize: 13,
+              fontSize: GameUi.caption,
               height: 1.25,
+              fontWeight: FontWeight.w800,
               color: Color(0xFF9FE6B0),
             ),
           ),
@@ -417,7 +398,7 @@ class _CatGearScreenState extends State<CatGearScreen>
           ),
         ],
       ),
-      note: '눌러서 기체 정보·강화',
+      note: '기체 정보 ▶',
       onTap: () => showAirframeDetails(context, p),
     );
   }
@@ -441,11 +422,14 @@ class _CatGearScreenState extends State<CatGearScreen>
         GameItemSlot.imageHeight +
         20 +
         3 * 18 * MediaQuery.textScalerOf(context).scale(1);
-    // as many rows as needed, up to about two and a half
-    final listHeight = math.min(
-      rows * (tile + 8) + 8,
-      math.max(tile + 16, math.min(400.0, screen.height * .42)),
-    );
+    // as many rows as needed, up to about two and a half; a short phone
+    // keeps one row (the list scrolls) so the picked item's card fits
+    final listHeight = ItemInfoCard.compactFor(context)
+        ? math.min(rows * (tile + 8) + 8, tile + 12)
+        : math.min(
+            rows * (tile + 8) + 8,
+            math.max(tile + 16, math.min(400.0, screen.height * .42)),
+          );
     return GameDialog(
       title: title,
       child: Column(
@@ -523,6 +507,9 @@ class _CatGearScreenState extends State<CatGearScreen>
                   ? null
                   : ItemInfoCard(
                       name: item.name,
+                      image: gearImage(item, 48),
+                      rarity: item.rarity,
+                      affordable: p.canUpgradeCatGear(item),
                       nameColor: Color(catGearRarityColors[item.rarity]),
                       chips: [
                         (
@@ -727,6 +714,10 @@ class _CatGearScreenState extends State<CatGearScreen>
                   ? null
                   : ItemInfoCard(
                       name: part.definition.name,
+                      image: partSprite(part.definition, 48, mount: mount),
+                      affordable:
+                          p.credits >= p.moduleUpgradeCredits(part.level) &&
+                          p.blueprints >= p.moduleUpgradePlans(part.level),
                       chips: [
                         ('Lv.${part.level}/40', const Color(0xFFFFD43D)),
                         if (here) ('장착 중', const Color(0xFF7CE08A)),
@@ -805,44 +796,27 @@ class _CatGearScreenState extends State<CatGearScreen>
             onPressed: () => Navigator.pop(dialog, false),
           ),
         ],
-        // v12.14: name with a level tag, then what salvaging gives back
+        // v12.15: the part in its frame, then what salvaging gives back as
+        // picture slots
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            ItemHero(
+              image: partSprite(part.definition, 48),
+              name: part.definition.name,
+              chips: [('Lv.${part.level}', const Color(0xFFFFD43D))],
+              size: 64,
+            ),
+            const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Flexible(
-                  child: Text(
-                    tr(part.definition.name),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
+                GameRewardSlot(
+                  GameReward(GameIcons.churu, 20 + part.level * 5, '츄르'),
                 ),
-                const SizedBox(width: 6),
-                GameTag('Lv.${part.level}'),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              alignment: WrapAlignment.center,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 6,
-              runSpacing: 4,
-              children: [
-                const GameTag('분해 시 획득', tone: GameTone.good),
-                GameRewardChip(
-                  '츄르',
-                  20 + part.level * 5,
-                  image: CurrencyArt.churu,
-                ),
-                GameRewardChip(
-                  '별가루',
-                  1 + part.level ~/ 3,
-                  image: CurrencyArt.stardust,
+                const SizedBox(width: 10),
+                GameRewardSlot(
+                  GameReward(GameIcons.stardust, 1 + part.level ~/ 3, '별가루'),
                 ),
               ],
             ),

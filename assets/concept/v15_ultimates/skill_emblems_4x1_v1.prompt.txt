@@ -1,0 +1,14 @@
+Mode: built-in image_gen; two attempts. Concept image only, not wired into game.
+Requested layout: 4 columns x 1 row, canvas 4:1. The generated output does not meet the requested canvas ratio; verify dimensions before production use.
+Use case: style-transfer.
+Asset type: one mobile game skill emblem sprite sheet.
+Input images: Image 1 is the exact icon STYLE reference (chunky cute cat-themed shooter kit, thick even dark navy outlines, bold simple shapes, flat colors with one cel-shade step and a small white highlight). Image 2 is the SUBJECT IDENTITY reference for the orange-and-cream round cat spaceship, with a blue canopy and visible orange cat.
+Create exactly 4 emblems in a strict 4 columns x 1 row grid on a wide 4:1 canvas (ideally 2048x512), each centered in its own equal square cell at about 70% of the cell size, readable at 40 pixels. Each is a round, badge-free standalone symbol, without any surrounding disc or tile.
+Left to right:
+(1) MISSILE STORM: a fan burst of exactly six small orange fish-shaped missiles flying outward from a central bright yellow star flash.
+(2) TWIN CLONES: exactly three round orange-and-cream cat spaceships matching Image 2 side by side, top view, pointing up. Middle solid orange/cream with blue canopy and orange cat. Left and right pale translucent-looking cyan ghost copies, drawn in pale cyan flat fills so no magenta appears inside them.
+(3) INVINCIBLE: a big golden round shield with a white cat paw emblem and small star sparkles.
+(4) STAR CANNON: a glowing golden star with a cat ear notch and a short beam of light. Render glow as crisp contained golden/cream shapes, no blurry halo.
+Background: whole canvas outside emblems perfectly flat solid pure magenta #FF00FF, generous negative space between symbols and at edges.
+Constraints: preserve reference 1 style and reference 2 spaceship identity. Thick uniform dark navy outlines, bold simple silhouettes, only one cel-shade step, small white highlights. No magenta pigment inside emblems. No diffuse glow or shadow on background. No grid lines, no text, no labels, no watermark. Exactly four separate emblems in one horizontal row.
+CRITICAL OUTPUT CORRECTION: The previous attempt incorrectly returned a transparent 3:1 image. This output MUST be an OPAQUE image with pure solid MAGENTA RGB(255,0,255) filling the entire background; NO transparency or black background. Canvas MUST be exactly FOUR TO ONE (4:1), such as 2048 wide by 512 high. Four equal square cells, icon centers at 12.5%, 37.5%, 62.5%, 87.5% of canvas width and 50% of height. Each complete icon group including sparkles and beam stays within the central 70% of its square cell, leaving wide magenta gaps. Do not crop any icon. Preserve all four specified subjects and the references.

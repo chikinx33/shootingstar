@@ -5,6 +5,7 @@ import 'audio_feedback.dart';
 import 'package:flutter/material.dart';
 
 import 'components.dart';
+import '../art/game_icons.dart';
 
 /// v12.4.3 (user 2026-10-25): screens keep only what the player needs on one
 /// page. Secondary explanations open here on demand instead of page arrows.
@@ -62,3 +63,34 @@ class InfoAction extends StatelessWidget {
 const gap8 = SizedBox(height: 8),
     gap12 = SizedBox(height: 12),
     gap16 = SizedBox(height: 16);
+
+/// v12.15 rule line for '?' popups: a picture and one short line, so rules
+/// read as a game's help page instead of a paragraph.
+class RuleLine extends StatelessWidget {
+  const RuleLine(this.asset, this.text, {super.key});
+  final String asset, text;
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          GameIconImage(asset, size: 36),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              tr(text),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: GameUi.body,
+                height: 1.3,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

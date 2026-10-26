@@ -128,8 +128,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.getRect(find.text('함대 보급')), heading);
         await tapUi(tester, find.text('교환'));
-        // The pet food offer left the exchange; 별가루 is the cheapest one now.
-        await tapUi(tester, find.bySemanticsLabel('별가루 교환 상세'));
+        // v12.15: exchange goods are product cards with their price button.
         final credits = p.credits, plans = p.blueprints;
         await tapUi(tester, action('별가루 교환'));
         expect(p.credits, credits - 100);
@@ -139,27 +138,16 @@ void main() {
         await tapUi(tester, action('확인'));
         expect(jsonEncode(p.exportProgress()), earned);
         await mount(Scaffold(body: SeasonMailbox(profile: p)));
-        await tapUi(
-          tester,
-          find.byWidgetPredicate((w) => w is GameItemSlot && w.title == '1단계'),
-        );
-        await tapUi(tester, action('1단계 보상 수령'));
+        // v12.15: the season is a tier track; the reached reward is tapped.
+        await tapUi(tester, find.byKey(const ValueKey('season-claim-1')));
         expect(p.seasonClaims.contains(1), isTrue);
         await tapUi(tester, action('확인'));
-        await tapUi(tester, find.byTooltip('닫기').last);
         await tapUi(tester, find.text('우편'));
         final mailHeader = tester.getRect(find.text('보상 우편').first);
         final mailCredits = p.credits;
-        await tapUi(
-          tester,
-          find.byWidgetPredicate(
-            (w) => w is GameItemSlot && w.title == '원정 지원 보상 · 오래 보관한 우편',
-          ),
-        );
-        await tapUi(tester, action('우편 보상 받기').first);
+        await tapUi(tester, find.byKey(const ValueKey('mail-claim-fixed-ui-mail')));
         expect(p.credits, mailCredits + 70);
         await tapUi(tester, action('확인'));
-        await tapUi(tester, find.byTooltip('닫기').last);
         expect(p.claimMail('fixed-ui-mail'), isFalse);
         expect(tester.getRect(find.text('보상 우편').first), mailHeader);
         await mount(CollectionScreen(profile: p));
@@ -177,10 +165,10 @@ void main() {
         );
         await tapUi(tester, action('확인'));
         await tapUi(tester, find.text('보관함'));
-        final collectionHeader = tester.getRect(find.text('항로 유물').last);
+        final collectionHeader = tester.getRect(find.text('수집품').last);
         await tester.drag(find.byType(ListView), const Offset(0, -240));
         await tester.pumpAndSettle();
-        expect(tester.getRect(find.text('항로 유물').last), collectionHeader);
+        expect(tester.getRect(find.text('수집품').last), collectionHeader);
         await tapUi(
           tester,
           find.byWidgetPredicate(

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../art/toon_assets.dart';
 import '../data/campaign.dart';
 import '../l10n/app_language.dart';
+import 'game_decor.dart';
+import 'game_info.dart';
 
 /// Slides in when a Vacuum Empire commander arrives: portrait, name and a
 /// one-line taunt. Never takes input, so steering is not interrupted.
@@ -69,68 +71,37 @@ class _BossIntroCardState extends State<BossIntroCard>
             ),
           );
         },
+        // v12.15 (mobile boss warning): the fortress itself, big, over a
+        // red "보스 출현" tag, its name in outlined lettering and the taunt
+        // in a speech bubble.
         child: Align(
-          alignment: const Alignment(0, -.62),
+          alignment: const Alignment(0, -.55),
           child: Container(
             key: const Key('boss-intro-card'),
             margin: const EdgeInsets.symmetric(horizontal: 14),
-            padding: const EdgeInsets.fromLTRB(8, 8, 14, 8),
-            constraints: const BoxConstraints(maxWidth: 380),
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+            constraints: const BoxConstraints(maxWidth: 340),
             decoration: BoxDecoration(
               color: const Color(0xEE2A1640),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(color: const Color(0xFFFF4D9A), width: 3),
               boxShadow: const [
                 BoxShadow(color: Color(0x88000000), blurRadius: 12),
               ],
             ),
-            child: Row(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 76,
-                  height: 76,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF13091F),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ToonTile('bosses', w, size: 70),
+                const GameTag('보스 출현 · 진공 제국 사령관', tone: GameTone.danger),
+                const SizedBox(height: 4),
+                ToonTile('bosses', w, size: 112),
+                GameLettering(
+                  bossNames[w],
+                  size: 24,
+                  colors: const [Color(0xFFFFE3F0), Color(0xFFFF5FA8)],
                 ),
-                const SizedBox(width: 10),
-                Flexible(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        tr('진공 제국 함대 사령관'),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFFFF8DC0),
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      Text(
-                        tr(bossNames[w]),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        tr(bossTaunts[w]),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFFFFE9A8),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                const SizedBox(height: 6),
+                GameQuote(bossTaunts[w]),
               ],
             ),
           ),
@@ -223,15 +194,7 @@ class _VacuumKingTransmissionState extends State<VacuumKingTransmission>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        tr('흡입대왕 바큠 · 통신'),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFFC79BFF),
-                        ),
-                      ),
+                      const GameTag('흡입대왕 바큠 · 통신', tone: GameTone.danger),
                       Text(
                         tr(line),
                         textAlign: TextAlign.center,

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'support/tabs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/daily_challenge.dart';
 import 'package:shootingstar/data/profile.dart';
@@ -302,7 +303,7 @@ void main() {
         );
         await tester.drag(find.byType(ListView), const Offset(0, 1000));
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('daily-tab-exchange')));
+        await tester.tap(tabWithText('토큰 교환'));
         await tester.pumpAndSettle();
         await tester.scrollUntilVisible(
           find.byKey(const ValueKey('daily-exchange-0')),

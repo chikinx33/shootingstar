@@ -7,9 +7,9 @@ import 'game_decor.dart';
 import '../data/guardian_quests.dart';
 import '../data/profile.dart';
 import '../l10n/app_language.dart';
-import 'audio_feedback.dart';
-import 'catalog_screens.dart' show RewardChips;
-import 'item_slots.dart';
+import 'fleet_activity_screen.dart' show QuestRow;
+import 'game_slots.dart';
+import '../art/game_icons.dart';
 
 /// Captain Momo's story quest on top, endless achievements below.
 
@@ -44,89 +44,29 @@ class GuardianQuestScreen extends StatelessWidget {
     );
   }
 
-  Widget _bar(double ratio) => KitGauge(ratio, height: 16);
+  Widget _bar(double ratio) => KitGauge(ratio, height: 14);
 
-  /// v12.14: rewards are visible item chips, not only screen-reader text.
-  Widget _rewardChips(QuestReward r) => RewardChips(
-    credits: r.churu,
-    plans: r.stardust,
-    extra: [
-      if (r.gearRarity != null)
-        GameRewardChip(
-          '${const ['일반', '고급', '희귀', '영웅', '전설'][r.gearRarity!]} 장비',
-          1,
-        ),
-    ],
-  );
-
-  /// An achievement's progress, next reward and claim in one popup.
-  void _achievement(
-    BuildContext context,
-    GuardianStat stat,
-  ) => showDialog<void>(
-    context: context,
-    builder: (dialog) => AnimatedBuilder(
-      animation: profile,
-      builder: (_, _) {
-        final p = profile;
-        final next = p.quests.nextAchievement(stat);
-        final ready = p.achievementReady(stat);
-        return GameDialog(
-          title: guardianStatNames[stat]!,
-          actions: [
-            GameActionButton(
-              label: ready ? '보상 받기' : '진행 중',
-              icon: Icons.card_giftcard,
-              primary: true,
-              onPressed: ready
-                  ? audible(() {
-                      final line = p.claimAchievement(stat);
-                      Navigator.of(dialog).pop();
-                      _notify(context, line);
-                    })
-                  : null,
-            ),
-          ],
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Image.asset(trophyArt[stat]!, width: 84, height: 84),
-              ),
-              const SizedBox(height: 8),
-              GameFactRow([
-                GameFact(
-                  '단계',
-                  message('{0}단계', [next.tier]),
-                  tone: GameTone.gold,
-                ),
-                GameFact(
-                  '진행',
-                  '${p.guardianStat(stat).clamp(0, next.target)}/${next.target}',
-                  tone: ready ? GameTone.good : GameTone.sky,
-                ),
-              ]),
-              const SizedBox(height: 8),
-              _bar(p.guardianStat(stat) / next.target),
-              const SizedBox(height: 10),
-              Center(child: GameTag('보상', tone: GameTone.good)),
-              const SizedBox(height: 6),
-              _rewardChips(next.reward),
-            ],
-          ),
-        );
-      },
-    ),
-  );
+  /// v12.15: a quest reward as picture slots (a guaranteed gear piece shows
+  /// the armour sprite in its rarity rim).
+  static List<GameReward> rewards(QuestReward r) => [
+    if (r.churu > 0) GameReward(GameIcons.churu, r.churu, '츄르'),
+    if (r.stardust > 0) GameReward(GameIcons.stardust, r.stardust, '별가루'),
+    if (r.gearRarity != null)
+      GameReward(
+        'assets/art/ship_parts/sunshine/armor.webp',
+        1,
+        '${const ['일반', '고급', '희귀', '영웅', '전설'][r.gearRarity!]} 장비',
+        rarity: r.gearRarity! + 1,
+      ),
+  ];
 
   Widget _story(BuildContext context) {
     final p = profile;
     final q = p.quests.currentStory;
-    // v12.9: the captain's orders on the kit's gold panel
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
       child: Surface(
-        padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
         child: q == null
             ? Text(
                 tr('모모 대장: 이제 너는 진정한 수호묘다. 봉인은 네게 맡기마.'),
@@ -140,7 +80,7 @@ class GuardianQuestScreen extends StatelessWidget {
                       MascotImage(
                         'assets/art/story_v11/momo.webp',
                         key: const Key('story-quest-momo'),
-                        size: 84,
+                        size: 64,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -164,6 +104,25 @@ class GuardianQuestScreen extends StatelessWidget {
                                 color: Color(0xFFFFD43D),
                               ),
                             ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _bar(
+                                    p.guardianStat(q.stat) / q.target,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${p.guardianStat(q.stat).clamp(0, q.target)}/${q.target}',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: GameUi.caption,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -171,28 +130,33 @@ class GuardianQuestScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   GameQuote(q.line),
-                  const SizedBox(height: 6),
-                  _bar(p.guardianStat(q.stat) / q.target),
-                  const SizedBox(height: 4),
-                  GameHint(
-                    message('{0} {1}/{2}', [
-                      tr(guardianStatNames[q.stat]!),
-                      p.guardianStat(q.stat).clamp(0, q.target),
-                      q.target,
-                    ]),
-                    tone: GameTone.sky,
-                  ),
-                  const SizedBox(height: 4),
-                  _rewardChips(q.reward),
-                  const SizedBox(height: 6),
-                  GameActionButton(
-                    key: const Key('story-quest-claim'),
-                    label: p.storyReady ? '보상 받기' : '진행 중',
-                    icon: Icons.card_giftcard,
-                    primary: p.storyReady,
-                    onPressed: p.storyReady
-                        ? () => _notify(context, p.claimStory())
-                        : null,
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: [
+                            for (final r in rewards(q.reward))
+                              GameRewardSlot(r, size: 44),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: GameActionButton(
+                          key: const Key('story-quest-claim'),
+                          label: p.storyReady ? '임무 보상 받기' : '진행 중',
+                          displayLabel: p.storyReady ? '받기' : '진행 중',
+                          image: GameIcons.chest,
+                          primary: p.storyReady,
+                          onPressed: p.storyReady
+                              ? () => _notify(context, p.claimStory())
+                              : null,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -218,42 +182,37 @@ class GuardianQuestScreen extends StatelessWidget {
               );
               return r != 0 ? r : a.index.compareTo(b.index);
             });
+          // v12.15: achievements are a quest list — trophy, name with its
+          // tier tag and gauge, reward slots, a small claim button.
           return Column(
             children: [
               _story(context),
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  tr('업적 · 끝없이 이어지는 목표'),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
               Expanded(
-                child: GameSlotList(
-                  listKey: const ValueKey('achievements'),
+                child: ListView(
+                  key: const ValueKey('achievements'),
+                  padding: const EdgeInsets.fromLTRB(10, 4, 10, 12),
                   children: [
                     for (final stat in stats)
-                      GameItemSlot(
-                        // Name on one line, the tier on the next.
-                        title:
-                            '${guardianStatNames[stat]}\n${p.quests.nextAchievement(stat).tier}단계',
-                        status: p.achievementReady(stat)
-                            ? '보상 받기'
-                            : '${p.guardianStat(stat)}/${p.quests.nextAchievement(stat).target}',
-                        selected: p.achievementReady(stat),
-                        rarity: p.achievementReady(stat) ? 4 : -1,
-                        image: Image.asset(
-                          trophyArt[stat]!,
-                          width: GameItemSlot.imageHeight,
-                          height: GameItemSlot.imageHeight,
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: QuestRow(
+                          key: ValueKey('achievement-${stat.name}'),
+                          icon: trophyArt[stat]!,
+                          iconSize: 52,
+                          name: guardianStatNames[stat]!,
+                          tag: message('{0}단계', [
+                            p.quests.nextAchievement(stat).tier,
+                          ]),
+                          progress: p.guardianStat(stat),
+                          target: p.quests.nextAchievement(stat).target,
+                          rewards: rewards(
+                            p.quests.nextAchievement(stat).reward,
+                          ),
+                          claimed: false,
+                          claimLabel: '${guardianStatNames[stat]} 업적 보상 받기',
+                          onClaim: () =>
+                              _notify(context, p.claimAchievement(stat)),
                         ),
-                        semanticLabel:
-                            '${p.quests.nextAchievement(stat).title} ${p.guardianStat(stat)}/${p.quests.nextAchievement(stat).target} 보상 ${p.quests.nextAchievement(stat).reward.summary}',
-                        onTap: audible(() => _achievement(context, stat)),
                       ),
                   ],
                 ),

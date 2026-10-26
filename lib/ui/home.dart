@@ -8,7 +8,7 @@ import 'game_decor.dart';
 
 import 'prologue_screen.dart';
 
-import '../art/refit_art.dart';
+import '../art/game_backdrop.dart';
 import '../art/flight_scene_art.dart';
 import '../art/raster_assets.dart';
 import '../data/profile.dart';
@@ -16,7 +16,6 @@ import 'components.dart';
 import 'arcade_home_widgets.dart';
 import 'fixed_lobby.dart';
 import 'lobby_cat_hero.dart';
-import 'hangar_board.dart';
 import 'reward_popup.dart';
 import 'battle.dart';
 import 'daily_challenge_screen.dart';
@@ -25,9 +24,9 @@ import 'account_screen.dart';
 import 'settings_screen.dart';
 import 'guild_screen.dart';
 import 'survival_meta.dart';
-import 'talent_screen.dart';
 import 'fleet_activity_screen.dart';
 import 'content_hub.dart';
+import 'module_workshop.dart';
 import 'campaign_selector.dart';
 import '../data/guild_client.dart';
 
@@ -246,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 Expanded(
-                  child: RefitBackdrop(
+                  child: GameBackdrop(
                     launch: tab == 0,
                     child: switch (tab) {
                       0 => _bridge(),
@@ -255,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         key: const ValueKey('growth'),
                         profile: p,
                       ),
-                      4 => TalentScreen(profile: p),
+                      4 => ModuleWorkshop(profile: p, embedded: true),
                       5 => ContentHub(
                         key: const ValueKey('supply'),
                         profile: p,
@@ -431,7 +430,7 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute<void>(builder: (_) => GuildScreen(profile: p)),
     ),
   );
-  Widget _hangar() => HangarBoard(profile: p);
+  Widget _hangar() => ModuleWorkshop(profile: p, embedded: true);
 
   Future<void> _settings(BuildContext context) =>
       showFlightSettings(context, p);

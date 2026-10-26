@@ -8,6 +8,8 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../art/game_icons.dart';
+
 import 'game_decor.dart';
 
 import 'package:flutter/services.dart';
@@ -194,6 +196,13 @@ class _ProgressBackupScreenState extends State<ProgressBackupScreen> {
       child: Scaffold(
         appBar: GameAppBar(
           title: Text(tr('진행 백업·복원'), textAlign: TextAlign.center),
+          actions: [
+            InfoAction(
+              key: const Key('backup-details'),
+              label: '백업·복원 자세히 보기',
+              onPressed: _details,
+            ),
+          ],
         ),
         body: SafeArea(
           // v12.4.3: one page. Privacy and scope notes open in the popup.
@@ -203,7 +212,7 @@ class _ProgressBackupScreenState extends State<ProgressBackupScreen> {
             centerContent: true,
             padding: const EdgeInsets.all(16),
             children: [
-              Text(tr(status), textAlign: TextAlign.center),
+              GameHint(status),
               gap12,
               GameActionButton(
                 label: kIsWeb ? '백업 파일 저장' : '백업 내용 복사',
@@ -212,11 +221,7 @@ class _ProgressBackupScreenState extends State<ProgressBackupScreen> {
               ),
               gap16,
               if (p.backupRestoreBlock != null) ...[
-                Text(
-                  tr(p.backupRestoreBlock!),
-                  style: const TextStyle(color: Colors.orange),
-                  textAlign: TextAlign.center,
-                ),
+                GameHint(p.backupRestoreBlock!, tone: GameTone.danger),
                 gap8,
               ],
               GameActionButton(
@@ -256,7 +261,7 @@ class _ProgressBackupScreenState extends State<ProgressBackupScreen> {
                       _Pair('츄르', '${pending!.progress['credits']}'),
                       _Pair('출격', '${pending!.progress['runs']}'),
                       _Pair(
-                        '항로',
+                        '집',
                         '${(pending!.progress['selectedStage'] as int) + 1}',
                       ),
                     ],
@@ -275,20 +280,12 @@ class _ProgressBackupScreenState extends State<ProgressBackupScreen> {
                 gap12,
                 GameActionButton(
                   label: '복원 전 진행으로 되돌리기',
-                  icon: Icons.undo,
+                  image: GameIcons.refresh,
                   onPressed: audible(
                     busy ? null : () => confirm(p.previousManualBackup()!),
                   ),
                 ),
               ],
-              gap12,
-              GameActionButton(
-                key: const Key('backup-details'),
-                label: '백업·복원 자세히 보기',
-                displayLabel: '자세히',
-                icon: Icons.question_mark,
-                onPressed: audible(_details),
-              ),
             ],
           ),
         ),

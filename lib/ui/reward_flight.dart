@@ -4,6 +4,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../art/game_icons.dart';
+
 import 'reward_popup.dart';
 
 /// A real, currently visible resource/inventory destination, not a guessed pixel.
@@ -175,11 +177,7 @@ class _FlightLayerState extends State<_FlightLayer>
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
-                              Icons.inventory_2,
-                              color: Color(0xFFFFD167),
-                              size: 28,
-                            ),
+                            const GameIconImage(GameIcons.chest, size: 34),
                             Text(
                               tr(widget.spending ? '재화 사용' : '보관함'),
                               style: const TextStyle(

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'game_art.dart';
 import 'ui_kit.dart';
-import 'refit_art.dart';
+import 'game_backdrop.dart';
 
 /// Legacy atlas slots. No atlas is bundled any more: [images] stays empty and
 /// every call resolves through [GameArt] or reports that nothing was drawn.
@@ -197,5 +197,5 @@ class ToonBackdrop extends StatelessWidget {
   const ToonBackdrop({super.key, required this.child});
   final Widget child;
   @override
-  Widget build(BuildContext context) => RefitBackdrop(child: child);
+  Widget build(BuildContext context) => GameBackdrop(child: child);
 }

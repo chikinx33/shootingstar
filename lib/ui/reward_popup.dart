@@ -10,7 +10,7 @@ import 'game_decor.dart';
 
 import '../art/toon_assets.dart';
 import '../art/menu_art.dart';
-import '../art/arcade_aircraft.dart';
+import '../art/ship_sprite_art.dart';
 import '../data/profile.dart';
 import '../data/shop_ledger.dart';
 import 'ad_offer.dart';
@@ -18,6 +18,8 @@ import '../data/ship_modules.dart';
 import '../data/collection_book.dart';
 import '../data/content_catalog.dart';
 import 'components.dart';
+import 'game_slots.dart' show AmountBadge;
+import '../art/game_icons.dart';
 import 'reward_flight.dart';
 import '../services/audio_director.dart';
 export 'reward_flight.dart';
@@ -31,7 +33,11 @@ class RewardEntry {
     this.atlas,
     this.index,
     this.rarity = 3,
+    this.asset,
   });
+
+  /// The current-art picture of a currency or ticket (v12.15).
+  final String? asset;
   final String? modulePartId;
   final String name;
   final int amount, rarity;
@@ -39,6 +45,18 @@ class RewardEntry {
   final String? atlas;
   final int? index;
 }
+
+/// The pictures of the balances a [RewardSnapshot] tracks, in its order.
+const balancePictures = [
+  GameIcons.churu,
+  GameIcons.stardust,
+  GameIcons.food,
+  GameIcons.gearTicket,
+  GameIcons.techTicket,
+  GameIcons.petTicket,
+  GameIcons.collectTicket,
+  GameIcons.season,
+];
 
 /// View-only receipt: actual positive changes after a successful model action.
 /// Closing or rebuilding this widget never calls a claim or writes progress.
@@ -96,10 +114,16 @@ class RewardSnapshot {
       Icons.auto_awesome,
       Icons.school,
     ];
+    const pictures = balancePictures;
     return [
       for (var i = 0; i < balances.length; i++)
         if (balances[i] > after.balances[i])
-          RewardEntry(names[i], balances[i] - after.balances[i], icons[i]),
+          RewardEntry(
+            names[i],
+            balances[i] - after.balances[i],
+            icons[i],
+            asset: pictures[i],
+          ),
     ];
   }
 
@@ -158,6 +182,7 @@ class RewardSnapshot {
       Icons.auto_awesome,
       Icons.school,
     ];
+    const pictures = balancePictures;
     return [
       for (final part in p.shipModules.owned.values)
         if (!moduleIds.contains(part.instanceId) &&
@@ -170,7 +195,12 @@ class RewardSnapshot {
           ),
       for (var i = 0; i < balances.length; i++)
         if (after.balances[i] > balances[i])
-          RewardEntry(names[i], after.balances[i] - balances[i], icons[i]),
+          RewardEntry(
+            names[i],
+            after.balances[i] - balances[i],
+            icons[i],
+            asset: pictures[i],
+          ),
       for (var id = 0; id < relicShards.length; id++)
         if (p.collections.shards[id] > relicShards[id])
           RewardEntry(
@@ -363,11 +393,7 @@ class RewardPopup extends StatelessWidget {
             ),
           if (entries.isNotEmpty) RewardGrid(entries: entries),
           gap(16),
-          Text(
-            tr(message),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: GameUi.body),
-          ),
+          GameHint(message),
         ],
       ),
     );
@@ -407,29 +433,47 @@ class RewardGrid extends StatelessWidget implements GamePageContent {
     ];
   }
 
+  /// v12.15: a picture slot with its ×N badge, the name one line under it.
   Widget _card(RewardEntry entry) => RewardReveal(
-    child: ToonRarityFrame(
-      rank: entry.rarity,
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RewardIcon(entry: entry, size: 64),
-            gap(8),
-            Text(
-              message("×{0}", [entry.amount]),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-            ),
-            Text(
-              tr(entry.name),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-            ),
-          ],
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox.square(
+          dimension: 76,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: ToonRarityFrame(
+                  rank: entry.rarity.clamp(0, 5),
+                  child: Center(child: RewardIcon(entry: entry, size: 54)),
+                ),
+              ),
+              Positioned(
+                right: -4,
+                bottom: -4,
+                child: AmountBadge(entry.amount, size: 18),
+              ),
+            ],
+          ),
         ),
-      ),
+        gap(6),
+        SizedBox(
+          width: double.infinity,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              tr(entry.name),
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: GameUi.caption,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ),
+      ],
     ),
   );
   @override
@@ -456,10 +500,15 @@ class RewardIcon extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          if (entry.modulePartId != null)
+          if (entry.asset != null)
+            GameIconImage(entry.asset!, size: size)
+          else if (entry.modulePartId != null)
             partIllustration(modulePart(entry.modulePartId!), size: size)
           else if (entry.atlas == 'hero')
-            ArcadeAircraft(shipIndex: entry.index ?? 0, size: size)
+            SizedBox.square(
+              dimension: size,
+              child: ShipSprite(hull: entry.index ?? 0),
+            )
           else if (entry.atlas == 'equipment' && MenuArt.images.isNotEmpty)
             MenuImage(
               entry.index == 1

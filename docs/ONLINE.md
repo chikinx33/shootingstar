@@ -68,5 +68,3 @@ npm run deploy
 - 공개 사이트와 별도 loopback 출처의 독립 저장소에 같은 계정으로 로그인. 서버 저장 버전 2와 543 크레딧을 두 번째 저장소에서 불러오는 것을 UI로 확인.
 - 공개 API D1 health 및 공개 main.dart.js SHA-256과 로컬 산출물 일치 검증. 결과: `tools/qa/evidence/online-v4/`.
 - Android debug APK 빌드 성공. Android 실기기와 두 물리적 기기의 플레이 검증, 서명 release 배포는 미실시.
-
-변경 전 소스 백업: `docs/before-online-v4.zip`.

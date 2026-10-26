@@ -4,11 +4,11 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import '../art/ship_sprite_art.dart';
+import '../art/game_icons.dart';
+
 import '../game/engine.dart';
 import '../data/aircraft_assembly.dart';
-import '../art/aircraft_assembly_art.dart';
-import '../art/gear_art.dart';
-import '../art/module_aircraft_art.dart';
 import '../data/ship_modules.dart';
 import '../game/survival_skills.dart';
 import 'components.dart';
@@ -84,11 +84,8 @@ class BattleHud extends StatelessWidget {
                     style: IconButton.styleFrom(
                       minimumSize: const Size(48, 48),
                     ),
-                    icon: const Icon(
-                      Icons.info_outline,
-                      size: 26,
-                      color: Color(0xFF9FCCD9),
-                    ),
+                    // v12.15: kit pictures, not system glyphs
+                    icon: const GameIconImage(GameIcons.codex, size: 30),
                   ),
                   IconButton(
                     tooltip: tr('일시정지'),
@@ -96,11 +93,7 @@ class BattleHud extends StatelessWidget {
                     style: IconButton.styleFrom(
                       minimumSize: const Size(48, 48),
                     ),
-                    icon: const Icon(
-                      Icons.pause_circle_filled,
-                      size: 30,
-                      color: accent,
-                    ),
+                    icon: const GameIconImage(GameIcons.pause, size: 28),
                   ),
                 ],
               ),
@@ -118,7 +111,7 @@ class BattleHud extends StatelessWidget {
                       game.hp / game.maxHp,
                       const Color(0xFF7DDD78),
                       const Key('combat-hp'),
-                      icon: Icons.favorite,
+                      image: GameIcons.heart,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -148,14 +141,14 @@ class BattleHud extends StatelessWidget {
     double value,
     Color color,
     Key key, {
-    IconData? icon,
+    String? image,
   }) => Semantics(
     label: message('{0} · {1}', [name, full]),
     excludeSemantics: true,
     child: Row(
       children: [
-        if (icon != null) ...[
-          Icon(icon, size: 16, color: color),
+        if (image != null) ...[
+          GameIconImage(image, size: 18),
           const SizedBox(width: 4),
         ],
         Text(
@@ -238,9 +231,9 @@ class BattleLoadoutDetails extends StatelessWidget {
                         ? const Center(
                             child: Text('·', textAlign: TextAlign.center),
                           )
-                        : ModulePartIcon(
+                        : ShipSpriteArt.partSprite(
                             game.moduleLoadout!.parts[mount.id]!.definition,
-                            size: 32,
+                            32,
                           ),
                   ),
                 ),
@@ -304,17 +297,12 @@ class BattleLoadoutDetails extends StatelessWidget {
               : Stack(
                   children: [
                     Center(
-                      child:
-                          game.gearSpecs.length == 6 &&
-                              (mount == AircraftMount.main ||
-                                  mount == AircraftMount.armor)
-                          ? GearIcon(
-                              game.gearSpecs[mount == AircraftMount.main
-                                  ? 0
-                                  : 3],
-                              size: 28,
-                            )
-                          : AssemblyPartIcon(part, size: 28),
+                      child: GameIconImage(
+                        mount == AircraftMount.main
+                            ? GameIcons.crosshair
+                            : GameIcons.shield,
+                        size: 28,
+                      ),
                     ),
                     Positioned(
                       right: 2,

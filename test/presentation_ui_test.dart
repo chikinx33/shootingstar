@@ -116,7 +116,8 @@ void main() {
         await tester.tap(find.text('보상 테스트'));
         await tester.pump(const Duration(milliseconds: 400));
         expect(p.credits, initial + 77);
-        expect(find.text('×77'), findsOneWidget);
+        // v12.15: the ×N badge is outlined text (stroke + fill layers)
+        expect(find.text('×77'), findsWidgets);
         await tester.tap(find.text('확인'));
         await tester.pump(const Duration(milliseconds: 350));
         await tester.pump(const Duration(milliseconds: 200));

@@ -361,13 +361,13 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      await revealUi(tester, find.text('먹이 10 선물'));
+      await revealUi(tester, find.text('선물 10'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('먹이 10 선물'));
+      await tester.tap(find.text('선물 10'));
       await tester.pumpAndSettle();
       expect(p.petFood, 90);
       expect(p.petBond.favor[0], 60);
-      final awake = find.text('각성 1단계 · 100 츄르');
+      final awake = find.text('각성 1단계');
       await revealUi(tester, awake);
       await tester.pumpAndSettle();
       await tester.tap(awake);

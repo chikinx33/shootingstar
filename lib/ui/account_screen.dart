@@ -11,6 +11,8 @@ import 'supporter_screen.dart';
 import 'package:flutter/material.dart';
 
 import 'game_decor.dart';
+import 'lobby_cat_hero.dart';
+import '../art/game_icons.dart';
 
 import '../data/profile.dart';
 import '../data/cloud_sync.dart';
@@ -153,7 +155,12 @@ class _AccountScreenState extends State<AccountScreen> {
           centerContent: true,
           framed: true,
           children: [
-            Center(child: RasterIcon(Icons.person, size: 112)),
+            Center(
+              child: GameIconImage(
+                LobbyCatHero.faces[widget.profile.selectedShip.clamp(0, 2)],
+                size: 112,
+              ),
+            ),
             Text(
               tr('온라인 서비스를 준비하고 있습니다.'),
               style: TextStyle(fontSize: 16),
@@ -190,11 +197,19 @@ class _AccountScreenState extends State<AccountScreen> {
             top: false,
             child: Column(
               children: [
+                // v12.15: a profile card (cat face, name, level, save state)
+                // instead of a title ribbon and a status sentence
                 if (!keyboard)
-                  CatalogHeader(
-                    title: '계정 저장',
-                    status: online.status,
-                    icon: Icons.person,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+                    child: ProfileCard(
+                      face: LobbyCatHero
+                          .faces[widget.profile.selectedShip.clamp(0, 2)],
+                      name: online.signedIn ? online.nickname : '게스트',
+                      level: widget.profile.pilotLevel + 1,
+                      status: online.status,
+                      online: online.signedIn,
+                    ),
                   ),
                 if (!online.signedIn && !keyboard)
                   CatalogTabs(
@@ -295,42 +310,19 @@ class _AccountScreenState extends State<AccountScreen> {
         );
 
   List<Widget> signedIn() => [
-    Text(
-      online.nickname,
-      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-      textAlign: TextAlign.center,
-    ),
-    // v12.14: each account fact carries its own coloured label; the two
-    // lines stay two page items like before.
-    Text.rich(
-      TextSpan(
-        children: [
-          TextSpan(text: '@${online.account?['username']}  '),
-          TextSpan(
-            text: '${tr('저장 버전')} ',
-            style: TextStyle(
-              color: GameTone.gold.color,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          TextSpan(
-            text: '${online.revision}',
-            style: const TextStyle(fontWeight: FontWeight.w900),
-          ),
-        ],
-      ),
-      textAlign: TextAlign.center,
-      style: const TextStyle(fontSize: GameUi.body),
-    ),
-    if (online.updatedAt > 0)
-      _Pair(
-        '서버 저장',
-        DateTime.fromMillisecondsSinceEpoch(online.updatedAt * 1000)
-            .toLocal()
-            .toString()
-            .substring(5, 16),
-        tone: GameTone.good,
-      ),
+    GameFactRow([
+      GameFact('아이디', '@${online.account?['username']}'),
+      GameFact('저장 버전', '${online.revision}', tone: GameTone.gold),
+      if (online.updatedAt > 0)
+        GameFact(
+          '서버 저장',
+          DateTime.fromMillisecondsSinceEpoch(online.updatedAt * 1000)
+              .toLocal()
+              .toString()
+              .substring(5, 16),
+          tone: GameTone.good,
+        ),
+    ]),
     if (online.recoveryCode.isNotEmpty) ...[
       gap12,
       const GameSectionTitle('복구 코드 보관'),
@@ -363,7 +355,7 @@ class _AccountScreenState extends State<AccountScreen> {
       GameChoiceTile(
         title: '서버 진행 사용',
         description: summary(online.conflict!['profile']),
-        icon: Icons.cloud_download,
+        icon: Icons.refresh,
         selected: false,
         onPressed: audible(online.busy ? null : () => resolve(true)),
       ),
@@ -371,7 +363,7 @@ class _AccountScreenState extends State<AccountScreen> {
       GameChoiceTile(
         title: '이 기기 진행 저장',
         description: summary(widget.profile.exportProgress()),
-        icon: Icons.save,
+        icon: Icons.check_circle,
         selected: false,
         onPressed: audible(online.busy ? null : () => resolve(false)),
       ),
@@ -380,7 +372,7 @@ class _AccountScreenState extends State<AccountScreen> {
     GameActionButton(
       label: '지금 동기화',
       primary: true,
-      icon: Icons.refresh,
+      image: GameIcons.refresh,
       onPressed: audible(online.busy ? null : () => run(online.sync)),
     ),
     gap12,
@@ -401,19 +393,6 @@ class _AccountScreenState extends State<AccountScreen> {
   ];
 
   List<Widget> guest() => [
-    // A validation/online error takes the place of the short mode line.
-    if (error == null)
-      Text(
-        tr(
-          mode == 1
-              ? '지금 기기의 진행으로 계정을 만듭니다.'
-              : mode == 2
-              ? '복구 코드로 새 비밀번호를 정합니다. 기존 로그인은 모두 해제됩니다.'
-              : '계정 진행을 불러오고 지금 진행은 기기에 백업합니다.',
-        ),
-        style: const TextStyle(fontSize: 16),
-        textAlign: TextAlign.center,
-      ),
     TextField(
       key: const Key('account-user'),
       controller: user,
@@ -525,7 +504,7 @@ class _AccountScreenState extends State<AccountScreen> {
       ),
       GameActionButton(
         label: '계정 영구 삭제',
-        icon: Icons.delete_forever,
+        image: 'assets/art/ui_v13/act_dismantle.webp',
         onPressed: audible(
           online.busy
               ? null
@@ -539,30 +518,65 @@ class _AccountScreenState extends State<AccountScreen> {
   );
 }
 
-/// "label value" inline: the label in its tone colour, the value in bold,
-/// one text line high.
-class _Pair extends StatelessWidget {
-  const _Pair(this.label, this.value, {this.tone = GameTone.sky});
-  final String label, value;
-  final GameTone tone;
+/// v12.15 profile card: the selected cat's face, the name, a level badge and
+/// the save state as a tag — the account/guild header in game form.
+class ProfileCard extends StatelessWidget {
+  const ProfileCard({
+    super.key,
+    required this.face,
+    required this.name,
+    required this.level,
+    required this.status,
+    this.online = false,
+  });
+  final String face, name, status;
+  final int level;
+  final bool online;
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
-    return Text.rich(
-      TextSpan(
+    return GameInset(
+      tone: GameTone.gold,
+      padding: const EdgeInsets.fromLTRB(8, 8, 10, 8),
+      child: Row(
         children: [
-          TextSpan(
-            text: '${tr(label)} ',
-            style: TextStyle(color: tone.color, fontWeight: FontWeight.w800),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: ColoredBox(
+              color: const Color(0xFF2A4A7A),
+              child: GameIconImage(face, size: 64),
+            ),
           ),
-          TextSpan(
-            text: value,
-            style: const TextStyle(fontWeight: FontWeight.w900),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: GameLettering(name, size: 22),
+                ),
+                const SizedBox(height: 4),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
+                    GameTag('Lv.$level'),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: GameTag(
+                        status,
+                        tone: online ? GameTone.good : GameTone.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
-      textAlign: TextAlign.center,
-      style: const TextStyle(fontSize: GameUi.body),
     );
   }
 }

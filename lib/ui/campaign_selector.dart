@@ -12,6 +12,8 @@ import 'components.dart';
 import 'catalog_screens.dart';
 import 'campaign_reward_views.dart';
 import 'house_tree.dart';
+import 'game_slots.dart';
+import '../data/campaign_rewards.dart';
 
 class CampaignSelector extends StatelessWidget {
   const CampaignSelector({super.key, required this.profile});
@@ -179,7 +181,7 @@ class CampaignSelector extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SizedBox(
-            height: 132,
+            height: 120,
             child: Stack(
               children: [
                 Positioned.fill(
@@ -252,7 +254,16 @@ class CampaignSelector extends StatelessWidget {
             GameFact('위험도', '${id + 1}', tone: GameTone.gold),
           ]),
           const SizedBox(height: 6),
-          const GameHint('집을 지키면 다음 집이 열립니다', tone: GameTone.good),
+          // what one guard pays, as picture slots (v12.15)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const GameTag('지키면', tone: GameTone.good),
+              for (final r in GameReward.of(
+                CampaignRewardBook.clearReward(id),
+              )) ...[const SizedBox(width: 8), GameRewardSlot(r, size: 44)],
+            ],
+          ),
         ],
       ),
     ),
@@ -297,86 +308,4 @@ class _OwnerPlate extends StatelessWidget {
       ),
     ),
   );
-}
-
-/// Compact route overview. Decisions and full combat information stay in detail.
-class CampaignStageCard extends StatelessWidget {
-  const CampaignStageCard({
-    super.key,
-    required this.title,
-    required this.name,
-    required this.status,
-    required this.description,
-    required this.icon,
-    required this.selected,
-    required this.onPressed,
-  });
-  final String title, name, status, description;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback? onPressed;
-  @override
-  Widget build(BuildContext context) {
-    AppLanguage.watch(context);
-    return Semantics(
-      button: true,
-      selected: selected,
-      enabled: onPressed != null,
-      label: tr(description),
-      excludeSemantics: true,
-      onTap: audible(onPressed),
-      child: InkWell(
-        onTap: audible(onPressed),
-        child: Opacity(
-          opacity: selected || onPressed != null ? 1 : .58,
-          child: Surface(
-            active: selected,
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 80),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    tr(title),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      height: 1.2,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    tr(name),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 16, height: 1.25),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(icon, size: 20),
-                      const SizedBox(width: 3),
-                      Flexible(
-                        child: Text(
-                          tr(status),
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            height: 1.2,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }

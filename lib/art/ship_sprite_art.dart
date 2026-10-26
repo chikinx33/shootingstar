@@ -21,6 +21,32 @@ import '../data/ship_modules.dart';
 const shipCombatSide = 78.0;
 
 abstract final class ShipSpriteArt {
+  /// A module part drawn with the very sprite it shows on the airframe
+  /// (v12.11, user 2026-10-26): wing gun, wing missile, tail gun or mortar,
+  /// the drone, or the support device core. The only part picture.
+  static Widget partSprite(ModulePart part, double size, {String? mount}) {
+    const root = 'assets/art/ship_parts/sunshine/';
+    final asset = switch (part.category) {
+      PartCategory.missile => '${root}missile.webp',
+      PartCategory.support => supportOrbAsset(part.id),
+      PartCategory.drone => droneAsset,
+      PartCategory.gun when part.id == 'mortar_cat' => mortarMountAsset,
+      PartCategory.gun when mount == 'W3' => '${root}reargun.webp',
+      PartCategory.gun => '${root}winggun.webp',
+    };
+    final image = Image.asset(
+      asset,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.medium,
+    );
+    // the mortar's sprite is stored upside down for the tail layer
+    return part.id == 'mortar_cat'
+        ? RotatedBox(quarterTurns: 2, child: image)
+        : image;
+  }
+
   /// Idle loops (flames, the lobby cat's breathing) only run in the real
   /// app: widget tests settle frames and must not wait on endless motion,
   /// and players who switch on reduced motion get a still ship.

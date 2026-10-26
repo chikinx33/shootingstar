@@ -1,3 +1,6 @@
+import '../art/game_icons.dart';
+import 'item_info_card.dart';
+import 'lobby_cat_hero.dart';
 import '../l10n/app_language.dart';
 
 import 'audio_feedback.dart';
@@ -36,7 +39,6 @@ class HangarPresets extends StatelessWidget {
               ]),
               icon: Icons.flight,
             ),
-            const GameHint('적용하면 장비의 지금 성능으로 출격합니다'),
             Expanded(
               child: GameSlotList(
                 listKey: const Key('preset-items'),
@@ -44,7 +46,8 @@ class HangarPresets extends StatelessWidget {
                   for (var i = 0; i < 6; i++)
                     GameItemSlot(
                       title: profile.hangarPresets[i]?.name ?? '빈 편성',
-                      image: const RasterIcon(Icons.flight, size: 52),
+                      // v12.15: the saved cat's face (empty: the launch picture)
+                      image: _face(profile.hangarPresets[i]?.ship, 72),
                       status: '${i + 1}번',
                       onTap: audible(
                         () => showDialog<void>(
@@ -82,27 +85,17 @@ class HangarPresets extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            const RasterIcon(Icons.flight, size: 56),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                '${index + 1}  ${preset?.name ?? tr('빈 구성')}',
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
+        ItemHero(
+          image: _face(preset?.ship, 48),
+          name: preset?.name ?? '빈 구성',
+          rarity: preset == null ? 0 : 3,
+          size: 56,
+          chips: [
+            (message('{0}번', [index + 1]), const Color(0xFF8FD3FF)),
+            if (preset != null)
+              (ships[preset.ship].name, const Color(0xFFFFD43D)),
           ],
         ),
-        gap(8),
-        if (preset == null)
-          const GameHint('지금 배치를 이 칸에 저장합니다.')
-        else
-          ..._brief(preset),
         if (issue != null)
           Padding(
             padding: const EdgeInsets.only(top: 8),
@@ -157,11 +150,20 @@ class HangarPresets extends StatelessWidget {
     );
   }
 
+  /// The cat of a ship (its face picture), or the launch picture.
+  static Widget _face(int? ship, double size) => ship == null
+      ? GameIconImage(GameIcons.launch, size: size * .8)
+      : Image.asset(
+          LobbyCatHero.faces[ship.clamp(0, 2)],
+          width: size,
+          height: size,
+          filterQuality: FilterQuality.medium,
+        );
+
   /// The two facts a player checks first; the full list opens from '자세히'.
-  /// v12.14: each value carries its label instead of "a · b" lines.
   List<Widget> _brief(HangarPreset p) => [
     _PresetRow('기체', ships[p.ship].name, tone: GameTone.gold),
-    _PresetRow('주무기', armaments[p.armament].name),
+    _PresetRow('출격 펫', p.pet < 0 ? '없음' : petNames[p.pet], tone: GameTone.good),
   ];
 
   Future<void> _details(BuildContext context, HangarPreset preset) =>
@@ -183,20 +185,6 @@ class HangarPresets extends StatelessWidget {
   List<Widget> _summary(HangarPreset p) => [
     _PresetRow('기체', ships[p.ship].name, tone: GameTone.gold),
     _PresetRow('특기', catTraitFor(p.ship).name, tone: GameTone.gold),
-    _PresetRow('주무기', armaments[p.armament].name),
-    _PresetRow('모듈', equipmentOptions[p.equipment].name),
-    _PresetRow(
-      '장비',
-      p.gearIds
-          .map((id) => profile.item(id)?.definition.name ?? '소실된 장비')
-          .join(' / '),
-    ),
-    _PresetRow(
-      '테크',
-      p.techIds.isEmpty
-          ? '미장착'
-          : p.techIds.map((id) => techNames[id]).join(' / '),
-    ),
     _PresetRow('출격 펫', p.pet < 0 ? '없음' : petNames[p.pet], tone: GameTone.good),
     if (p.assistPets.isNotEmpty)
       _PresetRow(

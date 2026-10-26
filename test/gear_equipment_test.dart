@@ -1,17 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shootingstar/art/gear_art.dart';
-import 'package:shootingstar/art/aircraft_assembly_art.dart';
-import 'package:shootingstar/art/game_art.dart';
 import 'package:shootingstar/data/aircraft_assembly.dart';
 import 'package:shootingstar/data/cat_gear.dart';
-import 'package:shootingstar/data/content_catalog.dart';
 import 'package:shootingstar/data/gear_traits.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/game/engine.dart';
@@ -46,59 +41,9 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() => SharedPreferences.setMockInitialValues({}));
   setUpAll(() async {
-    await GearArt.load();
     await (FontLoader(
       'NotoSansKR',
     )..addFont(rootBundle.load('assets/fonts/NotoSansKR.ttf'))).load();
-  });
-  test('32 equipment specs render 32 independent real sprites through the shared item path', () async {
-    expect(GearArt.cells, hasLength(gearCatalog.length));
-    final rendered = <String>{};
-    for (var spec = 0; spec < gearCatalog.length; spec++) {
-      expect(GameArt.address('equipment', spec), GearArt.address(spec));
-      final recorder = ui.PictureRecorder();
-      expect(
-        GearArt.paint(
-          Canvas(recorder),
-          spec,
-          const Rect.fromLTWH(0, 0, 56, 56),
-        ),
-        true,
-      );
-      final pic = recorder.endRecording(), im = await recorderImage(pic);
-      final bytes = (await im.toByteData(format: ui.ImageByteFormat.png))!;
-      rendered.add(
-        base64Encode(
-          bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
-        ),
-      );
-      im.dispose();
-      pic.dispose();
-    }
-    expect(rendered, hasLength(32));
-    await AircraftAssemblyArt.load();
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-    canvas.drawColor(const Color(0xff263a50), BlendMode.src);
-    for (var hull = 0; hull < 3; hull++) {
-      AircraftAssemblyArt.paintAssembly(
-        canvas,
-        Offset(240.0 + hull * 480, 200),
-        200,
-        AircraftAssembly.demo(hull).withGear(const [0, 2, 4, 6, 8, 10]),
-        angles: const {AircraftMount.wings: -1.5707963267948966},
-        rightWingAngle: 1.5707963267948966,
-      );
-    }
-    final pic = recorder.endRecording();
-    final im = await pic.toImage(1440, 660);
-    final bytes = (await im.toByteData(format: ui.ImageByteFormat.png))!;
-    Directory('.local/parts-v54').createSync(recursive: true);
-    File('.local/parts-v54/assembled-double.png').writeAsBytesSync(
-      bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
-    );
-    im.dispose();
-    pic.dispose();
   });
   test(
     'primary equipment changes pierce versus forward air-only seeker delivery',
@@ -387,5 +332,3 @@ void main() {
     await t.pumpWidget(const SizedBox());
   });
 }
-
-Future<ui.Image> recorderImage(ui.Picture picture) => picture.toImage(56, 56);

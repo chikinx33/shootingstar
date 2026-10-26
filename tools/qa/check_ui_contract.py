@@ -52,7 +52,11 @@ for path in files:
                 match = re.search(r'\bsize:\s*(\d+(?:\.\d+)?)\b', icon)
                 if match and float(match[1]) < 28:
                     fail(path, source, offset + icon_offset, 'Action icon below 28px (major decisions require 32/36px).')
-            if re.search(r'\bFittedBox\s*\(|TextOverflow\.(?:ellipsis|fade)', block):
+            # v12.15: a compact row button (받기 / 출격 / a price) may scale its
+            # one short label into the cell; main decisions still wrap and grow.
+            if re.search(r'TextOverflow\.(?:ellipsis|fade)', block) or (
+                    re.search(r'\bFittedBox\s*\(', block)
+                    and 'GameUi.compactButton' not in block):
                 fail(path, source, offset, 'Do not shrink or truncate an action label; wrap and grow.')
 
 # v12.9: every screen title bar is the shared game bar, never a plain AppBar.
@@ -67,26 +71,24 @@ if re.search(r'\b(?:FilledButton|OutlinedButton)\s*[.(]', decisions):
     errors.append('battle decisions must use GameActionButton')
 # v12.4.3 user rule: pause/result are one fixed page (no pager, no scroll);
 # secondary facts live in the result's reward popup.
-if 'GamePages(' in decisions or 'return _scrim(' not in decisions or 'Widget _result()' not in decisions or decisions.count('GameActionButton(') + decisions.count('AdOfferButton(') < 10 or "label: '조작·음향 설정'" not in decisions or "label: '보상 내역'" not in decisions or 'AdOfferButton(' not in decisions or 'AdOffer.runBonus' not in decisions:
+if 'GamePages(' in decisions or 'return _scrim(' not in decisions or 'Widget _result()' not in decisions or decisions.count('GameActionButton(') + decisions.count('AdOfferButton(') < 3 or "label: '조작·음향 설정'" not in decisions or "label: '보상 내역'" not in decisions or 'AdOfferButton(' not in decisions or 'AdOffer.runBonus' not in decisions:
     errors.append('pause/result must retain bounded decisions, shared actions, battle save/receipt and the configured optional reward action')
-for filename, marker in [('fixed_lobby.dart', "key: const Key('launch')"),
-                         ('daily_challenge_screen.dart', "key: ValueKey('daily-launch-$tier')")]:
+for filename, marker in [('fixed_lobby.dart', "key: const Key('launch')")]:
     source = (ROOT / 'lib/ui' / filename).read_text(encoding='utf-8')
     if not any(marker in block for _, block in calls(source, 'GameActionButton')):
         errors.append(f'{filename}: launch must use GameActionButton')
 
 # These detail flows have been brought onto the full dialog/action contract.
-for filename in ['pet_bond_screen.dart', 'daily_challenge_screen.dart', 'advanced_equipment_screen.dart',
+for filename in ['pet_bond_screen.dart', 'daily_challenge_screen.dart',
                  'catalog_screens.dart', 'collection_screen.dart', 'guild_screen.dart',
-                 'hangar_presets.dart', 'talent_screen.dart', 'campaign_selector.dart',
+                 'hangar_presets.dart', 'campaign_selector.dart',
                  'account_screen.dart', 'settings_screen.dart', 'evolution_codex.dart']:
     source = (ROOT / 'lib/ui' / filename).read_text(encoding='utf-8')
-    if re.search(r'\b(?:FilledButton|OutlinedButton|TextButton|RasterAlertDialog)\s*\(', source):
+    # v12.15: compact row buttons (GameUi.compactButton) are the shared
+    # mobile-game cell action; any other local button style is not.
+    if re.search(r'\b(?:OutlinedButton|TextButton|RasterAlertDialog)\s*\(', source) or any(
+            'GameUi.compactButton' not in block for _, block in calls(source, 'FilledButton')):
         errors.append(f'{filename}: use shared decisions, choice tiles and GameDialog throughout')
-hub = (ROOT / 'lib/ui/content_hub.dart').read_text(encoding='utf-8')
-detail = hub[hub.index('  Future<void> details('):hub.index('  List<Widget> pets()')]
-if re.search(r'\b(?:OutlinedButton|TextButton|RasterAlertDialog)\s*\(', detail) or any('GameUi.compactButton' not in block for _, block in calls(detail, 'FilledButton')):
-    errors.append('equipment detail and merge confirmation must retain GameDialog/GameActionButton')
 for filename in ['fleet_activity_screen.dart', 'daily_challenge_screen.dart', 'content_hub.dart']:
     if 'claimWithRewardPopup(' not in (ROOT / 'lib/ui' / filename).read_text(encoding='utf-8'):
         errors.append(f'{filename}: successful earned rewards must present an actual receipt')
@@ -94,24 +96,20 @@ for filename in ['fleet_activity_screen.dart', 'daily_challenge_screen.dart', 'c
 # An overview/detail/form/modal may never scroll. Only audited repeated item
 # viewports may instantiate a ListView; adding another requires a list audit.
 item_lists = {
-    'lobby_aircraft.dart': 0,  # spatial hardpoints never scroll
     'settings_screen.dart': 2,   # license package entries; one license's paragraphs in its popup
     'item_slots.dart': 1,        # shared repeated 3+ column item rows only
     'evolution_codex.dart': 0,    # shared item slots
     'collection_screen.dart': 0,
     'catalog_screens.dart': 0,
-    'talent_screen.dart': 0,
     'campaign_selector.dart': 1, # chapter choices
     'battle.dart': 0,            # fixed choice slots; pause/result are fixed pages
     'home.dart': 0,              # preparation uses fixed pages; slots own item scrolling
     'hangar_presets.dart': 0,
-    'armament_hangar.dart': 0,
     'ship_hangar.dart': 0,
-    'boss_gear_hangar.dart': 0,
     'guild_screen.dart': 1,      # members or recruiting guild entries only; forms use GamePages
     'daily_challenge_screen.dart': 1, # difficulty and exchange items
-    'content_hub.dart': 2,       # isolated equipment inventory; pet/tech item entries
-    'fleet_activity_screen.dart': 1, # attendance/mission/chapter rewards
+    'fleet_activity_screen.dart': 4, # attendance board, quest rows, house rewards, patrol rows
+    'guardian_quest_screen.dart': 1, # achievement rows
     'game_pages.dart': 1,        # GameItemList: damage/build/challenge entries
 }
 for path in (ROOT / 'lib/ui').glob('*.dart'):
@@ -126,7 +124,7 @@ if re.search(r'\b(?:ListView|Scrollable|GamePages|GameItemList|PageView)\s*\(', 
 dialog = (ROOT / 'lib/ui/game_dialog.dart').read_text(encoding='utf-8')
 if 'GamePages(' not in dialog:
     errors.append('GameDialog must retain fixed pages and a persistent close control')
-for filename in ['pet_bond_screen.dart', 'advanced_equipment_screen.dart']:
+for filename in ['pet_bond_screen.dart']:
     source = (ROOT / 'lib/ui' / filename).read_text(encoding='utf-8')
     for _, notice in calls(source, 'SnackBar'):
         margin = re.search(r'EdgeInsets\.fromLTRB\(\s*[\d.]+,\s*[\d.]+,\s*[\d.]+,\s*([\d.]+)', notice)

@@ -61,7 +61,6 @@ const gearCatalog = [
   ),
 ];
 const qualityNames = ['일반', '우수', '희귀', '엘리트', '에픽', '전설'];
-const slotNames = ['주무장', '센서', '코어', '선체', '벨트', '추진기'];
 const techWeapons = [
   'gun',
   'missile',
@@ -81,16 +80,6 @@ const techNames = [
   '플라스마 전지',
   '궤도 확장기',
   '연쇄 축전기',
-];
-const techPerks = [
-  '주포 본탄 관통 +1 / 근접 사거리·범위 +15% / 공허 지속 +0.4초. 우수 매의 눈 센서: 정밀 연계, 우수 순환 에너지 코어: 순환 방호',
-  '로켓 폭발 반경 +60%',
-  '드론 탄환 적 추적',
-  '광자탄 2발 추가',
-  '지뢰 폭발 반경 +50%',
-  '장판 지속 시간 +50%',
-  '수호자 범위 +20%',
-  '낙뢰 타격 2회 추가',
 ];
 
 /// Chick companions: hatched from star eggs the cats sat on.

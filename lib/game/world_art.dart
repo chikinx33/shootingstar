@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
 
-import '../art/arcade_world.dart';
+import '../art/menu_art.dart';
 import '../art/flight_scene_art.dart';
 import '../data/campaign.dart';
 import 'engine.dart';
 
 class WorldArt {
-  static void boss(Canvas canvas, Foe e, int world, double time) {
-    ArcadeWorld.paintBoss(canvas, world, e.radius * 2.7);
+  /// v12.15: Vacuum Empire fortress bodies (enemies_v14/boss_N).
+  static void boss(Canvas canvas, Foe e, int world, double time) =>
+      bossSprite(canvas, world, e.radius * 2.7);
+
+  static void bossSprite(Canvas canvas, int world, double size) {
+    if (size <= 0) return;
+    MenuArt.paint(
+      canvas,
+      'boss-${world.clamp(0, 9)}',
+      Rect.fromCenter(center: Offset.zero, width: size, height: size),
+    );
   }
 
   static void background(
@@ -33,7 +42,13 @@ class WorldArt {
     int world, {
     double scale = 2.7,
   }) {
-    ArcadeWorld.paintEnemy(canvas, e.role.index, e.radius * scale, faction);
+    // v12.15: Vacuum Empire minions, one silhouette per role (enemies_v14)
+    final size = e.radius * scale;
+    MenuArt.paint(
+      canvas,
+      'enemy-${e.role.index.clamp(0, 10)}',
+      Rect.fromCenter(center: Offset.zero, width: size, height: size),
+    );
     if (e.vulnerable > 0 || e.statusTime > 0) {
       canvas.drawCircle(
         Offset.zero,
@@ -64,14 +79,4 @@ class WorldArt {
       );
     }
   }
-}
-
-class WorldBackdropPainter extends CustomPainter {
-  WorldBackdropPainter(this.world);
-  final int world;
-  @override
-  void paint(Canvas canvas, Size size) =>
-      WorldArt.background(canvas, size, world, 0, Offset.zero);
-  @override
-  bool shouldRepaint(covariant WorldBackdropPainter old) => old.world != world;
 }

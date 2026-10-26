@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,7 +10,6 @@ import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/data/hangar_preset.dart';
 import 'package:shootingstar/game/engine.dart';
 import 'package:shootingstar/game/experience_crystals.dart';
-import 'package:shootingstar/art/module_aircraft_art.dart';
 import 'package:shootingstar/ui/module_workshop.dart';
 import 'package:shootingstar/ui/item_slots.dart';
 import 'package:shootingstar/ui/reward_popup.dart';
@@ -312,7 +310,7 @@ void main() {
     },
   );
   testWidgets(
-    '320px unified four slots, picker, mount stats, move and eye geometry',
+    '320px unified four slots, picker and mount stats',
     (tester) async {
       tester.view.physicalSize = const Size(320, 568);
       tester.view.devicePixelRatio = 1;
@@ -337,67 +335,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('닫기').last);
       await tester.pumpAndSettle();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Center(
-              child: ModuleAircraftPreview(
-                profile: p,
-                width: 160,
-                height: 232,
-                onSelectShip: () {},
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('lobby-slot-eye')));
-      await tester.pumpAndSettle();
-      for (final id in ['W1', 'W2', 'W3'])
-        expect(find.byKey(ValueKey('module-socket-$id-0')), findsOneWidget);
-      // the wing gun and wing missile pairs show a socket on each side
-      expect(find.byKey(const Key('module-socket-W1-1')), findsOneWidget);
-      expect(find.byKey(const Key('module-socket-W2-1')), findsOneWidget);
-      expect(find.bySemanticsLabel('S1 보조 슬롯'), findsOneWidget);
-      final rects = [
-        for (final id in ['W2-0', 'W2-1', 'W3-0'])
-          tester.getRect(find.byKey(ValueKey('module-socket-$id'))),
-      ];
-      for (var i = 0; i < rects.length; i++)
-        for (var j = 0; j < i; j++)
-          expect(rects[i].overlaps(rects[j]), isFalse);
-      expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
       p.dispose();
     },
   );
-  test('render layered top view, empty sockets and gun variants', () async {
-    final recorder = ui.PictureRecorder(),
-        canvas = Canvas(ui.PictureRecorder());
-    // One figure shows identical gun sprites in all physical mount positions.
-    final c = Canvas(recorder)
-      ..drawColor(const Color(0xff23384e), BlendMode.src);
-    final fits = [
-      ('W1', 'gun_vulcan'),
-      ('W2', 'missile_hawk'),
-      ('W3', 'gun_vulcan'),
-      ('W3', 'mortar_cat'),
-    ];
-    for (var i = 0; i < fits.length; i++) {
-      final (mount, part) = fits[i];
-      final snap = ModuleSnapshot(i % 3, 1, {
-        mount: OwnedModulePart('same', part, 3),
-      });
-      ModuleAircraftArt.paint(c, Offset(130 + i * 260, 160), 230, snap);
-    }
-    final picture = recorder.endRecording(),
-        image = await picture.toImage(1040, 330);
-    final bytes = (await image.toByteData(format: ui.ImageByteFormat.png))!;
-    Directory('.local/module-v66').createSync(recursive: true);
-    File('.local/module-v66/mount-variants.png')
-        .writeAsBytesSync(bytes.buffer.asUint8List());
-    image.dispose();
-    picture.dispose();
-  });
 }

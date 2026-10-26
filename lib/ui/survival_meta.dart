@@ -4,13 +4,16 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
-import 'catalog_screens.dart' show RewardChips, RewardGroup;
+import 'fleet_activity_screen.dart' show QuestRow;
+import 'game_slots.dart';
+import 'info_dialog.dart';
+import '../data/fleet_journal.dart';
 
 import 'reward_popup.dart';
 
 import '../data/content.dart';
 import '../data/profile.dart';
-import '../art/lobby_art.dart';
+import '../art/game_icons.dart';
 import 'evolution_codex.dart';
 import 'components.dart';
 import 'content_hub.dart';
@@ -41,11 +44,39 @@ class SurvivalMeta extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                RibbonTitle(
-                  ['', '', '장비 공방', '도전', '진화 도감'][section],
-                  width: 340,
-                  height: 64,
-                  size: 26,
+                Row(
+                  children: [
+                    const SizedBox(width: 48),
+                    Expanded(
+                      child: Center(
+                        child: RibbonTitle(
+                          ['', '', '장비 공방', '도전', '진화 도감'][section],
+                          width: 300,
+                          height: 60,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 48,
+                      child: section == 3
+                          ? InfoAction(
+                              label: '도전 규칙',
+                              onPressed: () => showInfoDialog(
+                                context,
+                                title: '도전 규칙',
+                                children: const [
+                                  InfoText('지킨 집에서 군집 돌파 도전이 열립니다.'),
+                                  gap8,
+                                  InfoText('적 무리가 더 많이 몰려오고 보스 체력이 40% 늘어납니다.'),
+                                  gap8,
+                                  InfoText('집마다 첫 승리에서 별가루 5를 받습니다.'),
+                                ],
+                              ),
+                            )
+                          : null,
+                    ),
+                  ],
                 ),
                 if (section == 3) ...[
                   gap(14),
@@ -102,15 +133,6 @@ class SurvivalMeta extends StatelessWidget {
                 ],
                 gap(8),
                 if (section == 3) ...[
-                  // v12.14: rule, unlock and reward as labelled tiles
-                  const GameFactRow([
-                    GameFact('규칙', '보스 체력 +40%', tone: GameTone.danger),
-                    GameFact('개방', '집을 지킨 뒤'),
-                    GameFact('첫 승리', '별가루 +5', tone: GameTone.good),
-                  ]),
-                  gap(6),
-                  const GameHint('적 무리가 더 많이 몰려옵니다'),
-                  gap(),
                   for (int i = 0; i < stages.length; i++)
                     StaggerIn(
                       index: i,
@@ -124,64 +146,32 @@ class SurvivalMeta extends StatelessWidget {
                       ),
                     ),
                   gap(),
-                  Text(
-                    tr('성장 임무'),
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-
-                    textAlign: TextAlign.center,
-                  ),
-                  gap(),
+                  const GameTag('성장 임무', tone: GameTone.good),
+                  gap(8),
+                  // v12.15: growth missions as quest rows
                   for (int i = 0; i < 4; i++)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Surface(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              tr(Profile.missionNames[i]),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-
-                              textAlign: TextAlign.center,
-                            ),
-                            GameHint(
-                              message('진행 {0} / {1}', [
-                                profile.missionProgress(i),
-                                Profile.missionTargets[i],
-                              ]),
-                              tone: GameTone.sky,
-                            ),
-                            gap(6),
-                            RewardGroup(
-                              label: '보상',
-                              claimed: profile.claimedMissions.contains(i),
-                              chips: const RewardChips(credits: 100, plans: 3),
-                            ),
-                            TextButton(
-                              onPressed: audible(
-                                !profile.claimedMissions.contains(i) &&
-                                        profile.missionProgress(i) >=
-                                            Profile.missionTargets[i]
-                                    ? () => claimWithRewardPopup(
-                                        context,
-                                        profile,
-                                        () => profile.claimMission(i),
-                                      )
-                                    : null,
-                              ),
-                              child: Text(
-                                tr(
-                                  profile.claimedMissions.contains(i)
-                                      ? '수령 완료'
-                                      : '보상 수령',
-                                ),
-
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: QuestRow(
+                        key: ValueKey('growth-mission-$i'),
+                        icon: const [
+                          GameIcons.crosshair,
+                          GameIcons.launch,
+                          'assets/art/menu_v13/trophy_stages.webp',
+                          'assets/art/menu_v13/growth.webp',
+                        ][i],
+                        name: Profile.missionNames[i],
+                        progress: profile.missionProgress(i),
+                        target: Profile.missionTargets[i],
+                        rewards: GameReward.of(
+                          const FleetReward(credits: 100, plans: 3),
+                        ),
+                        claimed: profile.claimedMissions.contains(i),
+                        claimLabel: '성장 임무 ${i + 1} 보상 받기',
+                        onClaim: () => claimWithRewardPopup(
+                          context,
+                          profile,
+                          () => profile.claimMission(i),
                         ),
                       ),
                     ),
@@ -291,8 +281,6 @@ class _ChallengeRow extends StatelessWidget {
                 open
                     ? picture
                     : ColorFiltered(colorFilter: grey, child: picture),
-                if (!open)
-                  const Icon(Icons.lock, size: 34, color: Color(0xFFE6EDF5)),
                 if (cleared)
                   Positioned(
                     right: 0,
@@ -318,16 +306,15 @@ class _ChallengeRow extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    tr(cleared ? '도전 완료' : '군집 돌파 도전'),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: cleared
-                          ? const Color(0xFF7FE0A0)
-                          : const Color(0xFFFFC85C),
-                    ),
+                  // the first win's stardust, checked once earned
+                  GameRewardSlot(
+                    const GameReward(GameIcons.stardust, 5, '첫 승리 별가루'),
+                    size: 40,
+                    state: cleared
+                        ? SlotState.claimed
+                        : open
+                        ? SlotState.open
+                        : SlotState.locked,
                   ),
                 ],
               ),
@@ -353,14 +340,8 @@ class _ChallengeRow extends StatelessWidget {
                         ),
                       ),
                     )
-                  : Text(
-                      tr('잠김'),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF8DA2B6),
-                      ),
+                  : const Center(
+                      child: GameIconImage(GameIcons.lock, size: 40),
                     ),
             ),
           ],

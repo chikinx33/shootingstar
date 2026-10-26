@@ -75,8 +75,8 @@ void main() {
           expect(g.mainBranch, MainBranch.voidDrift);
           await tester.tap(find.byTooltip('전투 정보'));
           await tester.pump(const Duration(milliseconds: 300));
-          // v12.14: the specialization is a labelled block (주포 특화 + name).
-          await revealUi(tester, find.text('주포 특화').last);
+          // v12.15: the specialization is a tag with its name.
+          await revealUi(tester, find.text('이동 공허').last);
           expect(find.text('이동 공허'), findsWidgets);
           await tapUi(tester, find.byTooltip('전투 정보 닫기').last);
           await tester.pump(const Duration(milliseconds: 300));

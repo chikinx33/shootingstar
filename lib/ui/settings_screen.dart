@@ -17,6 +17,9 @@ import 'account_screen.dart';
 import '../app_version.dart';
 import 'developer_screen.dart';
 import 'control_settings_screen.dart';
+import 'item_slots.dart';
+import 'lobby_cat_hero.dart';
+import '../art/game_icons.dart';
 
 Future<void> showFlightSettings(BuildContext context, Profile profile) =>
     showDialog<void>(
@@ -69,63 +72,19 @@ class _FlightSettingsState extends State<FlightSettings> {
           ],
         );
 
-  Widget _settingsLinkContent(String label, IconData icon, bool showIcon) {
-    final caption = Text(
-      AppLanguage.instance.english
-          ? switch (label) {
-              '계정' => 'Profile',
-              '조작' => 'Input',
-              '라이선스' => 'Legal',
-              _ => tr(label),
-            }
-          : label,
-      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
-      textAlign: TextAlign.center,
-    );
-    final children = <Widget>[
-      if (showIcon) ...[
-        RasterIcon(icon, size: 28, color: Colors.white),
-        const SizedBox(width: 4, height: 4),
-      ],
-    ];
-    return AppLanguage.instance.english
-        ? Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [...children, caption],
-          )
-        : Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ...children,
-              Flexible(child: caption),
-            ],
-          );
-  }
-
+  /// v12.15: the three sub-menus are picture tiles (cat face, rocket,
+  /// codex) in one strip, like a game's option shortcuts.
   Widget link(
     String label,
-    IconData icon,
-    VoidCallback? action, {
-    int flex = 4,
-    bool showIcon = true,
-  }) => Expanded(
-    flex: AppLanguage.instance.english ? 1 : flex,
-    child: Semantics(
-      button: true,
-      label: tr(label),
-      enabled: action != null,
-      excludeSemantics: true,
-      onTap: audible(action),
-      child: InkWell(
-        onTap: audible(action),
-        borderRadius: BorderRadius.circular(8),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 56),
-          child: _settingsLinkContent(label, icon, showIcon),
-        ),
-      ),
-    ),
+    String english,
+    String image,
+    VoidCallback? action,
+  ) => GameActionTile(
+    label: label,
+    displayLabel: AppLanguage.instance.english ? english : label,
+    icon: Icons.settings,
+    image: image,
+    onPressed: action,
   );
 
   @override
@@ -203,7 +162,11 @@ class _FlightSettingsState extends State<FlightSettings> {
                             onPressed: audible(
                               () => exitDeveloperMode(context, p),
                             ),
-                            icon: const Icon(Icons.lock_open, size: 28),
+                            icon: Image.asset(
+                              'assets/art/ui_v13/act_unlock.webp',
+                              width: 30,
+                              height: 30,
+                            ),
                           ),
                         KitCloseButton(
                           onPressed: audible(() => Navigator.pop(context)),
@@ -302,25 +265,39 @@ class _FlightSettingsState extends State<FlightSettings> {
                         setState(() {});
                       }),
                     ),
-                    const Divider(height: 16),
-                    Row(
+                    const SizedBox(height: 8),
+                    GameActionStrip(
                       children: [
-                        link(
-                          '계정',
-                          Icons.person,
-                          p.developerMode
-                              ? null
-                              : () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute<void>(
-                                    builder: (_) => AccountScreen(profile: p),
-                                  ),
-                                ),
-                        ),
-                        const SizedBox(width: 4),
+                        // a developer session has no account; its test lab
+                        // takes the account tile's place
+                        if (p.developerMode)
+                          link(
+                            '테스트',
+                            'Test',
+                            'assets/art/ui_v13/icon_stats.webp',
+                            () => Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (_) => DeveloperTestScreen(profile: p),
+                              ),
+                            ),
+                          )
+                        else
+                          link(
+                            '계정',
+                            'Profile',
+                            LobbyCatHero.faces[p.selectedShip.clamp(0, 2)],
+                            () => Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (_) => AccountScreen(profile: p),
+                              ),
+                            ),
+                          ),
                         link(
                           '조작',
-                          Icons.touch_app,
+                          'Input',
+                          GameIcons.launch,
                           () => Navigator.push(
                             context,
                             MaterialPageRoute<void>(
@@ -328,47 +305,21 @@ class _FlightSettingsState extends State<FlightSettings> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 4),
                         link(
                           '라이선스',
-                          Icons.auto_stories,
+                          'Legal',
+                          GameIcons.codex,
                           () => Navigator.push(
                             context,
                             MaterialPageRoute<void>(
                               builder: (_) => const GameLicensesScreen(),
                             ),
                           ),
-                          flex: 5,
-                          showIcon: false,
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      tr(p.developerMode ? '개발자 모드 · 별도 저장 중' : '자동 저장'),
-                      style: const TextStyle(fontSize: 14),
-
-                      textAlign: TextAlign.center,
-                    ),
-                    if (p.developerMode) ...[
-                      const SizedBox(height: 8),
-                      // a secondary-height button: the developer extras must
-                      // still fit 320x568 at 130% text
-                      Center(
-                        child: GameActionButton(
-                          label: '테스트',
-                          icon: Icons.science,
-                          onPressed: audible(
-                            () => Navigator.push(
-                              context,
-                              MaterialPageRoute<void>(
-                                builder: (_) => DeveloperTestScreen(profile: p),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    GameHint(p.developerMode ? '개발자 모드 · 별도 저장 중' : '자동 저장'),
                   ],
                 ),
               ),
@@ -531,35 +482,22 @@ class _GameLicensesScreenState extends State<GameLicensesScreen> {
                           ],
                         ),
                       for (final entry in list)
-                        CatalogCard(
-                          children: [
-                            const Center(
-                              child: RasterIcon(Icons.auto_stories, size: 64),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: GameItemSlot(
+                            title: entry.packages.join(' · '),
+                            status: '전문 보기',
+                            semanticLabel:
+                                '${entry.packages.join(' · ')} 라이선스 열기',
+                            image: const GameIconImage(
+                              GameIcons.codex,
+                              size: 56,
                             ),
-                            Text(
-                              tr(entry.packages.join(' · ')),
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w900,
-                              ),
-
-                              textAlign: TextAlign.center,
+                            onTap: () => showDialog<void>(
+                              context: context,
+                              builder: (_) => _LicenseTextDialog(entry: entry),
                             ),
-                            gap(24),
-                            Center(
-                              child: GameActionButton(
-                                label: '${entry.packages.join(' · ')} 라이선스 열기',
-                                displayLabel: '전문 보기',
-                                onPressed: audible(
-                                  () => showDialog<void>(
-                                    context: context,
-                                    builder: (_) =>
-                                        _LicenseTextDialog(entry: entry),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                     ],
                   );

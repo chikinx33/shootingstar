@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 import 'game_decor.dart';
 
-import '../art/arcade_aircraft.dart';
+import '../art/ship_sprite_art.dart';
 import '../art/menu_art.dart';
 import '../art/toon_assets.dart';
 import '../data/profile.dart';
@@ -24,11 +24,9 @@ import 'battle.dart';
 import 'presentation_replay_screen.dart';
 import 'ship_part_editor_screen.dart';
 import '../game/presentation_replay.dart';
-import 'armament_hangar.dart';
-import 'boss_gear_hangar.dart';
 import 'collection_screen.dart';
 import 'hangar_presets.dart';
-import 'talent_screen.dart';
+import 'module_workshop.dart';
 import 'fleet_activity_screen.dart';
 import 'daily_challenge_screen.dart';
 import 'evolution_codex.dart';
@@ -130,13 +128,12 @@ class _DeveloperTestScreenState extends State<DeveloperTestScreen> {
       '아이템 직접 지급',
       '수집품',
       '출격 편성',
-      '보스 전용 장비',
     ],
     ['보급·무료 구매', '일일 순환 도전', '출석·임무·보상', '시즌·우편', '무기 진화 도감'],
   ];
   static const shortMenus = [
     ['무기·기체', '레벨·주포', '스킬·시너지', '보스·편대', '성능·연출', '연출 재현'],
-    ['주무기', '장비', '펫', '기술 부품', '영구 연구', '아이템 지급', '수집품', '편성', '보스 장비'],
+    ['주무기', '장비', '펫', '기술 부품', '영구 연구', '아이템 지급', '수집품', '편성'],
     ['보급', '도전', '출석·보상', '시즌·우편', '진화 도감'],
   ];
   int group = 0, menu = 0, preset = 0, spec = 0, rank = 2, gearLevel = 0;
@@ -469,11 +466,11 @@ class _DeveloperTestScreenState extends State<DeveloperTestScreen> {
     }
     if (group == 1) {
       return switch (menu) {
-        0 => ArmamentHangar(profile: p),
+        0 => ModuleWorkshop(profile: p),
         1 => ContentHub(profile: p, showNavigation: false),
         2 => ContentHub(profile: p, initialPage: 1, showNavigation: false),
         3 => ContentHub(profile: p, initialPage: 2, showNavigation: false),
-        4 => TalentScreen(profile: p),
+        4 => ModuleWorkshop(profile: p, embedded: true),
         5 => GamePages(children: grantFields()),
         // its own screen (title bar, tabs, pages) would leave a 60px page
         // under the developer headers on a small phone: open it full size
@@ -492,8 +489,7 @@ class _DeveloperTestScreenState extends State<DeveloperTestScreen> {
             ),
           ],
         ),
-        7 => HangarPresets(profile: p),
-        _ => BossGearHangar(profile: p),
+        _ => HangarPresets(profile: p),
       };
     }
     return switch (menu) {
@@ -808,7 +804,7 @@ class _DeveloperTestScreenState extends State<DeveloperTestScreen> {
             key: ValueKey('test-ship-$i'),
             title: ships[i].name,
             semanticLabel: '비행기 ${ships[i].name}',
-            image: ArcadeAircraft(shipIndex: i, size: 56),
+            image: SizedBox.square(dimension: 56, child: ShipSprite(hull: i)),
             selected: p.selectedShip == i,
             status: p.selectedShip == i ? '선택 중' : '',
             onTap: audible(() => choose(() => p.selectShip(i))),

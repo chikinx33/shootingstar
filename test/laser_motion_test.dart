@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shootingstar/art/aircraft_assembly_art.dart';
 import 'package:shootingstar/data/aircraft_assembly.dart';
 import 'package:shootingstar/game/battle_painter.dart';
 import 'package:shootingstar/game/engine.dart';
@@ -96,7 +95,6 @@ void main() {
     expect(g.hurtFlash, 0);
   });
   test('weapon recoil never translates the aircraft hull or camera', () async {
-    await AircraftAssemblyArt.load();
     final g = arena(empty: true);
     Future<List<int>> pixels() async {
       final r = ui.PictureRecorder();

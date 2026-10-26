@@ -135,9 +135,7 @@ void main() {
       await frames(t, 16);
       expect(g.elapsed - keyAt, greaterThan(.35));
       await t.sendKeyUpEvent(LogicalKeyboardKey.arrowLeft);
-      t.binding.handleAppLifecycleStateChanged(
-        AppLifecycleState.inactive,
-      );
+      t.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
       final paused = g.elapsed;
       await frames(t, 16);
       expect(g.elapsed, paused);
@@ -217,7 +215,7 @@ void main() {
             expect(g.victory, true);
           } else {
             expect(find.byType(RewardPopup), findsOneWidget);
-            if (kind == 'reward') expect(find.text('×120'), findsOneWidget);
+            if (kind == 'reward') expect(find.text('×120'), findsWidgets);
             await revealUi(t, find.text('확인'));
             await t.tap(find.text('확인'));
             await frames(t, 16);

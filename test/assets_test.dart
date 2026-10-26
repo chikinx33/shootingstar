@@ -20,9 +20,9 @@ void main() {
     const paths = [
       'assets/art/cats_v11/cheese_side.webp',
       'assets/art/ship_parts/sunshine/base.webp',
-      'assets/art/game_v10/pet-0.webp',
+      'assets/art/pets_v14/pet_0.webp',
       'assets/art/icons_v12/paw.webp',
-      'assets/art/lobby_v9/guild.webp',
+      'assets/art/enemies_v14/enemy_0.webp',
     ];
     for (final path in paths) {
       final source = await rootBundle.load(path);

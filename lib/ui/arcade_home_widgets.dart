@@ -2,11 +2,8 @@ import '../l10n/app_language.dart';
 
 import 'audio_feedback.dart';
 
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
-import '../art/toon_assets.dart';
 import '../main.dart';
 import 'game_ui.dart';
 import 'reward_flight.dart';
@@ -235,6 +232,7 @@ class BridgeAction extends StatelessWidget {
     this.width = 76,
     this.compact = false,
   });
+
   /// A [MenuArtIcon] name.
   final String art;
   final String label;
@@ -299,116 +297,6 @@ class BridgeAction extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Original landing field illustration; no extracted reference imagery.
-class LandingFieldPainter extends CustomPainter {
-  const LandingFieldPainter(this.world);
-  final int world;
-  static const palettes = [
-    Color(0xFF719B81),
-    Color(0xFF729DAE),
-    Color(0xFFAC9676),
-    Color(0xFF7E8CA7),
-    Color(0xFF8A829F),
-    Color(0xFF6C9A98),
-    Color(0xFF8F8F94),
-    Color(0xFFA0807F),
-    Color(0xFF6D849B),
-    Color(0xFF737F9E),
-  ];
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (ToonAssets.cover(canvas, 'worlds', 11, Offset.zero & size)) return;
-    final bg = palettes[world % palettes.length];
-    canvas.drawRect(Offset.zero & size, Paint()..color = bg);
-    // Blocks, access roads and roof highlights remain legible at 320px.
-    final road = Paint()..color = const Color(0xFF526472);
-    final edge = Paint()
-      ..color = const Color(0xFF243447)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    final roadX = size.width * .5;
-    canvas.drawRect(Rect.fromLTWH(roadX - 48, 0, 96, size.height), road);
-    canvas.drawRect(Rect.fromLTWH(0, size.height * .45, size.width, 64), road);
-    final stripe = Paint()
-      ..color = const Color(0x99E2DCAE)
-      ..strokeWidth = 3;
-    for (double y = 12; y < size.height; y += 28) {
-      canvas.drawLine(Offset(roadX, y), Offset(roadX, y + 12), stripe);
-    }
-    for (int i = 0; i < 12; i++) {
-      final left = i.isEven;
-      final row = i ~/ 2;
-      final x = left ? 12.0 : size.width - 70;
-      final y = row * 82.0 - 16;
-      final r = RRect.fromRectAndRadius(
-        Rect.fromLTWH(x, y, 56, 48),
-        const Radius.circular(5),
-      );
-      canvas.drawRRect(
-        r.shift(const Offset(4, 5)),
-        Paint()..color = const Color(0x44202F3C),
-      );
-      canvas.drawRRect(
-        r,
-        Paint()..color = Color.lerp(bg, const Color(0xFFCCE0CF), .28)!,
-      );
-      canvas.drawRRect(r, edge);
-      canvas.drawLine(
-        Offset(x + 7, y + 7),
-        Offset(x + 48, y + 7),
-        Paint()
-          ..color = const Color(0x66FFFFFF)
-          ..strokeWidth = 3,
-      );
-      for (int w = 0; w < 3; w++) {
-        canvas.drawRect(
-          Rect.fromLTWH(x + 9 + w * 14, y + 23, 8, 9),
-          Paint()..color = const Color(0xFF3E5966),
-        );
-      }
-    }
-    final center = Offset(size.width * .5, size.height * .51);
-    final radius = math.min(size.width * .29, size.height * .30);
-    canvas.drawCircle(
-      center + const Offset(0, 5),
-      radius,
-      Paint()..color = const Color(0x55213240),
-    );
-    canvas.drawCircle(center, radius, Paint()..color = const Color(0xFF70818C));
-    canvas.drawCircle(center, radius, edge..strokeWidth = 3);
-    canvas.drawCircle(
-      center,
-      radius - 9,
-      Paint()
-        ..color = const Color(0xFFD6CB94)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
-    );
-    final pad = Paint()
-      ..color = const Color(0xFFD6CB94)
-      ..strokeWidth = 5;
-    canvas.drawLine(
-      center + Offset(-radius * .32, -radius * .4),
-      center + Offset(-radius * .32, radius * .4),
-      pad,
-    );
-    canvas.drawLine(
-      center + Offset(radius * .32, -radius * .4),
-      center + Offset(radius * .32, radius * .4),
-      pad,
-    );
-    canvas.drawLine(
-      center + Offset(-radius * .32, 0),
-      center + Offset(radius * .32, 0),
-      pad,
-    );
-  }
-
-  @override
-  bool shouldRepaint(LandingFieldPainter oldDelegate) =>
-      oldDelegate.world != world;
 }
 
 // Full values remain available to screen readers through ResourceCounter.

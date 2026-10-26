@@ -1,3 +1,4 @@
+import 'package:shootingstar/art/game_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,9 +37,8 @@ void main() {
       // A real full-height notice: content must center below its persistent header.
       tester.view.physicalSize = const Size(432, 932);
       await show(GuildScreen(profile: p));
-      final icon = find.byWidgetPredicate(
-        (w) => w is RasterIcon && w.size == 120,
-      );
+      // v12.15: the intro starts with the three cats (no big icon)
+      final icon = find.byKey(const Key('guild-intro-cats'));
       centered(
         tester.getTopLeft(icon).dy,
         tester
@@ -56,7 +56,9 @@ void main() {
       centered(
         tester
             .getTopLeft(
-              find.byWidgetPredicate((w) => w is RasterIcon && w.size == 112),
+              find.byWidgetPredicate(
+                (w) => w is GameIconImage && w.size == 112,
+              ),
             )
             .dy,
         tester.getBottomLeft(find.text('온라인 서비스를 준비하고 있습니다.')).dy,

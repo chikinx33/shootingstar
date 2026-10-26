@@ -106,8 +106,15 @@ void main() {
         await tester.pump(const Duration(milliseconds: 350));
         await revealUi(tester, find.textContaining('폭발 확산 · 활성').last);
         expect(find.textContaining('폭발 확산 · 활성'), findsWidgets);
-        await revealUi(tester, find.textContaining('우선 표적 · 폭발').last);
-        expect(find.textContaining('우선 표적 · 폭발'), findsWidgets);
+        // v12.15: owned skills are picture slots; the recipe is the slot's
+        // long-press tooltip.
+        expect(
+          find.byWidgetPredicate(
+            (w) =>
+                w is Tooltip && (w.message ?? '').contains('우선 표적 · 폭발'),
+          ),
+          findsWidgets,
+        );
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox());
         p.dispose();

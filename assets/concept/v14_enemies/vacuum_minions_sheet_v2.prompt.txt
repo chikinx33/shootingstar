@@ -1,0 +1,5 @@
+Mode: built-in image_gen edit
+Input: vacuum_minions_sheet_v1.png
+Output: vacuum_minions_sheet_v2.png
+Prompt:
+Change ONLY the background of this sprite sheet to a single perfectly uniform solid RGB 255,0,255 (#FF00FF) color. Absolutely no variation, no texture, no noise, no gradients, no vignette, no illumination, no shadows. Every background pixel from every corner through every gap and the whole empty bottom-right cell must be exactly the same vivid pure RGB magenta. Keep the background OPAQUE, never transparent. This is a technical chroma-key sprite sheet. Preserve the 11 sprites exactly, same placement, same scale, same 4:3 canvas, same 4 columns by 3 rows, same empty bottom-right cell. Do not redraw, move, resize or restyle sprites. All external negative space must be a perfectly flat uniform computer-generated #FF00FF fill.

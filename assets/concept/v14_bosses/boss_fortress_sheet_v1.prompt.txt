@@ -1,0 +1,33 @@
+Built-in image_gen; reference-guided style-transfer.
+
+Initial generation prompt:
+
+Use case: style-transfer.
+Asset type: ONE sprite sheet of boss fortress machines for a cute cat-themed vertical shooter mobile game.
+Input images: Image 1 and Image 2 are STYLE AND FACTION REFERENCES, not a sheet to copy. Closely preserve their Vacuum Empire visual identity: purple and dark gunmetal armor, hot pink and cyan enclosed luminous cores, vacuum hoses, nozzles and dust bags, chunky rounded shapes, thick even dark navy outlines, flat cel shading with one small white highlight. New boss designs in that exact coherent style.
+Composition: landscape canvas, exact 4:3 aspect ratio. Strict invisible grid of 4 equal columns x 3 equal rows. Exactly TEN separate bosses, one centered in each of the first ten cells in reading order. Bottom row column 3 and column 4 MUST BE COMPLETELY EMPTY. Each sprite about 70% of its square cell, generous clean margins, no overlap. Orthographic straight from ABOVE top-down view, FRONT facing DOWN toward bottom edge, roughly round or symmetric silhouettes.
+Subjects by reading order:
+Row 1 col 1: giant robot vacuum mothership disc with a huge pink suction core.
+Row 1 col 2: twin-hose dust tank with a big gray dust bag on its back (rear is upper side).
+Row 1 col 3: spiked crown vacuum with a cyan dome.
+Row 1 col 4: ice-blue frosty vacuum fortress with crystal nozzles.
+Row 2 col 1: mossy garden vacuum with mushroom-shaped vents.
+Row 2 col 2: heavy armored cleaning robot with four arm nozzles.
+Row 2 col 3: fiery orange-red exhaust vacuum furnace.
+Row 2 col 4: ring fortress with a rotating outer ring of nozzles.
+Row 3 col 1: crystal-studded jewel vacuum.
+Row 3 col 2: Vacuum King's flagship, dark purple with a golden crown on its upper/rear side and a swirling pink vortex core.
+Row 3 col 3 and col 4: empty flat background only.
+Background: perfectly flat solid pure magenta RGB(255,0,255) #FF00FF everywhere outside sprites, including margins, gaps and both empty cells. No magenta pigment inside sprites; use hot pink #FF4FA3 for pink details instead. Keep all core light enclosed within hard-edged sprite silhouettes.
+Avoid: diffuse glow, background shadows, texture or gradients on background, grid lines, text, numbers, labels, cats, extra sprites, perspective/isometric view, photographic or 3D rendering.
+Output only the single finished sprite sheet.
+
+
+Layout correction prompt:
+
+Edit this sprite sheet, preserving all ten existing boss designs, order, colors, details and the exact 4-column 3-row layout with final two cells empty. Make ONE layout correction: reduce each entire sprite around its own cell center to fit within 70% of its cell width AND height, leaving 15% blank margin on each side within every cell. Do not add or remove any boss parts. Maintain exact landscape 4:3 aspect ratio. All pixels outside the sprite silhouettes must be perfectly uniform solid pure magenta #FF00FF RGB(255,0,255), without any texture, grain, gradients, shadows or glow. Empty bottom row right two cells entirely solid #FF00FF. Preserve thick dark navy outlines, cel shading, purple armor, cyan and hot pink #FF4FA3 details. No text or grid lines.
+
+
+Final background correction prompt:
+
+Use case: background-extraction (OPAQUE COLOR BACKGROUND REPLACEMENT, NOT TRANSPARENT). The attached sprite sheet currently has a transparent background. Replace ONLY its transparent background with a fully opaque perfectly flat solid pure magenta #FF00FF RGB(255,0,255). Output an opaque RGB image. NO transparency whatsoever. Preserve all ten sprite designs, their existing sizes, exact positions, 4 columns x 3 rows layout, exact 4:3 canvas, generous margins, two empty bottom-right cells. Preserve sprites at 70 percent cell size. All blank regions and two empty cells must be solid #FF00FF. Do not draw black background. No texture, no noise, no gradient, no shadow, no glow outside silhouettes, no text.

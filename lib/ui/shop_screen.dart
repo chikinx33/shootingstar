@@ -54,6 +54,37 @@ class ShopProductList extends StatelessWidget {
         (store?.platform.supported == true ? '가격 확인 중' : 'Android 전용');
   }
 
+  /// The product picture with its limit badge (1회 / 30일) in the corner.
+  Widget _badged(ShopItem item) {
+    final badge = switch (item) {
+      ShopItem.starter => '1회 한정',
+      ShopItem.monthly || ShopItem.adPass => '30일',
+      ShopItem.growthFund => '10단계',
+      ShopItem.supporter => null,
+    };
+    return SizedBox.square(
+      dimension: 76,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          Image.asset(ShopArt.of(item), width: 72, height: 72),
+          if (badge != null)
+            Positioned(
+              top: -4,
+              left: -4,
+              child: GameTag(
+                badge,
+                tone: item == ShopItem.starter
+                    ? GameTone.danger
+                    : GameTone.gold,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
@@ -67,7 +98,7 @@ class ShopProductList extends StatelessWidget {
             GameItemSlot(
               key: ValueKey('shop-${item.name}'),
               title: shopProducts[item]!.title,
-              image: Image.asset(ShopArt.of(item), width: 72, height: 72),
+              image: _badged(item),
               status: _status(item),
               selected:
                   (item == ShopItem.growthFund && p.fundAttention > 0) ||

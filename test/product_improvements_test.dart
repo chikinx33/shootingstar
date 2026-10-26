@@ -1,19 +1,15 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shootingstar/art/armament_art.dart';
 import 'package:shootingstar/art/game_art.dart';
 import 'package:shootingstar/art/menu_art.dart';
 import 'package:shootingstar/art/raster_assets.dart';
-import 'package:shootingstar/data/content.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/data/ship_modules.dart';
 import 'package:shootingstar/game/engine.dart';
 import 'package:shootingstar/game/flight_coach.dart';
-import 'package:shootingstar/ui/hangar_board.dart';
 import 'package:shootingstar/ui/battle.dart';
+import 'package:shootingstar/ui/module_workshop.dart';
 
 import 'ui_actions.dart';
 
@@ -79,49 +75,21 @@ void main() {
   // Keep this before the widget tests: an asset load first started inside
   // fake time would never complete here and the test would hang.
   testWidgets(
-    'boot omits enemy payloads and the shared main cannon icon draws',
+    'boot omits enemy payloads until the battle art loads',
     (tester) async {
       await tester.runAsync(() async {
         await RasterAssets.load();
         expect(GameArt.ready, true);
         expect(
-          MenuArt.images.keys.where((k) => k.startsWith('game/enemy-')),
+          MenuArt.images.keys.where((k) => k.startsWith('enemy-')),
           isEmpty,
         );
       });
-      final signatures = <int>{};
-      for (final weapon in armaments) {
-        await tester.pumpWidget(
-          MaterialApp(home: Center(child: ArmamentArt(weapon.id, size: 100))),
-        );
-        final paint = tester.widget<CustomPaint>(
-          find.descendant(
-            of: find.byType(ArmamentArt),
-            matching: find.byType(CustomPaint),
-          ),
-        );
-        await tester.runAsync(() async {
-          final recorder = ui.PictureRecorder();
-          paint.painter!.paint(Canvas(recorder), const Size(100, 100));
-          final picture = recorder.endRecording(),
-              image = await picture.toImage(100, 100);
-          final data = (await image.toByteData(
-            format: ui.ImageByteFormat.rawRgba,
-          ))!.buffer.asUint8List();
-          expect(data.where((value) => value > 0).length, greaterThan(100));
-          signatures.add(Object.hashAll(data));
-          image.dispose();
-          picture.dispose();
-        });
-      }
-      // v12.4.3: every main-gun family is fired by the same forward cannon,
-      // so all armament icons draw that one part (ArmamentArt).
-      expect(signatures.length, 1);
       await tester.runAsync(() async {
         await GameArt.loadBattle();
         expect(GameArt.battleReady, true);
         expect(
-          MenuArt.images.keys.where((k) => k.startsWith('game/enemy-')).length,
+          MenuArt.images.keys.where((k) => k.startsWith('enemy-')).length,
           11,
         );
       });
@@ -156,7 +124,9 @@ void main() {
                   child: Column(
                     children: [
                       const SizedBox(height: 104),
-                      Expanded(child: HangarBoard(profile: p)),
+                      Expanded(
+                        child: ModuleWorkshop(profile: p, embedded: true),
+                      ),
                       const SizedBox(height: 88),
                     ],
                   ),

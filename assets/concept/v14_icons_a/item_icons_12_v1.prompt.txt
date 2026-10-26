@@ -1,0 +1,13 @@
+Mode: built-in image_gen; final output from second generation.
+References: ref_action_icons.png, ref_supply.png
+Use case: style-transfer.
+Asset type: one mobile game item icon sprite sheet.
+Input images: Image 1 is the exact style reference; Image 2 is a supporting style reference showing the same family's treasure chest. Create NEW subjects listed below in that exact visual family.
+Create exactly 12 icons in a strict 4 columns x 3 rows grid on a landscape 4:3 canvas. Each icon is alone, centered in its own equal cell, approximately 68% of cell width/height, with consistent visual weight and generous separation. Readable at 40 pixels.
+Style: chunky cute cat-themed shooter kit, thick even dark navy outlines, bold simple shapes, flat colors with only one cel-shade step and a small white highlight, paw motifs. Match the references closely.
+Row 1 left to right: (1) smartphone turning with a curved arrow around it (rotate device). (2) season pass badge: purple ribbon badge with a gold star and paw. (3) DNA double helix, green and cyan, with a tiny paw. (4) small cloth pouch of glowing purple relic dust with sparkles.
+Row 2 left to right: (5) exploration ticket: teal paper ticket with a compass mark. (6) challenge token: round red-and-gold coin with a crossed-paw emblem. (7) collectible supply crate: small wooden box with a gold star label and a paw lock, using the chest reference's wood/gold/paw visual vocabulary. (8) healing can: a red-and-white cat food can with a big white plus sign.
+Row 3 left to right: (9) paw-shaped red and silver horseshoe magnet. (10) round red yarn-ball bomb with a lit fuse. (11) small golden hourglass with blue sand. (12) little winged cat paw boot (speed).
+Background: the entire canvas outside icons must be perfectly flat pure solid magenta #FF00FF, including all gaps and negative spaces. Purple objects must use blue-violet, never magenta or pink-magenta. Relic dust glow is represented by hard-edged bright highlights and discrete sparkles, not a diffuse halo.
+Constraints: exactly 12 icons, strict 4x3 equal grid, landscape 4:3. No magenta or pink-magenta pigment inside icons. No diffuse glow or shadow on background. No grid lines, text, letters, numbers, watermark or additional icons.
+CORRECTIONS REQUIRED: Deliver an OPAQUE RGB sprite sheet with a visible solid pure #FF00FF magenta background. Do NOT remove/chroma-key the magenta background and do NOT output transparency or black background. The season badge must have a prominent FIVE-POINT GOLD STAR with a paw emblem on the star, framed by purple ribbon. Challenge coin must show TWO CROSSED CAT PAWS, NOT bones, NOT crossbones. Keep all twelve specified items in their listed cells.

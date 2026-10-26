@@ -58,7 +58,7 @@
 
 ## 현재 코드에서 확인한 조건
 
-v10.0.29 구현과 재현 방법은 `V29_COMMERCE_FOUNDATION.md`에 있다. SDK 어댑터·서버 원장·SSV/구매 검증·미리보기/결과 선택 흐름을 구현했으며, 실제 ID/기기 검증 완료와 구분한다.
+v10.0.29 구현은 `server/src/commerce.mjs`·`migrations/0002_commerce.sql`과 앱 결제/광고 어댑터에 있다. SDK 어댑터·서버 원장·SSV/구매 검증·미리보기/결과 선택 흐름을 구현했으며, 실제 ID/기기 검증 완료와 구분한다.
 
 - 패키지 후보는 기존 `com.shootingstar.shootingstar`다. Play Console의 실제 등록/소유 여부는 미확인이다. 임의로 패키지/namespace를 바꾸지 않았다.
 - Android `minSdk=24`, targetSdk는 현재 Flutter 설정을 따른다. 이것만으로 출시 시점 Play API 요건이나 저사양 성능을 충족했다고 판단하지 않는다.

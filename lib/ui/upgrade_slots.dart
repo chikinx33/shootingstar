@@ -2,7 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../art/module_aircraft_art.dart';
+import '../art/ship_sprite_art.dart';
+
 import '../game/engine.dart';
 import '../l10n/app_language.dart';
 import '../services/audio_director.dart';
@@ -704,9 +705,9 @@ class _UpgradeSlotsState extends State<UpgradeSlots>
 
   Widget _fallbackIcon(UpgradeChoice choice) =>
       choice.iconKey.startsWith('part:') && game.unifiedModules
-      ? ModulePartIcon(
+      ? ShipSpriteArt.partSprite(
           game.moduleLoadout!.parts[choice.iconKey.substring(5)]!.definition,
-          size: 44,
+          44,
         )
       : RasterSkillIcon(choice.iconKey, size: 44);
 
@@ -1019,8 +1020,8 @@ class _UpgradeSlotsState extends State<UpgradeSlots>
   }
 }
 
-/// v12.14: a card's long-press detail as labelled groups — the effect, then
-/// its role (or growth effect) and any synergy, instead of one text block.
+/// v12.15: a card's long-press detail — its picture, the effect in one bold
+/// line, then role and synergy as small tags (no paragraphs).
 class _ChoiceDetail extends StatelessWidget {
   const _ChoiceDetail(this.game, this.choice);
   final GameEngine game;
@@ -1035,39 +1036,47 @@ class _ChoiceDetail extends StatelessWidget {
         .where((l) => l.isNotEmpty)
         .toList();
     if (lines.isEmpty) return const SizedBox.shrink();
-    final rest = [
-      for (final l in lines.skip(1))
-        if (!l.startsWith(_synergy)) l,
-    ];
+    final part =
+        choice.iconKey.startsWith('part:') &&
+            game.unifiedModules &&
+            game.moduleLoadout!.parts.containsKey(choice.iconKey.substring(5))
+        ? game.moduleLoadout!.parts[choice.iconKey.substring(5)]!.definition
+        : null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Center(
+          child: part != null
+              ? ShipSpriteArt.partSprite(part, 84)
+              : RasterSkillIcon(choice.iconKey, size: 84),
+        ),
+        const SizedBox(height: 8),
         Text(
           tr(lines.first),
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 17,
-            height: 1.4,
+            height: 1.35,
             fontWeight: FontWeight.w800,
           ),
         ),
-        if (rest.isNotEmpty) ...[
+        if (lines.length > 1) ...[
           const SizedBox(height: 10),
-          GameInfoBlock(
-            label: game.modular ? '효과' : '역할',
-            tone: GameTone.sky,
-            detail: rest.join('\n'),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final l in lines.skip(1))
+                l.startsWith(_synergy)
+                    ? GameTag(
+                        message('연계 · {0}', [l.substring(_synergy.length)]),
+                        tone: GameTone.good,
+                      )
+                    : GameTag(l, tone: GameTone.sky),
+            ],
           ),
         ],
-        for (final l in lines.skip(1))
-          if (l.startsWith(_synergy)) ...[
-            const SizedBox(height: 8),
-            GameInfoBlock(
-              label: '연계',
-              tone: GameTone.good,
-              lead: l.substring(_synergy.length),
-            ),
-          ],
       ],
     );
   }

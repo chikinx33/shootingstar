@@ -7,6 +7,7 @@ import 'package:shootingstar/game/engine.dart';
 import 'package:shootingstar/main.dart';
 import 'package:shootingstar/ui/battle.dart';
 import 'package:shootingstar/ui/campaign_reward_views.dart';
+import 'package:shootingstar/ui/game_slots.dart';
 
 import 'ui_actions.dart';
 
@@ -95,8 +96,13 @@ void main() {
           await tester.tap(find.text('안내 열기'));
           await tester.pumpAndSettle();
           expect(find.text('보상 안내'), findsOneWidget);
-          // v12.14: a claimed one-time bonus carries a "받음" tag.
-          await revealUi(tester, find.text('받음'));
+          // v12.15: a claimed one-time bonus is a checked card.
+          expect(
+            find.byWidgetPredicate(
+              (w) => w is GameDayCard && w.state == SlotState.claimed,
+            ),
+            findsWidgets,
+          );
           expect(p.credits, balance);
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox());

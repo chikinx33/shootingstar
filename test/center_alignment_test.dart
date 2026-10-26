@@ -50,7 +50,9 @@ void main() {
           }
 
           await mount(GuildScreen(profile: p));
-          for (final label in ['함께하는 함대', '동료와 함께 성장하세요']) {
+          // v12.15: the guild name sits in its emblem card; the page
+          // heading below stays screen-centred
+          for (final label in ['동료와 함께 성장하세요']) {
             final text = find.text(label);
             expect(
               tester.getCenter(text).dx,

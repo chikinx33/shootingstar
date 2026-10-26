@@ -6,11 +6,9 @@ import 'package:shootingstar/main.dart';
 import 'package:shootingstar/ui/item_slots.dart';
 import 'package:shootingstar/ui/catalog_screens.dart';
 import 'package:shootingstar/ui/content_hub.dart';
-import 'package:shootingstar/ui/armament_hangar.dart';
 import 'package:shootingstar/ui/ship_hangar.dart';
-import 'package:shootingstar/ui/boss_gear_hangar.dart';
 import 'package:shootingstar/ui/evolution_codex.dart';
-import 'package:shootingstar/ui/talent_screen.dart';
+import 'package:shootingstar/ui/module_workshop.dart';
 import 'package:shootingstar/ui/hangar_presets.dart';
 import 'package:shootingstar/ui/game_ui.dart';
 
@@ -50,22 +48,21 @@ void main() {
           await tester.pumpAndSettle();
         }
 
-        // v12.8.1 the supply tab is a shelf of big crate cards and v12.10 the
-        // weapon tab is the airframe slot screen, so neither is a slot grid;
-        // the supply exchange tab and the pet row still are.
-        Future<void> exchangeTab() async {
-          await tester.tap(find.text('교환'));
+        // v12.8.1 the supply tab is a shelf of big crate cards, v12.10 the
+        // weapon tab is the airframe slot screen and v12.15 the exchange is
+        // product cards, so none is a slot grid; the shop and pets still are.
+        Future<void> shopTab() async {
+          await tester.tap(find.text('상점'));
           await tester.pumpAndSettle();
         }
 
         for (final (child, prepare) in <(Widget, Future<void> Function()?)>[
-          (SupplyShop(profile: p), exchangeTab),
-          (ArmamentHangar(profile: p), null),
+          (SupplyShop(profile: p), shopTab),
+          (ModuleWorkshop(profile: p), null),
           (ShipHangar(profile: p), null),
           (ContentHub(profile: p, initialPage: 2, showNavigation: false), null),
-          (BossGearHangar(profile: p), null),
           (const EvolutionCodex(), null),
-          (TalentScreen(profile: p), null),
+          (ModuleWorkshop(profile: p, embedded: true), null),
           (HangarPresets(profile: p), null),
         ]) {
           await mount(child);
@@ -83,7 +80,7 @@ void main() {
         }
         // The first supply crate's details open the real weapon part supply.
         await mount(SupplyShop(profile: p));
-        // developer profiles remember the exchange tab picked above
+        // developer profiles remember the shop tab picked above
         await tester.tap(find.text('보급'));
         await tester.pumpAndSettle();
         final owned = p.shipModules.owned.length;

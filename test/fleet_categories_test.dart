@@ -13,7 +13,7 @@ import 'package:shootingstar/ui/fleet_activity_screen.dart';
 import 'ui_actions.dart';
 
 import 'package:shootingstar/l10n/app_language.dart';
-import 'package:shootingstar/art/lobby_art.dart';
+import 'package:shootingstar/art/game_icons.dart';
 
 void main() {
   testWidgets(
@@ -44,7 +44,7 @@ void main() {
       );
       await t.pumpAndSettle();
       Future<void> category(String name) async {
-        final root = ['출석', '임무', '항로', '순찰'].indexOf(name);
+        final root = ['출석', '임무', '집', '순찰'].indexOf(name);
         await t.tap(
           root >= 0
               ? find.byKey(ValueKey('activity-tab-$root'))
@@ -104,9 +104,9 @@ void main() {
 
       checkIconRow();
       checkBriefCopy();
+      // v12.15: one tab level (일일·주간); chests sit on a milestone track
       expect(find.text(ContentSystems.dailyNames.first), findsOneWidget);
-      expect(find.text('주간 임무'), findsNothing);
-      expect(action('일일 활동 상자 1'), findsNothing);
+      expect(find.byKey(const Key('daily-chests')), findsOneWidget);
       final fixed = t.getRect(tabWithText('주간'));
       await t.drag(find.byType(ListView), const Offset(0, -500));
       await t.pumpAndSettle();
@@ -114,48 +114,51 @@ void main() {
       await category('주간');
       expect(find.text(FleetJournal.weeklyNames.first), findsOneWidget);
       expect(find.text(ContentSystems.dailyNames.first), findsNothing);
-      expect(t.getTopLeft(find.text('주간 임무')).dy, lessThan(240));
+      expect(find.byKey(const Key('weekly-chests')), findsOneWidget);
       checkBriefCopy();
       await category('일일');
       final before = p.credits;
-      await tapUi(t, action('일일 임무 1 보상 받기'));
+      await tapUi(
+        t,
+        find.descendant(
+          of: find.byKey(const ValueKey('daily-mission-0')),
+          matching: find.byType(FilledButton),
+        ),
+      );
       await tapUi(t, action('확인'));
       expect(p.credits, before + 50);
       expect(p.dailyClaims, contains(0));
-      expect(find.text('수령 완료'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('daily-mission-0')),
+          matching: find.byType(FilledButton),
+        ),
+        findsNothing,
+      );
       checkBriefCopy();
-      await category('상자');
-      expect(find.text('일일 활동 상자'), findsOneWidget);
-      checkBriefCopy();
-      expect(action('일일 임무 2 보상 받기'), findsNothing);
-      await tapUi(t, action('일일 활동 상자 1'));
+      // the first activity chest opens from the track
+      await tapUi(
+        t,
+        find.descendant(
+          of: find.byKey(const Key('daily-chests')),
+          matching: find.byType(GestureDetector),
+        ).first,
+      );
       await tapUi(t, action('확인'));
       expect(p.journal.dailyChests, contains(0));
-      await category('주간 상자');
-      expect(find.text('주간 활동 상자'), findsOneWidget);
-      checkBriefCopy();
-      expect(find.text('일일 활동 상자'), findsNothing);
-      await category('일일');
       expect(p.claimDaily(0), isFalse);
       expect(p.claimDailyActivity(0), isFalse);
       await category('출석');
-      expect(action('오늘 출석 보상 받기'), findsOneWidget);
+      expect(find.text('1일'), findsOneWidget);
       checkBriefCopy();
-      await category('누적 출석');
-      expect(action('오늘 출석 보상 받기'), findsNothing);
-      expect(find.text('누적 출석 상자'), findsOneWidget);
       await category('순찰');
       expect(action('순찰 보상 회수'), findsOneWidget);
-      expect(action('빠른 순찰 보상 받기'), findsNothing);
-      checkBriefCopy();
-      await category('빠른 순찰');
-      expect(action('순찰 보상 회수'), findsNothing);
-      expect(action('빠른 순찰 보상 받기'), findsOneWidget);
+      expect(find.byKey(const ValueKey('quick-patrol')), findsOneWidget);
       checkBriefCopy();
       AppLanguage.instance.select('en');
       await t.pumpAndSettle();
       checkIconRow();
-      for (final label in ['Check-in', 'Missions', 'Routes', 'Patrol']) {
+      for (final label in ['Check-in', 'Missions', 'House', 'Patrol']) {
         final f = find.descendant(
           of: find.byType(FleetActivityTabs),
           matching: find.text(label),

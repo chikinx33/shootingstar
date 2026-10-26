@@ -1,3 +1,5 @@
+import '../data/houses.dart';
+import 'item_info_card.dart';
 import '../l10n/app_language.dart';
 
 import 'audio_feedback.dart';
@@ -9,13 +11,11 @@ import 'game_decor.dart';
 import '../data/profile.dart';
 import '../data/flight_record.dart';
 import '../data/content.dart';
-import '../art/armament_art.dart';
+import '../art/game_icons.dart';
 import 'battle_statistics.dart' show damageSourceLabel;
 import 'components.dart';
-import 'detail_widgets.dart';
 import 'item_slots.dart';
-import 'talent_screen.dart';
-import 'armament_hangar.dart';
+import 'module_workshop.dart';
 
 class FlightHistoryScreen extends StatelessWidget {
   const FlightHistoryScreen({super.key, required this.profile});
@@ -29,12 +29,7 @@ class FlightHistoryScreen extends StatelessWidget {
         children: [
           Padding(
             padding: EdgeInsets.all(12),
-            child: Text(
-              tr('최근 8회 · 이 기기에 보관\n재현·훈련 기록은 저장하지 않습니다.'),
-              style: TextStyle(fontSize: 16),
-
-              textAlign: TextAlign.center,
-            ),
+            child: Center(child: ItemPill('최근 8회', Color(0xFF8FD3FF))),
           ),
           Expanded(
             child: profile.flightHistory.isEmpty
@@ -48,9 +43,13 @@ class FlightHistoryScreen extends StatelessWidget {
                     children: [
                       for (final record in profile.flightHistory)
                         GameItemSlot(
+                          // v12.15: whose house it was, by its owner
                           title:
-                              '${record.stage ~/ 10 + 1}-${record.stage % 10 + 1} ${record.outcome}',
-                          image: ArmamentArt(record.armament, size: 56),
+                              '${houseOf(record.stage).place} · ${record.outcome}',
+                          image: GameIconImage(
+                            houseOwner(record.stage),
+                            size: 72,
+                          ),
                           status: 'Lv.${record.level}\n${record.seconds}초',
                           semanticLabel:
                               '${record.stage ~/ 10 + 1}-${record.stage % 10 + 1} ${record.outcome} 출격 기록 상세',
@@ -73,29 +72,39 @@ class FlightHistoryScreen extends StatelessWidget {
       final ranked = record.damage.entries.toList()
         ..sort((a, b) => b.value.compareTo(a.value));
       return GameDialog(
-        title:
-            '${record.stage ~/ 10 + 1}-${record.stage % 10 + 1} ${record.outcome}',
+        title: houseOf(record.stage).place,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            GameDetailHeader(
-              image: ArmamentArt(record.armament, size: 72),
-              title: armaments
-                  .firstWhere(
-                    (a) => a.id == record.armament,
-                    orElse: () => armaments.first,
-                  )
-                  .name,
-              status: message('{0}순환', [record.loop + 1]),
+            ItemHero(
+              image: GameIconImage(houseOwner(record.stage), size: 60),
+              name: record.outcome,
+              rarity: record.outcome.contains('승리') ? 4 : 0,
+              chips: [
+                (message('{0}회차', [record.loop + 1]), const Color(0xFF8FD3FF)),
+                ('Lv.${record.level}', const Color(0xFFFFD43D)),
+              ],
             ),
             // v12.14: the run's numbers in labelled tiles, the last hit and
             // the next goal as tagged blocks, damage as name | amount rows.
             const SizedBox(height: 8),
-            GameFactRow([
-              GameFact('격파', '${record.kills}'),
-              GameFact('보스', '${record.bosses}', tone: GameTone.danger),
-              GameFact('시간', message('{0}초', [record.seconds])),
-              GameFact('Lv', '${record.level}', tone: GameTone.gold),
+            StatGrid([
+              StatLine(
+                label: '격파',
+                value: '${record.kills}',
+                icon: GameIcons.crosshair,
+              ),
+              StatLine(
+                label: '보스',
+                value: '${record.bosses}',
+                icon: GameIcons.bomb,
+                color: const Color(0xFFFF8A5C),
+              ),
+              StatLine(
+                label: '시간',
+                value: message('{0}초', [record.seconds]),
+                icon: GameIcons.hourglass,
+              ),
             ]),
             const SizedBox(height: 8),
             GameInfoBlock(
@@ -168,7 +177,7 @@ class FlightHistoryScreen extends StatelessWidget {
                       appBar: GameAppBar(
                         title: Text(tr('영구 연구'), textAlign: TextAlign.center),
                       ),
-                      body: TalentScreen(profile: profile),
+                      body: ModuleWorkshop(profile: profile, embedded: true),
                     ),
                   ),
                 ),
@@ -179,7 +188,7 @@ class FlightHistoryScreen extends StatelessWidget {
               onPressed: audible(
                 () => Navigator.of(dialog).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => ArmamentHangar(profile: profile),
+                    builder: (_) => ModuleWorkshop(profile: profile),
                   ),
                 ),
               ),

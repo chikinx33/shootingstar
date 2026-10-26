@@ -11,16 +11,11 @@ import 'package:flutter/material.dart';
 import 'ship_sprite_art.dart';
 
 import 'arcade_style.dart';
-import 'arcade_world.dart';
 import 'toon_assets.dart';
-import 'menu_art.dart';
-import 'lobby_art.dart';
 import 'game_art.dart';
-import 'refit_art.dart';
+import 'game_icons.dart';
 import 'flight_scene_art.dart';
 import 'ui_kit.dart';
-import 'aircraft_assembly_art.dart';
-import 'ground_art.dart';
 
 /// Shared decoded atlases. Battle exits never dispose these app-owned images.
 class RasterAssets {
@@ -41,12 +36,7 @@ class RasterAssets {
     try {
       // The living room comes first: it is the lobby's whole background.
       await Future.wait([FlightSceneArt.loadLobbyHome(), UiKit.load()]);
-      await RefitArt.load();
-      await LobbyArt.load();
       await GameArt.load();
-      await AircraftAssemblyArt.load();
-      await GroundArt.load();
-      GroundArt.installAircraftAliases();
       try {
         await ShipSpriteArt.load();
       } catch (_) {
@@ -150,86 +140,6 @@ class RasterAssets {
   }) => ArcadeStyle.paintPanel(canvas, index, target, border: border);
 }
 
-class RasterTile extends StatelessWidget {
-  const RasterTile(
-    this.atlas,
-    this.index, {
-    super.key,
-    this.width,
-    this.height,
-    this.fit = BoxFit.contain,
-  });
-  final String atlas;
-  final int index;
-  final double? width, height;
-  final BoxFit fit;
-  @override
-  Widget build(BuildContext context) {
-    AppLanguage.watch(context);
-    return FutureBuilder<void>(
-      future: RasterAssets.load(),
-      builder: (context, snapshot) => SizedBox(
-        width: width,
-        height: height,
-        child: CustomPaint(painter: RasterTilePainter(atlas, index, fit)),
-      ),
-    );
-  }
-}
-
-class RasterTilePainter extends CustomPainter {
-  RasterTilePainter(this.atlas, this.index, this.fit)
-    : super(repaint: RasterAssets.revision);
-  final String atlas;
-  final int index;
-  final BoxFit fit;
-  @override
-  bool hitTest(Offset position) => false;
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (GameArt.paint(canvas, atlas, index, Offset.zero & size)) return;
-    if (size.isEmpty) return;
-    if (atlas == 'worlds' && !ToonAssets.images.containsKey('worlds')) {
-      // Pure code art can also render before the battle atlases finish loading.
-      final fitted = applyBoxFit(fit, const Size.square(540), size);
-      final target = Alignment.center.inscribe(
-        fitted.destination,
-        Offset.zero & size,
-      );
-      final source = Alignment.center.inscribe(
-        fitted.source,
-        const Rect.fromLTWH(0, 0, 540, 540),
-      );
-      canvas.save();
-      canvas.clipRect(target);
-      canvas.translate(target.left, target.top);
-      canvas.scale(target.width / source.width, target.height / source.height);
-      canvas.translate(-source.left, -source.top);
-      ArcadeWorld.paintTile(canvas, index, const Rect.fromLTWH(0, 0, 540, 540));
-      canvas.restore();
-      return;
-    }
-    if (!RasterAssets.images.containsKey(atlas)) return;
-    final src = RasterAssets.source(atlas, index);
-    final fitted = applyBoxFit(fit, src.size, size);
-    final from = Alignment.center.inscribe(fitted.source, src);
-    final to = Alignment.center.inscribe(
-      fitted.destination,
-      Offset.zero & size,
-    );
-    canvas.drawImageRect(
-      RasterAssets.images[atlas]!,
-      from,
-      to,
-      Paint()..filterQuality = FilterQuality.low,
-    );
-  }
-
-  @override
-  bool shouldRepaint(RasterTilePainter old) =>
-      old.atlas != atlas || old.index != index || old.fit != fit;
-}
-
 class RasterPanel extends StatelessWidget {
   const RasterPanel({
     super.key,
@@ -289,84 +199,14 @@ class RasterIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     final extent = size ?? IconTheme.of(context).size ?? 24;
-    // v12.9: the current menu sheet (cat-in-rocket launch, trophy, crate...)
-    // replaces the old jet/cargo pictures wherever these symbols appear.
-    final current = <IconData, String>{
-      Icons.rocket_launch: 'launch',
-      Icons.rocket_launch_outlined: 'launch',
-      Icons.flight: 'launch',
-      Icons.airplanemode_active: 'launch',
-      Icons.emoji_events: 'challenge',
-      Icons.emoji_events_outlined: 'challenge',
-      Icons.storefront: 'supply',
-      Icons.inventory_2: 'supply',
-      Icons.inventory_2_outlined: 'supply',
-      Icons.build: 'growth',
-      Icons.auto_fix_high: 'growth',
-      Icons.account_tree: 'research',
-      Icons.school: 'research',
-      Icons.precision_manufacturing: 'hangar',
-      Icons.radar: 'patrol',
-      Icons.explore: 'patrol',
-      Icons.travel_explore: 'patrol',
-      Icons.event_repeat: 'season',
-      Icons.workspace_premium: 'achievement',
-      Icons.groups: 'guild',
-    }[icon];
-    if (current != null) {
+    // v12.15: every picture comes from the current cat kit (GameIcons);
+    // plain controls stay outlined glyphs. No old icon sheet remains.
+    final asset = GameIcons.forIcon(icon);
+    if (asset != null) {
       return Semantics(
         label: tr(semanticLabel),
         image: semanticLabel != null,
-        child: ExcludeSemantics(
-          child: Image.asset(
-            'assets/art/menu_v13/$current.webp',
-            width: extent,
-            height: extent,
-            fit: BoxFit.contain,
-            filterQuality: FilterQuality.medium,
-          ),
-        ),
-      );
-    }
-    final menuName = <IconData, String>{
-      Icons.storefront: 'gear-cargo',
-      Icons.inventory_2: 'gear-cargo',
-      Icons.precision_manufacturing: 'tech-cargo',
-      Icons.pets: 'pet-cargo',
-      Icons.rocket_launch: 'hero',
-      Icons.emoji_events: 'challenge-badge',
-      Icons.account_tree: 'lobby/research',
-      Icons.school: 'lobby/research',
-      Icons.build: 'growth-badge',
-      Icons.auto_fix_high: 'growth-badge',
-    }[icon];
-    if (menuName != null && MenuArt.images.containsKey(menuName)) {
-      return Semantics(
-        label: tr(semanticLabel),
-        image: semanticLabel != null,
-        child: ExcludeSemantics(child: MenuImage(menuName, size: extent)),
-      );
-    }
-    const controls = [
-      Icons.close,
-      Icons.arrow_back,
-      Icons.arrow_back_ios,
-      Icons.add,
-      Icons.remove,
-      Icons.check,
-      Icons.check_circle,
-      Icons.check_circle_outline,
-    ];
-    final atlasIndex = indexFor(icon);
-    if ((GameArt.ready || ToonAssets.images.containsKey('icons')) &&
-        !controls.contains(icon) &&
-        atlasIndex >= 0) {
-      return Semantics(
-        label: tr(semanticLabel),
-        image: semanticLabel != null,
-        child: ExcludeSemantics(
-          child: ToonTile('icons', atlasIndex, size: extent),
-        ),
+        child: ExcludeSemantics(child: GameIconImage(asset, size: extent)),
       );
     }
     final theme = IconTheme.of(context);
@@ -403,83 +243,6 @@ class RasterIcon extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  static int indexFor(IconData? icon) {
-    if (icon == null) return 48;
-    final groups = <int, List<IconData>>{
-      0: [Icons.radar, Icons.explore, Icons.travel_explore],
-      1: [Icons.rocket_launch, Icons.rocket_launch_outlined, Icons.flight],
-      2: [Icons.inventory_2_outlined, Icons.storefront],
-      3: [Icons.emoji_events_outlined, Icons.emoji_events, Icons.event_repeat],
-      4: [Icons.auto_stories_outlined, Icons.auto_stories, Icons.account_tree],
-      5: [Icons.tune, Icons.settings],
-      6: [Icons.volume_up],
-      7: [Icons.volume_off],
-      8: [Icons.pause_circle_outline, Icons.pause],
-      9: [Icons.favorite, Icons.favorite_border],
-      10: [Icons.healing],
-      11: [Icons.track_changes],
-      12: [Icons.blur_on],
-      13: [Icons.inventory_2, Icons.card_giftcard],
-      14: [Icons.fast_forward],
-      15: [Icons.precision_manufacturing],
-      16: [Icons.compare_arrows],
-      17: [Icons.bolt, Icons.battery_charging_full],
-      18: [Icons.navigation],
-      19: [Icons.airplanemode_active],
-      20: [Icons.shield_outlined],
-      21: [Icons.sports_soccer],
-      22: [Icons.satellite_alt],
-      23: [Icons.light_mode, Icons.wb_sunny],
-      24: [Icons.circle_outlined, Icons.hexagon_outlined],
-      25: [Icons.view_agenda],
-      26: [Icons.rotate_right],
-      27: [Icons.spa, Icons.eco],
-      28: [Icons.blur_circular],
-      29: [Icons.waves],
-      30: [Icons.shield],
-      31: [Icons.flash_on, Icons.electric_bolt],
-      32: [Icons.local_fire_department, Icons.whatshot],
-      33: [Icons.hourglass_bottom],
-      34: [Icons.zoom_out_map],
-      35: [Icons.speed],
-      36: [Icons.school, Icons.diamond],
-      37: [Icons.battery_full],
-      38: [Icons.security],
-      39: [Icons.add],
-      40: [Icons.workspace_premium],
-      41: [Icons.savings],
-      42: [Icons.gps_fixed],
-      44: [Icons.person, Icons.person_outline],
-      45: [Icons.hexagon],
-      46: [Icons.ac_unit],
-      47: [Icons.medical_services],
-      48: [
-        Icons.map_outlined,
-        Icons.explore_outlined,
-        Icons.location_city,
-        Icons.brightness_2,
-        Icons.flare,
-      ],
-      50: [Icons.lock_outline, Icons.lock],
-      51: [Icons.check_circle, Icons.check_circle_outline],
-      53: [Icons.refresh, Icons.screen_rotation],
-      54: [Icons.cloud_done_outlined],
-      55: [Icons.groups_outlined, Icons.groups],
-      56: [Icons.arrow_back, Icons.arrow_back_ios],
-      57: [Icons.close],
-      60: [Icons.auto_awesome],
-      61: [Icons.description],
-      62: [Icons.pets],
-      59: [Icons.vpn_key],
-      63: [Icons.calendar_month, Icons.assignment_turned_in],
-    };
-    for (final group in groups.entries) {
-      if (group.value.contains(icon)) return group.key;
-    }
-    // Unknown symbols retain their actual glyph, never an unrelated gift icon.
-    return -1;
   }
 }
 
@@ -660,7 +423,20 @@ class RasterSkillIcon extends StatelessWidget {
         filterQuality: FilterQuality.medium,
       );
     }
-    if (GameArt.ready || ToonAssets.images.containsKey('icons')) {
+    // v12.15: skills with their own card illustration use it
+    const cards = {
+      'attack', 'cooldown', 'hull', 'magnet', 'repair', 'speed', //
+      'laser', 'mortar', 'orbit', 'yarn', 'zap',
+    };
+    if (cards.contains(id)) {
+      return Image.asset(
+        'assets/art/cards_v13/$id.webp',
+        width: size,
+        height: size,
+        filterQuality: FilterQuality.medium,
+      );
+    }
+    if (GameArt.ready) {
       // Fusion artwork combines the existing weapon and its actual effect.
       // Atlas slots 45/46 are currencies, not inferno/thunder mine pictures.
       if (id == 'infernoMine' || id == 'thunderMine' || id == 'medicDrone') {

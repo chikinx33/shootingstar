@@ -65,9 +65,7 @@ void main() {
             );
           }
           expect(
-            find.byWidgetPredicate(
-              (w) => w is GameActionButton && w.label == '성장 정비 · 귀환',
-            ),
+            find.bySemanticsLabel('성장 정비 · 귀환'),
             findsOneWidget,
           );
           // the details live in a popup
@@ -116,9 +114,7 @@ void main() {
       expect(find.text('계속 비행'), findsOneWidget);
       expect(find.byKey(const Key('game-page-next')), findsNothing);
       expect(
-        find.byWidgetPredicate(
-          (w) => w is GameActionButton && w.label == '귀환 · 현재 보상 정산',
-        ),
+        find.bySemanticsLabel('귀환 · 현재 보상 정산'),
         findsOneWidget,
       );
       await tester.pumpWidget(const SizedBox());

@@ -22,7 +22,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: AccountScreen(profile: p)));
     await tester.pumpAndSettle();
     expect(find.text('계정'), findsOneWidget);
-    expect(find.text('계정 저장'), findsOneWidget);
+    expect(find.byType(ProfileCard), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.tap(find.text('가입'));
     await tester.pumpAndSettle();

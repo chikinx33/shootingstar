@@ -14,20 +14,20 @@ from PIL import Image
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ART = ROOT / 'assets/art'
 
-# Longest side in pixels. Loaders decode game_v10 at 256-384px and the
-# lobby icons at 512px; everything else is decoded at 1024px or less.
+# Longest side in pixels. Sprites are decoded at 256-384px; everything else
+# at 1024px or less.
 CAPS = {
-    'game_v10': 640,
-    'lobby_v9': 640,
-    'refit_v16': 640,
+    'enemies_v14': 640,
+    'pets_v14': 640,
+    'icons_v14': 320,
 }
 DEFAULT_CAP = 1024
 # Full-screen backgrounds keep their own (already modest) resolution.
-BACKGROUNDS = {('refit_v16', 'backdrop')}
+BACKGROUNDS: set = set()
 
 
 def convert(png: pathlib.Path) -> tuple[int, int]:
-    folder = png.relative_to(ART).parts[0]
+    folder = png.resolve().relative_to(ART).parts[0]
     im = Image.open(png)
     im.load()
     if im.mode not in ('RGB', 'RGBA'):

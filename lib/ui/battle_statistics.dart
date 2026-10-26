@@ -7,6 +7,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../art/game_icons.dart';
+import '../art/toon_assets.dart';
 import '../art/ui_kit.dart';
 import 'skill_cards.dart';
 import 'game_motion.dart';
@@ -356,11 +358,7 @@ class BattleStatisticsDialog extends StatelessWidget {
           GameFact('평균 DPS', _number(snapshot.damage.dps), tone: GameTone.gold),
         ]),
         gap(6),
-        Text(
-          tr('DPS = 실제 가한 피해 ÷ 실제 전투 시간\n일시정지·스킬 선택 시간과 초과 피해는 제외합니다.'),
-          style: TextStyle(fontSize: 14, color: muted),
-          textAlign: TextAlign.center,
-        ),
+        const GameHint('DPS = 피해 ÷ 전투 시간'),
         gap(12),
         if (snapshot.damage.entries.isEmpty)
           Padding(
@@ -519,30 +517,26 @@ class BattleStatisticsDialog extends StatelessWidget {
           ],
         ),
         gap(8),
-        GameInfoBlock(
-          label: '주포 구성',
-          tone: GameTone.sky,
-          detail: snapshot.mainLoadout,
+        // v12.15: loadout, ultimate and synergies as tags, not paragraphs
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final line in snapshot.mainLoadout.split('\n'))
+              if (line.trim().isNotEmpty)
+                GameTag(line.trim(), tone: GameTone.sky),
+            for (final line in snapshot.ultimate.split('\n'))
+              if (line.trim().isNotEmpty) GameTag(line.trim()),
+            for (final detail in snapshot.synergies)
+              for (final (i, line) in detail.split('\n').indexed)
+                if (line.trim().isNotEmpty)
+                  GameTag(
+                    line.trim(),
+                    tone: i == 0 ? GameTone.good : GameTone.muted,
+                  ),
+          ],
         ),
-        if (snapshot.ultimate.isNotEmpty) ...[
-          gap(8),
-          GameInfoBlock(
-            label: '궁극기',
-            tone: GameTone.gold,
-            detail: snapshot.ultimate,
-          ),
-        ],
-        if (snapshot.synergies.isNotEmpty) ...[
-          gap(8),
-          GameInfoBlock(
-            label: '연계',
-            tone: GameTone.good,
-            children: [
-              for (final detail in snapshot.synergies)
-                GameHint(detail, tone: GameTone.good),
-            ],
-          ),
-        ],
         gap(16),
         Text(
           tr('보유 무기'),
@@ -550,7 +544,8 @@ class BattleStatisticsDialog extends StatelessWidget {
 
           textAlign: TextAlign.center,
         ),
-        for (final e in snapshot.weapons) _buildRow(e),
+        gap(8),
+        _slotGrid(snapshot.weapons),
         gap(14),
         Text(
           tr('보유 보조 스킬'),
@@ -567,49 +562,71 @@ class BattleStatisticsDialog extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
-        for (final e in snapshot.passives) _buildRow(e),
+        if (snapshot.passives.isNotEmpty) ...[
+          gap(8),
+          _slotGrid(snapshot.passives),
+        ],
       ],
     ),
   );
 
-  Widget _buildRow(BattleBuildEntry e) => Padding(
-    padding: const EdgeInsets.only(top: 12),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        RasterSkillIcon(e.id, size: 25, color: e.evolved ? cyan : Colors.white),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Wrap(
-                alignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 6,
-                runSpacing: 2,
-                children: [
-                  Text(
-                    tr(e.name),
-                    style: const TextStyle(fontWeight: FontWeight.w900),
-                    textAlign: TextAlign.center,
+  /// v12.15: owned skills as picture slots with their step badge; the
+  /// recipe is the long-press tooltip (mobile inventory grid).
+  Widget _slotGrid(List<BattleBuildEntry> entries) => Wrap(
+    alignment: WrapAlignment.center,
+    spacing: 8,
+    runSpacing: 8,
+    children: [
+      for (final e in entries)
+        Tooltip(
+          message: '${tr(e.name)}\n${tr(e.recipe)}',
+          child: SizedBox(
+            width: 72,
+            child: Column(
+              children: [
+                SizedBox.square(
+                  dimension: 64,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned.fill(
+                        child: ToonRarityFrame(
+                          rank: e.evolved ? 4 : (e.rank >= 3 ? 2 : 0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(9),
+                            child: RasterSkillIcon(e.id, size: 46),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        right: -3,
+                        bottom: -3,
+                        child: GameTag(
+                          e.evolved ? 'EVO' : 'Lv.${e.rank}',
+                          tone: e.evolved ? GameTone.good : GameTone.gold,
+                        ),
+                      ),
+                    ],
                   ),
-                  GameTag(message('{0}단계', [e.rank])),
-                  if (e.evolved) const GameTag('EVO', tone: GameTone.good),
-                ],
-              ),
-              gap(4),
-              Text(
-                tr(e.recipe),
-                style: const TextStyle(color: muted, fontSize: 14),
-
-                textAlign: TextAlign.center,
-              ),
-            ],
+                ),
+                const SizedBox(height: 4),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    tr(e.name),
+                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ],
-    ),
+    ],
   );
 }
 
@@ -658,7 +675,7 @@ String? damageArt(String label) {
     if (label.contains(word)) return '${SkillCardArt.root}$name.webp';
   }
   if (label.contains('주포')) return 'assets/art/menu_v13/launch.webp';
-  if (label.contains('미사일')) return 'assets/art/menu_v13/supply.webp';
-  if (label.contains('펫')) return 'assets/art/game_v10/pet-0.webp';
+  if (label.contains('미사일')) return GameIcons.missile;
+  if (label.contains('펫')) return 'assets/art/pets_v14/pet_0.webp';
   return null;
 }

@@ -93,9 +93,7 @@ void main() {
     expect(find.text('일시정지'), findsOneWidget);
     expectCentered();
     await tester.tap(
-      find.byWidgetPredicate(
-        (w) => w is GameActionButton && w.label == '귀환 · 현재 보상 정산',
-      ),
+      find.byKey(const Key('pause-return')),
     );
     await tester.pump();
     await tester.pump();
@@ -150,9 +148,7 @@ void main() {
     await tester.tap(find.byTooltip('일시정지'));
     await tester.pump();
     await tester.tap(
-      find.byWidgetPredicate(
-        (w) => w is GameActionButton && w.label == '귀환 · 현재 보상 정산',
-      ),
+      find.byKey(const Key('pause-return')),
     );
     await tester.pump();
     await tester.pump();

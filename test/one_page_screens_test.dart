@@ -3,13 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/ui/account_screen.dart';
-import 'package:shootingstar/ui/advanced_equipment_screen.dart';
 import 'package:shootingstar/ui/collection_screen.dart';
 import 'package:shootingstar/ui/content_hub.dart';
 import 'package:shootingstar/ui/control_settings_screen.dart';
 import 'package:shootingstar/ui/delete_account_screen.dart';
 import 'package:shootingstar/ui/guild_screen.dart';
-import 'package:shootingstar/ui/hangar_board.dart';
+import 'package:shootingstar/ui/module_workshop.dart';
 import 'package:shootingstar/ui/pet_bond_screen.dart';
 import 'package:shootingstar/ui/progress_backup_screen.dart';
 import 'package:shootingstar/ui/settings_screen.dart';
@@ -19,7 +18,6 @@ import 'package:shootingstar/ui/supporter_screen.dart';
 void main() {
   final screens = <String, Widget Function(Profile)>{
     'Account': (p) => AccountScreen(profile: p),
-    'AdvancedEquipment': (p) => AdvancedEquipmentScreen(profile: p),
     'Collection': (p) => CollectionScreen(profile: p),
     'ContentHub0': (p) => ContentHub(profile: p),
     'ContentHub1': (p) => ContentHub(profile: p, initialPage: 1),
@@ -28,7 +26,7 @@ void main() {
     'ControlSettings': (p) => ControlSettingsScreen(profile: p),
     'DeleteAccount': (p) => DeleteAccountScreen(profile: p),
     'Guild': (p) => GuildScreen(profile: p),
-    'HangarBoard': (p) => HangarBoard(profile: p),
+    'ModuleWorkshop': (p) => ModuleWorkshop(profile: p, embedded: true),
     'PetBond': (p) => PetBondScreen(profile: p, pet: 0),
     'ProgressBackup': (p) => ProgressBackupScreen(profile: p),
     'Settings': (p) => FlightSettings(profile: p),

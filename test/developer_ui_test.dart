@@ -8,6 +8,7 @@ import 'package:shootingstar/main.dart';
 import 'package:shootingstar/ui/settings_screen.dart';
 import 'package:shootingstar/ui/developer_screen.dart';
 import 'package:shootingstar/ui/game_ui.dart';
+import 'package:shootingstar/ui/item_slots.dart';
 import 'package:shootingstar/app_version.dart';
 
 void main() {
@@ -39,7 +40,7 @@ void main() {
       await tester.pumpAndSettle();
       final top = tester.getRect(find.text('테스트 메뉴'));
       for (var group = 0; group < 3; group++) {
-        for (var menu = 0; menu < [6, 9, 5][group]; menu++) {
+        for (var menu = 0; menu < [6, 8, 5][group]; menu++) {
           final field = find.byWidgetPredicate(
             (w) =>
                 w is DropdownButtonFormField<int> &&
@@ -140,7 +141,9 @@ void main() {
           expect(tester.takeException(), isNull);
           if (p.developerMode) {
             expect(find.byKey(const Key('exit-developer')), findsOneWidget);
-            final button = find.widgetWithText(GameActionButton, '테스트');
+            final button = find.byWidgetPredicate(
+              (w) => w is GameActionTile && w.label == '테스트',
+            );
             final bounds = tester.getRect(button);
             expect(bounds.bottom, lessThanOrEqualTo(size.height));
             await tester.tap(button);

@@ -258,10 +258,10 @@ void main() {
           expect(p.mail.where((m) => m.id == 'qa-supply').length, 1);
           await tapUi(tester, tabWithText('길드원'));
           expect(find.byType(ListView), findsOneWidget);
-          final gh = tester.getRect(find.text('함께하는 함대'));
+          final gh = tester.getRect(find.byKey(const Key('guild-banner')));
           await tester.drag(find.byType(ListView), const Offset(0, -250));
           await tester.pumpAndSettle();
-          expect(tester.getRect(find.text('함께하는 함대')), gh);
+          expect(tester.getRect(find.byKey(const Key('guild-banner'))), gh);
           await tapUi(tester, tabWithText('현황'));
           await tapUi(tester, action('길드 탈퇴'));
           await tapUi(tester, action('취소'));

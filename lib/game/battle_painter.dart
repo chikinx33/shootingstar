@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import '../art/ship_sprite_art.dart';
 import 'glow_shots.dart';
+import '../art/menu_art.dart';
 
 import 'package:flutter/foundation.dart' show listEquals;
 
@@ -15,10 +16,6 @@ import '../art/raster_assets.dart';
 import '../art/experience_gem_art.dart';
 import '../art/game_art.dart';
 import '../art/toon_assets.dart';
-import '../art/arcade_aircraft.dart';
-import '../art/aircraft_assembly_art.dart';
-import '../art/ground_art.dart';
-import '../art/module_aircraft_art.dart';
 import '../data/ship_modules.dart';
 import '../data/aircraft_assembly.dart';
 import '../data/aircraft_geometry.dart';
@@ -444,16 +441,13 @@ class BattlePainter extends CustomPainter {
         ..strokeCap = StrokeCap.round;
       canvas.drawLine(const Offset(0, 3), Offset(0, missile ? 17 : 10), tail);
       if (missile) {
-        if (!ShipSpriteArt.paintFx(
+        ShipSpriteArt.paintFx(
           canvas,
           'player_missile',
           Offset.zero,
           shot.weapon.contains(':W2:') ? 20 : 16,
           0,
-        )) {
-          canvas.scale(shot.weapon.contains(':W2:') ? 9 : 7);
-          ModuleAircraftArt.paintPart(canvas, modulePart('missile_hawk'));
-        }
+        );
       } else {
         canvas.drawLine(
           const Offset(0, -4),
@@ -1450,9 +1444,9 @@ class BattlePainter extends CustomPainter {
       canvas.save();
       canvas.translate(e.position.dx, e.position.dy);
       canvas.rotate(e.heading + math.pi / 2);
-      GroundArt.paint(
+      MenuArt.paint(
         canvas,
-        e.groundKind,
+        'enemy-2',
         Rect.fromCenter(center: Offset.zero, width: 43, height: 43),
       );
       canvas.restore();
@@ -2068,81 +2062,6 @@ class BattlePainter extends CustomPainter {
                   1.3 * math.max(0, game.thrust) -
                   .3 * math.max(0, -game.thrust),
       );
-    } else if (game.moduleLoadout != null) {
-      ModuleAircraftArt.paint(
-        canvas,
-        Offset.zero,
-        AircraftGeometry.bodySize,
-        game.moduleLoadout!,
-        inBattle: true,
-        recoil: reducedEffects
-            ? const {}
-            : {
-                for (final m in moduleProfiles.where((m) => m.weapon))
-                  m.id:
-                      game.modulePartVisualOffset(m.id, 0) /
-                      AircraftGeometry.combatBodySize,
-              },
-        sideRecoil: reducedEffects
-            ? const {}
-            : {
-                for (var i = 0; i < 2; i++)
-                  'W1:$i':
-                      game.modulePartVisualOffset('W1', i) /
-                      AircraftGeometry.combatBodySize,
-              },
-      );
-    } else if (game.aircraft != null) {
-      AircraftAssemblyArt.paintAssembly(
-        canvas,
-        Offset.zero,
-        AircraftGeometry.bodySize,
-        game.aircraft!,
-        drift: reducedEffects
-            ? const {}
-            : {
-                for (final mount in AircraftMount.values)
-                  mount:
-                      game.visuals.followOffset(mount.name) /
-                      AircraftGeometry.combatScale,
-              },
-        gearDrift: reducedEffects
-            ? const {}
-            : {
-                for (final pair in const [
-                  (1, 'sensor'),
-                  (2, 'core'),
-                  (4, 'belt'),
-                  (5, 'thruster'),
-                ])
-                  pair.$1:
-                      game.visuals.followOffset(pair.$2) /
-                      AircraftGeometry.combatScale,
-              },
-        angles: {
-          AircraftMount.auxiliary: game.moduleAngle(AircraftMount.auxiliary),
-          AircraftMount.wings: game.moduleAngle(AircraftMount.wings),
-          AircraftMount.rear: 0,
-        },
-        rightWingAngle: game.moduleAngle(AircraftMount.wings, right: true),
-        recoil: reducedEffects
-            ? const {}
-            : {
-                for (final mount in [
-                  AircraftMount.main,
-                  AircraftMount.auxiliary,
-                  AircraftMount.wings,
-                  AircraftMount.rear,
-                  AircraftMount.ground,
-                ])
-                  mount: game.visuals.recoil(mount.name),
-              },
-        rightWingRecoil: reducedEffects
-            ? Offset.zero
-            : game.visuals.recoil('wings-right'),
-      );
-    } else {
-      ArcadeAircraft.paintShip(canvas, Offset.zero, 76, game.shipIndex);
     }
     if (game.moduleShield > 0) _fx(canvas, 8, Offset.zero, 70, opacity: .3);
     if (game.hurtFlash > 0) {
@@ -2167,10 +2086,7 @@ class BattlePainter extends CustomPainter {
           canvas.translate(at.dx, at.dy);
           canvas.rotate(game.droneVisualAngle(e.key, e.value, i, points[i]));
           // v11: the drone is a PNG sprite (no code-drawn shapes).
-          if (!ShipSpriteArt.paintDrone(canvas, 30)) {
-            canvas.scale(ModuleGeometry.droneExtent);
-            ModuleAircraftArt.paintPart(canvas, e.value.definition);
-          }
+          ShipSpriteArt.paintDrone(canvas, 30);
           canvas.restore();
           _gauge(
             canvas,

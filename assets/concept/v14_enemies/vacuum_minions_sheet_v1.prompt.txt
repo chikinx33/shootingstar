@@ -1,0 +1,27 @@
+Mode: built-in image_gen; reference-based generation, followed by correction.
+Output: vacuum_minions_sheet_v1.png
+Initial prompt:
+Use case: style-transfer.
+Asset type: ONE sprite sheet of small enemy units for a cute cat-themed vertical shooter mobile game.
+Input images: Image 1 and Image 2 are STYLE AND FACTION references only (Vacuum Empire bosses), not subjects to reproduce. Image 3 is the exact OUTLINE WEIGHT AND FINISH reference. Preserve their faction identity in new small minion designs.
+Canvas: landscape 4:3, preferably 1536x1152 pixels. Strict invisible 4 columns x 3 rows of equal square cells. Exactly ELEVEN enemy sprites; bottom-right twelfth cell COMPLETELY EMPTY. Every sprite centered at its cell center and fits within about 66% of cell width/height, with generous identical gutters. Cell centers at x=12.5%,37.5%,62.5%,87.5% and y=16.67%,50%,83.33%. No objects across cell boundaries.
+View: strict orthographic straight FROM ABOVE, top-down game sprites, never isometric, never front elevation. All FRONT/NOZZLES face DOWN toward image bottom, enemies flying down toward player.
+Style: cute-but-menacing robot vacuum minions. Purple and dark gunmetal armor, hot pink #FF4FA3 and cyan luminous components, suction hoses and nozzles. Chunky rounded readable shapes. Thick EVEN dark navy outlines exactly like reference 3, flat cel shading and one small white highlight. One big glowing pink or cyan eye/sensor per minion. Distinct silhouettes for every role, simplified for small mobile-game scale.
+Exact row-major contents:
+Row 1 column 1 SCOUT: tiny round robot vacuum disc with two little side fans.
+Row 1 column 2 WEAVER: fluffy gray dust-bunny drone dust ball with two small mechanical wings.
+Row 1 column 3 BULWARK: wide heavy armored robot vacuum with a thick front bumper shield plate at the bottom.
+Row 1 column 4 SPITTER: round vacuum pod with one short fat nozzle pointing DOWN.
+Row 2 column 1 LANCER: slim long body with a long pointed suction lance nozzle pointing DOWN.
+Row 2 column 2 ORBITER: ring-shaped drone with exactly three small glowing orbs around it; whole assembly contained in one cell.
+Row 2 column 3 MINER: chubby dust-bag carrier dangling two small spiky dust bombs; whole assembly contained in one cell.
+Row 2 column 4 SPLITTER: two small pods joined in the middle like a peanut, ready to split; one connected silhouette.
+Row 3 column 1 SNIPER: narrow body with one very long thin hose barrel pointing DOWN and a scope eye.
+Row 3 column 2 CARRIER: bigger boxy mothership vacuum with a hatch and two tiny docked drones; whole assembly contained in one cell.
+Row 3 column 3 KAMIKAZE: spiky angry dust ball with a small rocket booster at the top rear, travelling DOWN.
+Row 3 column 4: absolutely EMPTY pure magenta.
+Background: all pixels outside the sprites including margins, gaps, holes and empty cell are perfectly flat solid pure magenta #FF00FF. No diffuse glow or shadows on background. No magenta or pink-magenta pigment inside sprites: use #FF4FA3 hot pink or cyan instead. Hard clean separable silhouette edges.
+Avoid: grid lines, text, numbers, labels, cats, extra sprites, decorative objects, background texture, ground planes, cast shadows, gradients on background.
+
+Final correction prompt:
+Edit this sprite sheet. Preserve all eleven existing enemy designs, their identity, detail, colors, downward orientation, exact row-major ordering and the empty bottom-right cell. Keep the landscape 4:3 aspect ratio and invisible strict 4 columns x 3 rows of equal cells. Make TWO precise layout/export corrections: (1) The entire background must be OPAQUE solid pure magenta RGB(255,0,255) / #FF00FF, including all margins, gutters, holes inside ring shapes, and the entire empty bottom-right cell. Do NOT make any transparency or alpha cutout. The magenta background is intentional chroma-key artwork and must be visibly present in the image. No black background. No background shadows or gradients. (2) Center each existing sprite assembly exactly in its respective equal cell, with each assembly's longest dimension approximately 66% of that cell size, leaving about 17% margin on each side. Reduce the oversized bulwark, miner, carrier and long lance/barrel assemblies as needed so no sprite nearly touches its cell edge. Exactly 11 sprites, no extra components, labels or grid lines. Preserve all existing reference styling, thick navy outlines and flat cel shading; use hot pink #FF4FA3 rather than magenta pigment within sprites. All muzzles point down. Output an OPAQUE magenta-background sprite sheet, not a transparent sprite sheet.

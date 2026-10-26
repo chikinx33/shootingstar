@@ -13,7 +13,9 @@ import '../data/pet_bond.dart';
 import '../data/profile.dart';
 import '../main.dart';
 import '../art/toon_assets.dart';
-import 'arcade_home_widgets.dart' show CurrencyArt;
+import '../art/game_icons.dart';
+import 'game_slots.dart';
+import 'item_info_card.dart';
 import 'compact_choice.dart';
 import 'components.dart';
 
@@ -75,11 +77,9 @@ class PetBondScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            GameInfoBlock(
-              label: '돌려받는 재료',
-              tone: GameTone.good,
-              children: [const SizedBox(height: 6), _costChips(refund)],
-            ),
+            const GameTag('돌려받는 재료', tone: GameTone.good),
+            gap(6),
+            _costSlots(refund),
             gap(10),
             const GameHint('각성 단계와 선택 스킬은 초기화됩니다', tone: GameTone.danger),
             const GameHint('호감도·육성·승급·오늘의 교감 횟수는 그대로입니다'),
@@ -202,61 +202,29 @@ class PetBondScreen extends StatelessWidget {
             centerContent: true,
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
             children: [
-              Row(
-                children: [
-                  ToonTile('ships', 3 + pet, size: 80),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          tr(petNames[pet]),
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w900,
-                          ),
-                          textAlign: TextAlign.center,
+              // v12.15: the chick in its frame with its pills, the favour
+              // gauge with a heart, today's counts and prices as pictures
+              ItemHero(
+                image: ToonTile('ships', 3 + pet, size: 64),
+                name: petNames[pet],
+                rarity: p.petRanks[pet],
+                size: 80,
+                chips: unlocked
+                    ? [
+                        ('Lv.${p.petLevels[pet]}', const Color(0xFFFFD43D)),
+                        (
+                          message('승급 {0}', [p.petRanks[pet]]),
+                          const Color(0xFF8FD3FF),
                         ),
-                        const SizedBox(height: 4),
-                        if (unlocked)
-                          Wrap(
-                            alignment: WrapAlignment.center,
-                            spacing: 8,
-                            runSpacing: 4,
-                            children: [
-                              _Pair('Lv', '${p.petLevels[pet]}'),
-                              _Pair(
-                                '승급',
-                                message('{0}단계', [p.petRanks[pet]]),
-                                tone: GameTone.sky,
-                              ),
-                              _Pair('각성', '$level/3', tone: GameTone.good),
-                            ],
-                          )
-                        else
-                          const GameHint(
-                            '구조가 필요한 펫입니다.',
-                            tone: GameTone.danger,
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
+                        ('각성 $level/3', const Color(0xFF7CE08A)),
+                      ]
+                    : [('미구조', const Color(0xFFFF7A6B))],
               ),
               gap(6),
               Row(
                 children: [
-                  Text(
-                    message("호감도 {0}/{1}", [book.favor[pet], PetBond.favorCap]),
-                    style: const TextStyle(
-                      color: cyan,
-                      fontWeight: FontWeight.w900,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(width: 10),
+                  GameIconImage(GameIcons.heart, size: 28),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: RasterGauge(
                       minHeight: 12,
@@ -264,19 +232,36 @@ class PetBondScreen extends StatelessWidget {
                       value: book.favor[pet] / PetBond.favorCap,
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${book.favor[pet]}/${PetBond.favorCap}',
+                    style: const TextStyle(
+                      color: cyan,
+                      fontWeight: FontWeight.w900,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ],
               ),
               gap(4),
-              _pairLine([
-                ('오늘 전투 교감', '${book.combatFavorToday}/30', GameTone.sky),
-                ('오늘 선물', '${book.giftsToday}/2', GameTone.sky),
+              StatGrid([
+                StatLine(
+                  label: '오늘 교감',
+                  value: '${book.combatFavorToday}/30',
+                  icon: GameIcons.heart,
+                ),
+                StatLine(
+                  label: '오늘 선물',
+                  value: '${book.giftsToday}/2',
+                  icon: GameIcons.food,
+                ),
               ]),
               gap(6),
               GameActionButton(
                 label: '먹이 10 선물 · 호감도 +10',
-                displayLabel: '먹이 10 선물',
+                displayLabel: '선물 10',
                 primary: true,
-                icon: Icons.favorite,
+                image: GameIcons.food,
                 onPressed: audible(
                   book.canGift(pet, unlocked: unlocked, food: p.petFood)
                       ? () => _act(context, () => p.giftPet(pet))
@@ -284,23 +269,15 @@ class PetBondScreen extends StatelessWidget {
                 ),
               ),
               gap(10),
-              // v12.14: holdings as coloured label + value pairs.
-              _pairLine([
-                ('보유 츄르', '${p.credits}', GameTone.gold),
-                ('먹이', '${p.petFood}', GameTone.good),
-                ('유전자', '${p.petShards[pet]}', GameTone.sky),
-              ]),
               if (cost != null) ...[
-                GameHint(
-                  issue ?? '각성 조건을 충족했습니다.',
-                  tone: issue == null ? GameTone.good : GameTone.danger,
-                ),
+                _price(cost, p.credits, p.petFood, p.petShards[pet]),
+                if (issue != null) GameHint(issue, tone: GameTone.danger),
                 gap(6),
                 GameActionButton(
                   label: '펫 각성 ${level + 1}단계 · ${cost.credits} 츄르',
-                  displayLabel: '각성 ${level + 1}단계 · ${cost.credits} 츄르',
+                  displayLabel: message('각성 {0}단계', [level + 1]),
                   primary: true,
-                  icon: Icons.auto_awesome,
+                  image: 'assets/art/ui_v13/act_promote.webp',
                   onPressed: audible(
                     issue == null
                         ? () => _act(context, () => p.awakenPet(pet))
@@ -308,11 +285,7 @@ class PetBondScreen extends StatelessWidget {
                   ),
                 ),
               ] else
-                Text(
-                  tr('최대 각성에 도달했습니다.'),
-                  style: const TextStyle(color: cyan, fontSize: GameUi.body),
-                  textAlign: TextAlign.center,
-                ),
+                const Center(child: ItemPill('최대 각성', Color(0xFFFFD43D))),
               gap(10),
               GameChoiceRow(
                 label: '각성 스킬 · 한 가지 선택',
@@ -350,78 +323,59 @@ class PetBondScreen extends StatelessWidget {
   }
 }
 
-List<Widget> _holdingChips(int credits, int food, int shards) => [
-  GameRewardChip('츄르', credits, image: CurrencyArt.churu),
-  GameRewardChip('먹이', food),
-  GameRewardChip('유전자', shards),
-];
-
-Widget _costChips(PetBondCost cost) => Wrap(
-  alignment: WrapAlignment.center,
-  spacing: 6,
-  runSpacing: 6,
-  children: _holdingChips(cost.credits, cost.food, cost.shards),
+/// A refund as picture slots with ×N badges.
+Widget _costSlots(PetBondCost cost) => Row(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    for (final (i, r) in [
+      GameReward(GameIcons.churu, cost.credits, '츄르'),
+      GameReward(GameIcons.food, cost.food, '먹이'),
+      GameReward(GameIcons.gene, cost.shards, '유전자'),
+    ].indexed) ...[
+      if (i > 0) const SizedBox(width: 10),
+      GameRewardSlot(r, size: 58),
+    ],
+  ],
 );
 
-/// Several "label value" pairs as one paragraph: it wraps like text, so the
-/// pager keeps it as lines instead of one item per pair.
-Widget _pairLine(List<(String, String, GameTone)> pairs) => Builder(
-  builder: (context) {
-    AppLanguage.watch(context);
-    return Text.rich(
-      TextSpan(
+/// An awakening price: each material's picture and amount, red when short.
+Widget _price(PetBondCost cost, int credits, int food, int shards) {
+  Widget part(String image, int need, int have) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      GameIconImage(image, size: 26),
+      const SizedBox(width: 2),
+      Text(
+        '$need',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w900,
+          color: have >= need ? Colors.white : const Color(0xFFFF7A6B),
+        ),
+      ),
+    ],
+  );
+  return Center(
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xE60B1830),
+        borderRadius: BorderRadius.circular(99),
+        border: Border.all(color: const Color(0xFF3A5A8C), width: 1.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          for (final (i, (label, value, tone)) in pairs.indexed) ...[
-            if (i > 0) const TextSpan(text: '    '),
-            TextSpan(
-              text: '${tr(label)} ',
-              style: TextStyle(color: tone.color, fontWeight: FontWeight.w800),
-            ),
-            TextSpan(
-              text: value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ],
+          part(GameIcons.churu, cost.credits, credits),
+          const SizedBox(width: 10),
+          part(GameIcons.food, cost.food, food),
+          const SizedBox(width: 10),
+          part(GameIcons.gene, cost.shards, shards),
         ],
       ),
-      textAlign: TextAlign.center,
-      style: const TextStyle(fontSize: GameUi.body),
-    );
-  },
-);
-
-/// "label value" inline: the label in its tone colour, the value in bold
-/// white, one text line high so the one-page layout keeps its height.
-class _Pair extends StatelessWidget {
-  const _Pair(this.label, this.value, {this.tone = GameTone.gold});
-  final String label, value;
-  final GameTone tone;
-  @override
-  Widget build(BuildContext context) {
-    AppLanguage.watch(context);
-    return Text.rich(
-      TextSpan(
-        children: [
-          TextSpan(
-            text: '${tr(label)} ',
-            style: TextStyle(color: tone.color, fontWeight: FontWeight.w800),
-          ),
-          TextSpan(
-            text: tr(value),
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ],
-      ),
-      textAlign: TextAlign.center,
-      style: const TextStyle(fontSize: GameUi.body),
-    );
-  }
+    ),
+  );
 }
 
 /// Awakening steps 1–3 against [columns]: a tagged three-row table.

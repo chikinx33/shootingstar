@@ -7,7 +7,10 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../art/game_icons.dart';
+
 import 'game_decor.dart';
+
 import 'package:flutter/services.dart';
 
 import '../app_version.dart';
@@ -84,7 +87,16 @@ class StorageHelpScreen extends StatelessWidget {
     AppLanguage.watch(context);
     final error = profile.saveError;
     return Scaffold(
-      appBar: GameAppBar(title: Text(tr('저장·복구 도움말'), textAlign: TextAlign.center)),
+      appBar: GameAppBar(
+        title: Text(tr('저장·복구 도움말'), textAlign: TextAlign.center),
+        actions: [
+          InfoAction(
+            key: const Key('storage-help-details'),
+            label: '저장·복구 자세히 보기',
+            onPressed: () => _details(context),
+          ),
+        ],
+      ),
       body: SafeArea(
         // v12.4.3: one page. Step-by-step rules open in the details popup.
         child: GamePages(
@@ -92,24 +104,25 @@ class StorageHelpScreen extends StatelessWidget {
           framed: true,
           padding: const EdgeInsets.all(16),
           children: [
-            Text(
-              tr('게스트 진행은 이 앱·브라우저에 저장됩니다. 기기를 바꾸기 전에 계정으로 동기화하세요.'),
-              style: const TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
+            // the save state as a picture and one tag
+            Center(
+              child: GameIconImage(
+                error == null ? GameIcons.check : Mascot.defeat,
+                size: 72,
+              ),
             ),
             gap8,
-            Text(
-              error == null
-                  ? tr('현재 저장 오류가 없습니다.')
-                  : message('{0}\n앱을 닫기 전에 저장 공간을 확인하고 저장 후 로비를 다시 시도하세요.', [
-                      error,
-                    ]),
-              style: TextStyle(
-                fontSize: 16,
-                color: error == null ? null : Colors.orange,
-              ),
-              textAlign: TextAlign.center,
+            Center(
+              child: error == null
+                  ? const GameTag('저장 정상', tone: GameTone.good)
+                  : const GameTag('저장 오류', tone: GameTone.danger),
             ),
+            if (error != null) ...[
+              gap8,
+              GameHint(error, tone: GameTone.danger),
+            ],
+            gap8,
+            const GameHint('기기를 바꾸기 전에 계정으로 동기화하세요'),
             gap16,
             GameActionButton(
               label: '진행 백업·복원',
@@ -128,20 +141,6 @@ class StorageHelpScreen extends StatelessWidget {
               label: '진단 정보 복사',
               icon: Icons.copy,
               onPressed: audible(() => _copyDiagnostics(context)),
-            ),
-            gap8,
-            Text(
-              tr('버전·저장 상태·항로·출격 횟수만 복사합니다. 닉네임·비밀번호·장비는 넣지 않고 자동 전송하지 않습니다.'),
-              style: const TextStyle(fontSize: GameUi.caption),
-              textAlign: TextAlign.center,
-            ),
-            gap12,
-            GameActionButton(
-              key: const Key('storage-help-details'),
-              label: '저장·복구 자세히 보기',
-              displayLabel: '자세히',
-              icon: Icons.question_mark,
-              onPressed: audible(() => _details(context)),
             ),
           ],
         ),

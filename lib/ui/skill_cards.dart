@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../art/module_aircraft_art.dart';
+import '../art/ship_sprite_art.dart';
+
 import '../data/ship_modules.dart';
 import '../game/engine.dart';
 
@@ -152,6 +153,6 @@ Widget partIllustration(ModulePart part, {double size = 72}) {
       ? 'mortar'
       : null;
   return art == null
-      ? ModulePartIcon(part, size: size)
+      ? ShipSpriteArt.partSprite(part, size)
       : Image.asset('${SkillCardArt.root}$art.webp', width: size, height: size);
 }

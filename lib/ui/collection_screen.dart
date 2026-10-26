@@ -1,3 +1,6 @@
+import '../art/game_icons.dart';
+import 'game_slots.dart';
+import 'item_info_card.dart';
 import '../l10n/app_language.dart';
 
 import 'audio_feedback.dart';
@@ -8,7 +11,6 @@ import 'game_decor.dart';
 
 import '../data/collection_book.dart';
 import '../data/profile.dart';
-import '../art/toon_assets.dart';
 import '../main.dart';
 import 'components.dart';
 import 'catalog_screens.dart';
@@ -34,7 +36,21 @@ class _CollectionScreenState extends State<CollectionScreen> {
     Color(0xFF77C6FF),
     Color(0xFFBAA1FF),
   ];
-  static const _icons = [60, 42, 29, 54, 37, 30, 48, 0, 4, 33, 5, 22];
+  // v12.15: each relic has its own current-kit picture
+  static const _icons = [
+    GameIcons.gem,
+    GameIcons.crosshair,
+    GameIcons.bolt,
+    'assets/art/icons_v12/satellite.webp',
+    'assets/art/ship_parts/orbs/capacitor.webp',
+    GameIcons.shield,
+    GameIcons.exploreTicket,
+    GameIcons.magnet,
+    GameIcons.codex,
+    GameIcons.hourglass,
+    GameIcons.refresh,
+    'assets/art/ship_parts/orbs/sensor.webp',
+  ];
 
   @override
   void initState() {
@@ -112,7 +128,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
         opacity: discovered ? 1 : .5,
         child: Padding(
           padding: const EdgeInsets.all(4),
-          child: ToonTile('icons', _icons[id], size: size * .8),
+          child: GameIconImage(_icons[id], size: size * .8),
         ),
       ),
     );
@@ -122,16 +138,27 @@ class _CollectionScreenState extends State<CollectionScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return Scaffold(
-      appBar: GameAppBar(title: Text(tr('항로 유물'), textAlign: TextAlign.center)),
+      appBar: GameAppBar(title: Text(tr('수집품'), textAlign: TextAlign.center)),
       body: SafeArea(
         top: false,
         child: Column(
           children: [
             CatalogHeader(
-              title: '항로 유물',
-              status:
-                  '발견 ${book.discoveredCount}/12 · 활성 세트 ${book.activeSets.length}/2',
+              title: '수집품',
+              status: '',
               icon: Icons.auto_awesome,
+              facts: [
+                GameFact(
+                  '발견',
+                  '${book.discoveredCount}/12',
+                  tone: GameTone.gold,
+                ),
+                GameFact(
+                  '활성 세트',
+                  '${book.activeSets.length}/2',
+                  tone: GameTone.good,
+                ),
+              ],
             ),
             CatalogTabs(
               labels: const ['조사', '세트', '보관함'],
@@ -167,26 +194,27 @@ class _CollectionScreenState extends State<CollectionScreen> {
                     gap(10),
                     // Align keeps the pairs on one line (the pager would
                     // otherwise stack each Wrap child).
-                    Align(
-                      child: Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 14,
-                        runSpacing: 4,
-                        children: [
-                          _Pair('탐사권', '${book.keys}', tone: GameTone.good),
-                          _Pair('유물 가루', '${book.dust}', tone: GameTone.sky),
-                        ],
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GameRewardSlot(
+                          GameReward(GameIcons.exploreTicket, book.keys, '탐사권'),
+                          size: 60,
+                        ),
+                        const SizedBox(width: 12),
+                        GameRewardSlot(
+                          GameReward(GameIcons.relicDust, book.dust, '유물 가루'),
+                          size: 60,
+                        ),
+                      ],
                     ),
-                    gap(8),
-                    const GameHint('탐사권 1개로 유물 조각 3개를 획득합니다. 12종을 차례로 조사합니다.'),
-                    gap(16),
+                    gap(14),
                     Center(
                       child: GameActionButton(
                         label: '유물 조사 · 탐사권 1',
                         displayLabel: '유물 조사',
                         primary: true,
-                        icon: Icons.travel_explore,
+                        image: GameIcons.exploreTicket,
                         onPressed: audible(
                           book.canOpenSupply
                               ? () => claimWithRewardPopup(context, p, () {
@@ -202,17 +230,18 @@ class _CollectionScreenState extends State<CollectionScreen> {
                       ),
                     ),
                     gap(12),
-                    GameFactRow([
-                      for (final (label, value) in [
-                        ('화력', book.damageBonus),
-                        ('선체', book.hullBonus),
-                        ('회수', book.pickupBonus),
-                        ('쿨다운 단축', book.cooldownBonus),
+                    StatGrid([
+                      for (final (label, value, icon) in [
+                        ('화력', book.damageBonus, GameIcons.crosshair),
+                        ('선체', book.hullBonus, GameIcons.heal),
+                        ('회수', book.pickupBonus, GameIcons.magnet),
+                        ('쿨다운', book.cooldownBonus, GameIcons.hourglass),
                       ])
-                        GameFact(
-                          label,
-                          '+${_percent(value)}',
-                          tone: GameTone.good,
+                        StatLine(
+                          label: label,
+                          value: '+${_percent(value)}',
+                          icon: icon,
+                          color: const Color(0xFF7CE08A),
                         ),
                     ]),
                   ],
@@ -380,20 +409,9 @@ class _CollectionScreenState extends State<CollectionScreen> {
                         fontSize: 20,
                       ),
                     ),
-                    Text(
-                      tr(level == 0 ? '미복원' : '★ $level/5'),
-                      style: TextStyle(
-                        color: _colors[relic.setId],
-                        fontSize: 16,
-                      ),
-
-                      textAlign: TextAlign.center,
-                    ),
-                    Text(
-                      message("조각 {0}개", [book.shards[id]]),
-                      style: const TextStyle(fontSize: 16),
-
-                      textAlign: TextAlign.center,
+                    ItemPill(
+                      level == 0 ? '미복원' : '★ $level/5',
+                      _colors[relic.setId],
                     ),
                   ],
                 ),
@@ -401,12 +419,19 @@ class _CollectionScreenState extends State<CollectionScreen> {
             ),
           ),
           gap(8),
-          Text(
-            tr(level == CollectionBook.maxLevel ? '최고 등급' : '필요 조각 $cost개'),
-            style: const TextStyle(fontSize: 16),
-
-            textAlign: TextAlign.center,
-          ),
+          // shards owned / needed beside the shard picture
+          StatGrid([
+            StatLine(
+              label: '조각',
+              value: level == CollectionBook.maxLevel
+                  ? '${book.shards[id]}'
+                  : '${book.shards[id]}/$cost',
+              icon: _icons[id],
+              color: level == CollectionBook.maxLevel || book.shards[id] >= cost
+                  ? const Color(0xFF7CE08A)
+                  : const Color(0xFFFF7A6B),
+            ),
+          ]),
           gap(12),
           GameActionButton(
             label: '${relic.name} ${level == 0 ? '복원' : '강화'}',
@@ -450,23 +475,31 @@ class _CollectionScreenState extends State<CollectionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              GameDetailHeader(
-                image: _icon(id, size: 72),
-                title: '등급 ${book.levels[id]}/5',
-                status: message('보유 조각 {0} · 가루 {1}', [
-                  book.shards[id],
-                  book.dust,
-                ]),
+              ItemHero(
+                image: GameIconImage(_icons[id], size: 56),
+                name: relic.name,
+                rarity: relic.setId + 1,
+                chips: [('★ ${book.levels[id]}/5', _colors[relic.setId])],
               ),
-              Text(tr(relic.detail), textAlign: TextAlign.center),
+              gap(6),
+              StatGrid([
+                StatLine(
+                  label: '조각',
+                  value: '${book.shards[id]}',
+                  icon: _icons[id],
+                ),
+                StatLine(
+                  label: '유물 가루',
+                  value: '${book.dust}',
+                  icon: GameIcons.relicDust,
+                ),
+              ]),
               gap(8),
               GameInfoBlock(
                 label: '세트 효과',
                 tone: GameTone.good,
                 lead: relicSets[relic.setId].passive,
               ),
-              gap(8),
-              const GameHint('원하는 조각 제작 · 가루 3개'),
               gap(12),
               GameDetailTools(
                 children: [
@@ -532,32 +565,4 @@ class _CollectionScreenState extends State<CollectionScreen> {
       },
     ),
   );
-}
-
-/// "label value" inline: a coloured tag and its bold value.
-class _Pair extends StatelessWidget {
-  const _Pair(this.label, this.value, {this.tone = GameTone.gold});
-  final String label, value;
-  final GameTone tone;
-  @override
-  Widget build(BuildContext context) {
-    AppLanguage.watch(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GameTag(label, tone: tone),
-        const SizedBox(width: 4),
-        Text(
-          tr(value),
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            height: 1.3,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-      ],
-    );
-  }
 }

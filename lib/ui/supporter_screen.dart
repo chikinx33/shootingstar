@@ -4,9 +4,11 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import '../art/game_icons.dart';
+
 import 'game_decor.dart';
 
-import '../art/arcade_aircraft.dart';
+import '../art/ship_sprite_art.dart';
 import '../data/profile.dart';
 import '../data/shop_ledger.dart';
 import 'components.dart';
@@ -28,7 +30,16 @@ class _SupporterScreenState extends State<SupporterScreen> {
     final p = widget.profile, store = p.commerce;
     final price = store?.product(ShopItem.supporter)?.price;
     return Scaffold(
-      appBar: GameAppBar(title: Text(tr('잔광 후원 외형'), textAlign: TextAlign.center)),
+      appBar: GameAppBar(
+        title: Text(tr('잔광 후원 외형'), textAlign: TextAlign.center),
+        actions: [
+          InfoAction(
+            key: const Key('supporter-details'),
+            label: '후원·보상 자세히 보기',
+            onPressed: () => _details(context),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: AnimatedBuilder(
           animation: Listenable.merge([p, ?store]),
@@ -44,14 +55,26 @@ class _SupporterScreenState extends State<SupporterScreen> {
                   dimension: 144,
                   child: SupporterCosmetic(
                     active: preview,
-                    child: ArcadeAircraft(shipIndex: p.selectedShip, size: 132),
+                    child: SizedBox.square(
+                      dimension: 132,
+                      child: ShipSprite(hull: p.selectedShip),
+                    ),
                   ),
                 ),
               ),
               gap8,
-              Text(
-                tr('로비 기체에 잔광 프레임과 별 배지를 더합니다. 공격력·체력과 무료 해금은 그대로입니다.'),
-                textAlign: TextAlign.center,
+              // what it is, as tags instead of a sentence
+              const Align(
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
+                    GameTag('잔광 프레임'),
+                    GameTag('별 배지'),
+                    GameTag('능력치 변화 없음', tone: GameTone.muted),
+                  ],
+                ),
               ),
               gap12,
               GameActionButton(
@@ -60,15 +83,9 @@ class _SupporterScreenState extends State<SupporterScreen> {
                 onPressed: audible(() => setState(() => preview = !preview)),
               ),
               gap8,
-              Text(
-                tr(store?.status ?? '외형을 미리 볼 수 있습니다. 상품을 준비하고 있습니다.'),
-                textAlign: TextAlign.center,
-              ),
+              GameHint(store?.status ?? '외형을 미리 볼 수 있습니다. 상품을 준비하고 있습니다.'),
               if (p.shop.supporterOwned) ...[
-                Text(
-                  tr('보유 중 · Google Play 구매 내역으로 복원됩니다.'),
-                  textAlign: TextAlign.center,
-                ),
+                const Center(child: GameTag('보유 중', tone: GameTone.good)),
                 gap8,
                 GameActionButton(
                   primary: true,
@@ -82,9 +99,7 @@ class _SupporterScreenState extends State<SupporterScreen> {
               ] else if (store?.platform.supported == true) ...[
                 gap8,
                 GameActionButton(
-                  label: price == null
-                      ? '상품 가격 확인 중'
-                      : '$price · 후원 외형 구매',
+                  label: price == null ? '상품 가격 확인 중' : '$price · 후원 외형 구매',
                   displayLabel: price == null ? '상품 확인 중' : '$price 구매',
                   primary: true,
                   onPressed: audible(
@@ -98,7 +113,7 @@ class _SupporterScreenState extends State<SupporterScreen> {
                 gap12,
                 GameActionButton(
                   label: '구매 복원',
-                  icon: Icons.restore,
+                  image: GameIcons.refresh,
                   onPressed: audible(store!.busy ? null : store.restore),
                 ),
               ],
@@ -110,14 +125,6 @@ class _SupporterScreenState extends State<SupporterScreen> {
                   onPressed: audible(store.busy ? null : store.showPrivacy),
                 ),
               ],
-              gap12,
-              GameActionButton(
-                key: const Key('supporter-details'),
-                label: '후원·보상 자세히 보기',
-                displayLabel: '자세히',
-                icon: Icons.question_mark,
-                onPressed: audible(() => _details(context)),
-              ),
             ],
           ),
         ),
@@ -132,13 +139,11 @@ class _SupporterScreenState extends State<SupporterScreen> {
       title: '후원·보상 안내',
       children: [
         const GameSectionTitle('선택형 추가 보상'),
-        gap8,
-        const InfoText('유효한 출격 정산 뒤 원할 때만 광고를 선택할 수 있습니다. 기본 보상은 먼저 지급됩니다.'),
-        gap8,
-        const InfoText(
-          '출격 보상 +50% 하루 3회, 순찰 보상 2배 2회, 일일 상자 2배 1회, 광고 보급 상자 1회입니다. 광고를 닫거나 볼 광고가 없어도 기본 보상은 유지됩니다.',
-        ),
-        gap16,
+        const RuleLine(GameIcons.check, '기본 보상은 먼저 · 광고는 원할 때만'),
+        const RuleLine(GameIcons.launch, '출격 보상 +50% · 하루 3회'),
+        const RuleLine('assets/art/menu_v13/patrol.webp', '순찰 보상 2배 · 하루 2회'),
+        const RuleLine(GameIcons.chest, '일일 상자 2배 · 광고 보급 상자 1회'),
+        gap12,
         const GameSectionTitle('상품 가격'),
         gap8,
         InfoText(

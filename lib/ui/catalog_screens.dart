@@ -10,18 +10,14 @@ import 'game_motion.dart';
 import 'game_decor.dart';
 
 import '../data/profile.dart';
-import '../data/shop_ledger.dart';
 import 'shop_screen.dart';
-import '../art/toon_assets.dart';
 import '../art/menu_art.dart';
 import '../data/content_catalog.dart';
 import '../data/fleet_journal.dart';
-import '../data/content_systems.dart';
-import 'arcade_home_widgets.dart' show CurrencyArt;
+import '../art/game_icons.dart';
+import 'game_slots.dart';
 import 'components.dart';
 import 'reward_popup.dart';
-import 'item_slots.dart';
-import 'fleet_activity_screen.dart';
 
 /// Titles and categories stay fixed; only repeated products/rewards scroll.
 class CatalogTabs extends StatelessWidget {
@@ -242,10 +238,10 @@ class _SupplyShopState extends State<SupplyShop> {
   int tab = 0;
   Profile get p => widget.profile;
   static const offers = [
-    ('plans', '별가루', 3, 100, Icons.description),
-    ('gear', '장비 보급권', 1, 180, Icons.vpn_key),
-    ('tech', '테크 보급권', 1, 180, Icons.precision_manufacturing),
-    ('egg', '보조 보급권', 1, 200, Icons.favorite),
+    ('plans', '별가루', 3, 100, GameIcons.stardust),
+    ('gear', '장비 보급권', 1, 180, GameIcons.gearTicket),
+    ('tech', '테크 보급권', 1, 180, GameIcons.techTicket),
+    ('egg', '보조 보급권', 1, 200, GameIcons.petTicket),
   ];
   @override
   void initState() {
@@ -296,6 +292,11 @@ class _SupplyShopState extends State<SupplyShop> {
                             () => p.gearKeys,
                             '윙건·미사일·자주포를 차례로 하나씩 · Lv.1 파츠',
                             '무기 파츠 보급 열기',
+                            const [
+                              'assets/art/ship_parts/sunshine/winggun.webp',
+                              'assets/art/ship_parts/sunshine/missile.webp',
+                              'assets/art/ship_parts/sunshine/reargun.webp',
+                            ],
                             () =>
                                 p.gearKeys > 0 &&
                                 p.shipModules.owned.length < 240,
@@ -307,6 +308,11 @@ class _SupplyShopState extends State<SupplyShop> {
                             () => p.techKeys,
                             '테크 부품 8종을 순서대로 획득합니다.',
                             '테크 보급 열기',
+                            const [
+                              GameIcons.bolt,
+                              GameIcons.gem,
+                              GameIcons.crosshair,
+                            ],
                             () => p.techKeys > 0,
                             p.openTechSupply,
                           ),
@@ -316,6 +322,11 @@ class _SupplyShopState extends State<SupplyShop> {
                             () => p.petEggs,
                             '방어·공격 보조·유틸 7종을 차례로 하나씩',
                             '보조 파츠 보급 열기',
+                            const [
+                              'assets/art/ship_parts/orbs/shield.webp',
+                              'assets/art/ship_parts/orbs/magnet.webp',
+                              'assets/art/ship_parts/orbs/repair.webp',
+                            ],
                             () =>
                                 p.petEggs > 0 &&
                                 p.shipModules.owned.length < 240,
@@ -326,81 +337,78 @@ class _SupplyShopState extends State<SupplyShop> {
                       ],
                     ),
                   )
-                : GameSlotList(
-                    listKey: ValueKey('supply-items-$tab'),
-                    children: <Widget>[
-                      for (final offer in offers)
-                        GameItemSlot(
-                          title: offer.$2,
-                          image: RasterIcon(offer.$5, size: 52),
-                          status:
-                              '×${offer.$3}\n${p.developerMode ? '무료' : '${offer.$4} 츄르'}',
-                          semanticLabel: '${offer.$2} 교환 상세',
-                          onTap: audible(
-                            () => showDialog<void>(
-                              context: context,
-                              builder: (_) => AnimatedBuilder(
-                                animation: p,
-                                builder: (_, _) => GameDialog(
-                                  title: offer.$2,
-                                  actions: [
-                                    GameActionButton(
-                                      label: '${offer.$2} 교환',
-                                      primary: true,
-                                      icon: Icons.shopping_bag,
-                                      onPressed: audible(
-                                        p.credits >= offer.$4 &&
-                                                (p.shopCounts[offer.$1] ?? 0) <
-                                                    3 &&
-                                                (offer.$1 != 'gear' ||
-                                                    p.inventory.length < 240)
-                                            ? () => claimWithRewardPopup(
-                                                context,
-                                                p,
-                                                () => p.buyMaterial(offer.$1),
-                                                title: '교환 완료',
-                                              )
-                                            : null,
-                                      ),
-                                    ),
-                                  ],
-                                  // v12.14: quantity, price and the daily
-                                  // limit each get their own labelled tile.
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Center(
-                                        child: RasterIcon(offer.$5, size: 80),
-                                      ),
-                                      gap(8),
-                                      GameFactRow([
-                                        GameFact(
-                                          '받는 수량',
-                                          '×${offer.$3}',
-                                          tone: GameTone.good,
-                                        ),
-                                        GameFact(
-                                          '가격',
-                                          p.developerMode
-                                              ? '무료'
-                                              : message('{0} 츄르', [offer.$4]),
-                                          tone: GameTone.gold,
-                                        ),
-                                        GameFact(
-                                          '오늘 남은 횟수',
-                                          '${3 - (p.shopCounts[offer.$1] ?? 0)}/3',
-                                        ),
-                                      ]),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
+                : GameItemList(
+                    key: ValueKey('supply-items-$tab'),
+                    padding: const EdgeInsets.fromLTRB(10, 12, 10, 12),
+                    // v12.15: exchange goods as product cards - the picture
+                    // with its ×N badge, today's limit, and the price button
+                    child: LayoutBuilder(
+                      builder: (context, box) {
+                        final w = (box.maxWidth - 10) / 2;
+                        return Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+                            for (final offer in offers)
+                              SizedBox(width: w, child: _exchange(offer)),
+                          ],
+                        );
+                      },
+                    ),
                   ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _exchange((String, String, int, int, String) offer) {
+    final left = 3 - (p.shopCounts[offer.$1] ?? 0);
+    final can =
+        p.credits >= offer.$4 &&
+        left > 0 &&
+        (offer.$1 != 'gear' || p.inventory.length < 240);
+    return UiKitFrame(
+      'slot',
+      corner: 18,
+      padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
+      child: Column(
+        children: [
+          GameRewardSlot(
+            GameReward(offer.$5, offer.$3, offer.$2, rarity: 2),
+            size: 72,
+            state: left > 0 ? SlotState.open : SlotState.locked,
+          ),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              tr(offer.$2),
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+            ),
+          ),
+          const SizedBox(height: 2),
+          GameTag(
+            message('오늘 {0}/3', [left]),
+            tone: left > 0 ? GameTone.sky : GameTone.muted,
+          ),
+          const SizedBox(height: 6),
+          GameActionButton(
+            label: '${offer.$2} 교환',
+            displayLabel: p.developerMode ? '무료' : '${offer.$4}',
+            image: GameIcons.churu,
+            onPressed: audible(
+              can
+                  ? () => claimWithRewardPopup(
+                      context,
+                      p,
+                      () => p.buyMaterial(offer.$1),
+                      title: '교환 완료',
+                    )
+                  : null,
+            ),
           ),
         ],
       ),
@@ -413,11 +421,13 @@ class _SupplyShopState extends State<SupplyShop> {
     int Function() keys,
     String description,
     String action,
+    List<String> contents,
     bool Function() enabled,
     bool Function() claim,
   ) => SupplyShelfCard(
     title: title,
     description: description,
+    contents: contents,
     image: MenuImage(asset, size: 84),
     count: keys(),
     canOpen: enabled(),
@@ -455,11 +465,11 @@ class _SupplyShopState extends State<SupplyShop> {
                   ),
                 ]),
                 gap(8),
-                GameInfoBlock(
-                  label: '나오는 것',
-                  tone: GameTone.good,
-                  lead: description,
-                ),
+                const Center(child: GameTag('나오는 것', tone: GameTone.good)),
+                gap(6),
+                _ContentStrip(contents, size: 48),
+                gap(4),
+                GameHint(description),
               ],
             ),
           ),
@@ -476,6 +486,11 @@ class SeasonMailbox extends StatefulWidget {
   State<SeasonMailbox> createState() => _SeasonMailboxState();
 }
 
+/// v12.15 (user 2026-10-26): the season is a battle-pass track - one row per
+/// tier with its number, the XP gauge for that step and the reward slots
+/// (check once taken, lock until reached, a glowing 받기 when ready; tap the
+/// reward to take it). Mail is a row per letter. The daily missions and the
+/// patrol live in 함대 활동 only (no duplicate tab here).
 class _SeasonMailboxState extends State<SeasonMailbox> {
   int tab = 0;
   Profile get p => widget.profile;
@@ -487,9 +502,9 @@ class _SeasonMailboxState extends State<SeasonMailbox> {
       builder: (context, _) => Column(
         children: [
           CatalogHeader(
-            title: tab == 2 ? '보상 우편' : '항성 원정',
+            title: tab == 1 ? '보상 우편' : '항성 원정',
             status: '',
-            facts: tab == 2
+            facts: tab == 1
                 ? [
                     GameFact(
                       '안 받은 우편',
@@ -510,291 +525,232 @@ class _SeasonMailboxState extends State<SeasonMailbox> {
                       tone: GameTone.muted,
                     ),
                   ],
-            icon: tab == 2 ? Icons.card_giftcard : Icons.workspace_premium,
+            icon: tab == 1 ? Icons.card_giftcard : Icons.workspace_premium,
           ),
           CatalogTabs(
-            labels: const ['보상', '임무', '우편'],
+            labels: const ['보상', '우편'],
             selected: tab,
             onSelected: audibleChange((v) => setState(() => tab = v)),
           ),
           Expanded(
-            child: tab == 1
-                ? GameItemList(child: Column(children: _missions()))
-                : GameSlotList(
-                    listKey: ValueKey('season-items-$tab'),
-                    children: tab == 0
-                        ? <Widget>[
-                            for (var tier = 1; tier <= 20; tier++)
-                              GameItemSlot(
-                                title: '$tier단계',
-                                image: const RasterIcon(
-                                  Icons.workspace_premium,
-                                  size: 52,
-                                ),
-                                status: p.seasonClaims.contains(tier)
-                                    ? '완료'
-                                    : '${tier * 100} XP',
-                                onTap: audible(
-                                  () => _itemDetail('시즌 보상', () => _tier(tier)),
-                                ),
-                              ),
-                          ]
-                        : <Widget>[
-                            for (final m in p.mail.reversed)
-                              GameItemSlot(
-                                title: m.title,
-                                image: const ToonTile('icons', 63, size: 56),
-                                status: m.claimed ? '수령 완료' : '미수령',
-                                onTap: audible(
-                                  () => _itemDetail('보상 우편', () => _mail(m)),
-                                ),
-                              ),
-                          ],
-                  ),
+            child: GameItemList(
+              key: ValueKey('season-items-$tab'),
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
+              child: Column(
+                children: tab == 0
+                    ? [for (var tier = 1; tier <= 20; tier++) _tierRow(tier)]
+                    : [
+                        if (p.mail.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 24),
+                            child: GameHint('받을 우편이 없습니다'),
+                          ),
+                        for (final m in p.mail.reversed) _mailRow(m),
+                      ],
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _itemDetail(String title, CatalogCard Function() card) =>
-      showDialog<void>(
-        context: context,
-        builder: (_) => AnimatedBuilder(
-          animation: p,
-          builder: (_, _) => GameDialog(
-            title: title,
-            child: Column(children: card().children),
+  Widget _tierRow(int tier) {
+    final need = tier * 100, from = need - 100;
+    final claimed = p.seasonClaims.contains(tier);
+    final reached = p.seasonXp >= need;
+    final ready = reached && !claimed;
+    final current = p.seasonXp >= from && p.seasonXp < need;
+    final state = claimed
+        ? SlotState.claimed
+        : reached
+        ? SlotState.open
+        : SlotState.locked;
+    final gold = GameTone.gold.color;
+    void take() => claimWithRewardPopup(context, p, () => p.claimSeason(tier));
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFF14284A),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: ready || current ? gold : const Color(0xFF0B1830),
+            width: ready || current ? 3 : 2,
           ),
         ),
-      );
-  CatalogCard _tier(int tier) => CatalogCard(
-    children: [
-      Row(
-        children: [
-          const RasterIcon(Icons.workspace_premium, size: 56),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              message("{0}단계", [tier]),
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
-      ),
-      gap(8),
-      GameFactRow([
-        GameFact('필요 XP', '${tier * 100}'),
-        GameFact(
-          '내 XP',
-          '${p.seasonXp}',
-          tone: p.seasonXp >= tier * 100 ? GameTone.good : GameTone.gold,
-        ),
-      ]),
-      gap(10),
-      RewardGroup(
-        label: '단계 보상',
-        claimed: p.seasonClaims.contains(tier),
-        chips: RewardPreview(reward: p.seasonReward(p.seasonKey, tier)),
-      ),
-      gap(16),
-      Center(
-        child: GameActionButton(
-          key: ValueKey('season-claim-$tier'),
-          label: '$tier단계 보상 수령',
-          displayLabel: p.seasonClaims.contains(tier) ? '수령 완료' : '받기',
-          primary: true,
-          icon: Icons.card_giftcard,
-          onPressed: audible(
-            p.seasonXp >= tier * 100 && !p.seasonClaims.contains(tier)
-                ? () => claimWithRewardPopup(
-                    context,
-                    p,
-                    () => p.claimSeason(tier),
-                  )
-                : null,
-          ),
-        ),
-      ),
-    ],
-  );
-  CatalogCard _mail(RewardMail m) => CatalogCard(
-    children: [
-      Row(
-        children: [
-          const ToonTile('icons', 63, size: 64),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              tr(m.title),
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
-      ),
-      gap(12),
-      RewardGroup(
-        label: '우편 보상',
-        claimed: m.claimed,
-        chips: RewardPreview(reward: m),
-      ),
-      gap(16),
-      Center(
-        child: GameActionButton(
-          label: '우편 보상 받기',
-          displayLabel: m.claimed ? '수령 완료' : '보상 받기',
-          primary: true,
-          icon: Icons.card_giftcard,
-          onPressed: audible(
-            m.claimed
-                ? null
-                : () =>
-                      claimWithRewardPopup(context, p, () => p.claimMail(m.id)),
-          ),
-        ),
-      ),
-    ],
-  );
-
-  /// Accumulated patrol time and what claiming now would give.
-  Widget _patrolNow(int minutes) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      KitGauge(minutes / 480, height: 14),
-      gap(4),
-      GameHint(message('누적 {0}분 / 최대 480분', [minutes]), tone: GameTone.sky),
-      gap(8),
-      RewardGroup(
-        label: '지금 회수하면',
-        chips: minutes < 30
-            ? const GameHint('30분부터 회수할 수 있습니다')
-            : RewardChips(
-                credits: minutes ~/ 30 * 20,
-                plans: minutes ~/ 60,
-                food: minutes ~/ 60 * 5,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+          child: Row(
+            children: [
+              // tier number
+              Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: reached ? gold : const Color(0xFF3A5A8C),
+                  border: Border.all(color: const Color(0xFF0B1830), width: 2),
+                ),
+                child: Text(
+                  '$tier',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: reached ? const Color(0xFF3A2410) : Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    shadows: const [],
+                  ),
+                ),
               ),
-      ),
-      gap(4),
-      const GameHint('30분마다 츄르 20\n1시간마다 별가루 1과 먹이 5'),
-    ],
-  );
-
-  List<Widget> _missions() => [
-    Center(
-      child: GameActionButton(
-        label: '출석·주간 임무·활동 상자',
-        displayLabel: '활동 임무',
-        icon: Icons.assignment_turned_in,
-        onPressed: audible(
-          () => Navigator.push(
-            context,
-            MaterialPageRoute<void>(
-              builder: (_) => FleetActivityScreen(profile: p, initialPage: 1),
-            ),
+              const SizedBox(width: 8),
+              // this step's XP
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    KitGauge(
+                      ((p.seasonXp - from) / 100).clamp(0.0, 1.0),
+                      height: 12,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${p.seasonXp.clamp(from, need)} / $need',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: GameTone.muted.color,
+                        fontSize: GameUi.caption,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              // the reward; tap to take it once reached (a long bundle
+              // shrinks as one piece)
+              Flexible(
+                flex: 2,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Semantics(
+                    button: ready,
+                    label: message('{0}단계 보상 수령', [tier]),
+                    excludeSemantics: true,
+                    child: GestureDetector(
+                      key: ValueKey('season-claim-$tier'),
+                      behavior: HitTestBehavior.opaque,
+                      onTap: ready ? audible(take, cue: 'chest') : null,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          RewardSlotScope(
+                            state: state,
+                            child: RewardPreview(
+                              reward: p.seasonReward(p.seasonKey, tier),
+                              size: 46,
+                            ),
+                          ),
+                          if (ready) ...[
+                            const SizedBox(height: 2),
+                            const GameTag('받기'),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
-    ),
-    gap(12),
-    for (var i = 0; i < 3; i++)
-      CatalogCard(
-        children: [
-          Text(
-            tr(ContentSystems.dailyNames[i]),
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+    );
+  }
 
-            textAlign: TextAlign.center,
+  Widget _mailRow(RewardMail m) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: UiKitFrame(
+      'slot',
+      corner: 16,
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      child: Row(
+        children: [
+          Opacity(
+            opacity: m.claimed ? .5 : 1,
+            child: GameIconImage(GameIcons.chest, size: 44),
           ),
-          gap(8),
-          // v12.14: progress as a gauge with its count, reward as chips
-          KitGauge(
-            p.dailyProgress(i) / ContentSystems.dailyTargets[i],
-            height: 14,
-          ),
-          gap(4),
-          GameHint(
-            message('진행 {0} / {1}', [
-              p.dailyProgress(i).clamp(0, ContentSystems.dailyTargets[i]),
-              ContentSystems.dailyTargets[i],
-            ]),
-            tone: GameTone.sky,
-          ),
-          gap(8),
-          RewardGroup(
-            label: '보상',
-            claimed: p.dailyClaims.contains(i),
-            chips: RewardChips(
-              credits: 50,
-              food: 10,
-              seasonXp: 50,
-              gearKeys: i == 0 ? 1 : 0,
-              techKeys: i == 1 ? 1 : 0,
-              eggs: i == 2 ? 1 : 0,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    tr(m.title.split(' · ').first),
+                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // many rewards shrink together instead of overflowing
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: RewardSlotScope(
+                    state: m.claimed ? SlotState.claimed : SlotState.open,
+                    child: RewardPreview(reward: m, size: 40),
+                  ),
+                ),
+              ],
             ),
           ),
-          gap(12),
-          Center(
-            child: GameActionButton(
-              label: '일일 보상 수령',
-              primary: true,
-              displayLabel: p.dailyClaims.contains(i) ? '수령 완료' : '보상 받기',
-              icon: Icons.card_giftcard,
-              onPressed: audible(
-                !p.dailyClaims.contains(i) &&
-                        p.dailyProgress(i) >= ContentSystems.dailyTargets[i]
-                    ? () => claimWithRewardPopup(
-                        context,
-                        p,
-                        () => p.claimDaily(i),
-                      )
-                    : null,
+          const SizedBox(width: 8),
+          // a compact claim button: the row keeps its rewards readable
+          SizedBox(
+            width: 72,
+            child: Semantics(
+              button: true,
+              label: tr('우편 보상 받기'),
+              excludeSemantics: true,
+              child: FilledButton(
+                key: ValueKey('mail-claim-${m.id}'),
+                style: GameUi.compactButton,
+                onPressed: audible(
+                  m.claimed
+                      ? null
+                      : () => claimWithRewardPopup(
+                          context,
+                          p,
+                          () => p.claimMail(m.id),
+                        ),
+                ),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    tr(m.claimed ? '완료' : '받기'),
+                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ),
             ),
           ),
         ],
       ),
-    CatalogCard(
-      children: [
-        Text(
-          tr('자동 순찰'),
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-
-          textAlign: TextAlign.center,
-        ),
-        gap(8),
-        _patrolNow(p.patrolMinutes(DateTime.now())),
-        gap(12),
-        Center(
-          child: GameActionButton(
-            label: '순찰 보상 회수',
-            primary: true,
-            icon: Icons.card_giftcard,
-            onPressed: audible(
-              p.patrolMinutes(DateTime.now()) >= 30
-                  ? () => claimWithRewardPopup(
-                      context,
-                      p,
-                      () => p.claimPatrol(DateTime.now()),
-                      adOffer: AdOffer.patrolDouble,
-                    )
-                  : null,
-            ),
-          ),
-        ),
-      ],
     ),
-  ];
+  );
 }
 
-/// A mail or season reward as item chips (v12.14: kit pictures, not the old
-/// icon sheet).
+/// A mail or season reward as picture slots.
 class RewardPreview extends StatelessWidget {
-  const RewardPreview({super.key, required this.reward});
+  const RewardPreview({super.key, required this.reward, this.size = 52});
   final RewardMail reward;
+  final double size;
   @override
   Widget build(BuildContext context) => RewardChips(
     credits: reward.credits,
@@ -803,6 +759,7 @@ class RewardPreview extends StatelessWidget {
     gearKeys: reward.gearKeys,
     techKeys: reward.techKeys,
     eggs: reward.eggs,
+    size: size,
   );
 }
 
@@ -883,8 +840,12 @@ class SupplyShelfCard extends StatelessWidget {
     required this.openLabel,
     required this.onOpen,
     required this.onDetails,
+    this.contents = const [],
   });
   final String title, description, openLabel;
+
+  /// Pictures of what comes out, shown instead of the description line.
+  final List<String> contents;
   final Widget image;
   final int count;
   final bool canOpen;
@@ -951,15 +912,18 @@ class SupplyShelfCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        tr(description),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          height: 1.3,
-                          color: Color(0xFFB9C8D8),
-                        ),
-                      ),
+                      if (contents.isEmpty)
+                        Text(
+                          tr(description),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1.3,
+                            color: Color(0xFFB9C8D8),
+                          ),
+                        )
+                      else
+                        _ContentStrip(contents, size: 34),
                       const SizedBox(height: 10),
                       Semantics(
                         button: true,
@@ -1003,9 +967,42 @@ class SupplyShelfCard extends StatelessWidget {
   }
 }
 
-/// v12.14: a reward as item chips (picture, name, amount) instead of a
-/// "50 츄르 · 먹이 10" sentence. Shared by the supply, season, activity and
-/// quest screens.
+/// What a supply box can give: its pictures in a dark strip.
+class _ContentStrip extends StatelessWidget {
+  const _ContentStrip(this.assets, {this.size = 34});
+  final List<String> assets;
+  final double size;
+  @override
+  Widget build(BuildContext context) => Center(
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0x990B1830),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        // a narrow shelf card shrinks the strip instead of overflowing
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < assets.length; i++) ...[
+                if (i > 0) const SizedBox(width: 6),
+                GameIconImage(assets[i], size: size),
+              ],
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+/// v12.15 (user 2026-10-26): a reward is a row of picture slots with ×N
+/// badges, never a sentence or name chips. Shared by the supply, season,
+/// activity and quest screens; inside a claimed [RewardGroup] every slot
+/// carries the 받음 check.
 class RewardChips extends StatelessWidget {
   const RewardChips({
     super.key,
@@ -1018,8 +1015,9 @@ class RewardChips extends StatelessWidget {
     this.collectionKeys = 0,
     this.seasonXp = 0,
     this.extra = const [],
+    this.size = 52,
   });
-  RewardChips.of(FleetReward r, {Key? key, int seasonXp = 0})
+  RewardChips.of(FleetReward r, {Key? key, int seasonXp = 0, double size = 52})
     : this(
         key: key,
         credits: r.credits,
@@ -1030,51 +1028,57 @@ class RewardChips extends StatelessWidget {
         eggs: r.eggs,
         collectionKeys: r.collectionKeys,
         seasonXp: seasonXp,
+        size: size,
       );
   final int credits, plans, food, gearKeys, techKeys, eggs, collectionKeys;
   final int seasonXp;
+  final double size;
 
   /// Rewards without an amount picture (e.g. a guaranteed gear piece).
   final List<Widget> extra;
 
+  List<GameReward> get rewards => GameReward.of(
+    FleetReward(
+      credits: credits,
+      plans: plans,
+      food: food,
+      gearKeys: gearKeys,
+      techKeys: techKeys,
+      eggs: eggs,
+      collectionKeys: collectionKeys,
+    ),
+    seasonXp: seasonXp,
+  );
+
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
+    final state = RewardSlotScope.of(context);
     return Wrap(
       alignment: WrapAlignment.center,
-      spacing: 6,
-      runSpacing: 6,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 8,
+      runSpacing: 8,
       children: [
-        if (credits > 0)
-          GameRewardChip('츄르', credits, image: CurrencyArt.churu),
-        if (plans > 0)
-          GameRewardChip('별가루', plans, image: CurrencyArt.stardust),
-        if (food > 0) GameRewardChip('먹이', food),
-        if (gearKeys > 0)
-          GameRewardChip('장비 보급권', gearKeys, image: CurrencyArt.gearTicket),
-        if (techKeys > 0)
-          GameRewardChip(
-            '테크 보급권',
-            techKeys,
-            image: 'assets/art/icons_v11/blueprint.webp',
-          ),
-        if (eggs > 0)
-          GameRewardChip('펫 구조권', eggs, image: 'assets/art/icons_v11/egg.webp'),
-        if (collectionKeys > 0)
-          GameRewardChip(
-            '수집품 보급권',
-            collectionKeys,
-            image: 'assets/art/icons_v11/crate.webp',
-          ),
-        if (seasonXp > 0) GameRewardChip('시즌 XP', seasonXp),
+        for (final r in rewards) GameRewardSlot(r, size: size, state: state),
         ...extra,
       ],
     );
   }
 }
 
-/// A labelled reward group: coloured tag (and a "받음" tag once claimed)
-/// over the reward chips.
+/// The slot state (받음 check, 잠김 lock) the [RewardChips] below draw.
+class RewardSlotScope extends InheritedWidget {
+  const RewardSlotScope({super.key, required this.state, required super.child});
+  final SlotState state;
+  static SlotState of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<RewardSlotScope>()?.state ??
+      SlotState.open;
+  @override
+  bool updateShouldNotify(RewardSlotScope old) => old.state != state;
+}
+
+/// A small coloured tag over the reward slots; claimed slots carry checks.
 class RewardGroup extends StatelessWidget {
   const RewardGroup({
     super.key,
@@ -1090,25 +1094,16 @@ class RewardGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
-    return Opacity(
-      opacity: claimed ? .55 : 1,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Flexible(child: GameTag(label, tone: tone)),
-              if (claimed) ...[
-                const SizedBox(width: 6),
-                const GameTag('받음', tone: GameTone.muted),
-              ],
-            ],
-          ),
-          const SizedBox(height: 6),
-          chips,
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Center(child: GameTag(label, tone: claimed ? GameTone.muted : tone)),
+        const SizedBox(height: 6),
+        RewardSlotScope(
+          state: claimed ? SlotState.claimed : SlotState.open,
+          child: chips,
+        ),
+      ],
     );
   }
 }

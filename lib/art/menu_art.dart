@@ -102,15 +102,6 @@ class MenuImage extends StatelessWidget {
   );
 }
 
-class MenuBackdrop extends StatelessWidget {
-  const MenuBackdrop(this.name, {super.key, required this.child});
-  final String name;
-  final Widget child;
-  @override
-  Widget build(BuildContext context) =>
-      CustomPaint(painter: _MenuPainter(name, true), child: child);
-}
-
 class _MenuPainter extends CustomPainter {
   const _MenuPainter(this.name, this.cover);
   final String name;

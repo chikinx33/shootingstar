@@ -9,12 +9,13 @@ import 'game_decor.dart';
 
 import '../art/ship_sprite_art.dart';
 
-import '../art/module_aircraft_art.dart';
 import '../data/ship_modules.dart';
 import '../data/profile.dart';
 import '../data/content.dart';
 import '../l10n/app_language.dart';
-import 'arcade_home_widgets.dart' show CurrencyArt;
+import '../art/game_icons.dart';
+import 'game_slots.dart';
+import 'item_info_card.dart';
 import 'components.dart';
 import 'audio_feedback.dart';
 import 'item_slots.dart';
@@ -22,254 +23,6 @@ import 'ship_hangar.dart';
 import 'hangar_presets.dart';
 import 'flight_history_screen.dart';
 import 'supporter_screen.dart';
-
-class ModuleAircraftPreview extends StatefulWidget {
-  const ModuleAircraftPreview({
-    super.key,
-    required this.profile,
-    required this.width,
-    required this.height,
-    required this.onSelectShip,
-  });
-  final Profile profile;
-  final double width, height;
-  final VoidCallback onSelectShip;
-  @override
-  State<ModuleAircraftPreview> createState() => _ModuleAircraftPreviewState();
-}
-
-class _ModuleAircraftPreviewState extends State<ModuleAircraftPreview> {
-  bool sockets = false;
-  @override
-  Widget build(BuildContext context) => SizedBox(
-    width: widget.width,
-    height: widget.height,
-    child: AnimatedBuilder(
-      animation: widget.profile,
-      builder: (context, _) => Column(
-        children: [
-          SizedBox(
-            height: 48,
-            child: IconButton(
-              key: const Key('lobby-slot-eye'),
-              tooltip: tr(sockets ? '슬롯 숨기기' : '슬롯 표시'),
-              onPressed: audible(() => setState(() => sockets = !sockets)),
-              icon: Icon(
-                sockets ? Icons.visibility : Icons.visibility_off_outlined,
-                color: sockets ? const Color(0xffffd43d) : Colors.white,
-                size: 28,
-              ),
-            ),
-          ),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, box) {
-                final extent = math.max(
-                  0.0,
-                  math.min(box.maxWidth / 1.12, box.maxHeight / 1.12),
-                );
-                final origin =
-                    box.biggest.center(Offset.zero) -
-                    Offset(extent / 2, extent / 2);
-                final snap = widget.profile.moduleLoadout;
-                return Stack(
-                  children: [
-                    Positioned.fill(
-                      child: GestureDetector(
-                        key: const Key('lobby-ship-select'),
-                        excludeFromSemantics: true,
-                        behavior: HitTestBehavior.opaque,
-                        onTapUp: (event) {
-                          if (!sockets) {
-                            audible(widget.onSelectShip)!();
-                            return;
-                          }
-                          final local = (event.localPosition - origin) / extent;
-                          if (const Rect.fromLTWH(
-                            .43,
-                            .05,
-                            .14,
-                            .21,
-                          ).contains(local))
-                            return;
-                          String? nearest;
-                          var distance = double.infinity;
-                          for (final m in moduleProfiles.where((m) => m.weapon))
-                            for (final at in ModuleGeometry.anchors(m.id)) {
-                              final center = origin + at * extent,
-                                  d = (center - event.localPosition).distance;
-                              if (d < math.max(24, extent * .13) &&
-                                  d < distance) {
-                                nearest = m.id;
-                                distance = d;
-                              }
-                            }
-                          if (nearest != null)
-                            showModulePicker(context, widget.profile, nearest);
-                        },
-                        // The authored part sprites; the socket view keeps the
-                        // mount geometry used for picking weapon bays.
-                        child: sockets
-                            ? CustomPaint(
-                                painter: _ModulePreviewPainter(snap, extent),
-                              )
-                            : ShipSprite(
-                                hull: snap.hull,
-                                loadout: snap,
-                                assets: widget.profile.shipLayerAssets,
-                                semanticLabel: tr('기체 선택'),
-                              ),
-                      ),
-                    ),
-                    if (sockets)
-                      for (final m in moduleProfiles.where((m) => m.weapon))
-                        for (
-                          var side = 0;
-                          side < ModuleGeometry.anchors(m.id).length;
-                          side++
-                        )
-                          Positioned.fromRect(
-                            rect: Rect.fromCenter(
-                              center:
-                                  origin +
-                                  ModuleGeometry.anchors(m.id)[side] * extent,
-                              width: math.max(
-                                48,
-                                ModuleGeometry.size(m.id).width * extent,
-                              ),
-                              height: math.max(
-                                48,
-                                ModuleGeometry.size(m.id).height * extent,
-                              ),
-                            ),
-                            child: Semantics(
-                              button: side == 0,
-                              excludeSemantics: true,
-                              label: side == 0
-                                  ? tr('${m.id} ${m.name} 모듈')
-                                  : null,
-                              onTap: side == 0
-                                  ? audible(
-                                      () => showModulePicker(
-                                        context,
-                                        widget.profile,
-                                        m.id,
-                                      ),
-                                    )
-                                  : null,
-                              child: IgnorePointer(
-                                child: Center(
-                                  child: Container(
-                                    width:
-                                        ModuleGeometry.size(m.id).width *
-                                        extent,
-                                    height:
-                                        ModuleGeometry.size(m.id).height *
-                                        extent,
-                                    key: ValueKey(
-                                      'module-socket-${m.id}-$side',
-                                    ),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        color: const Color(0xff71e2fb),
-                                        width: 2,
-                                      ),
-                                      borderRadius: BorderRadius.circular(5),
-                                    ),
-                                    alignment: Alignment.bottomCenter,
-                                    child: Text(
-                                      m.id,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.white,
-                                        backgroundColor: Color(0xdd172a40),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                  ],
-                );
-              },
-            ),
-          ),
-          SizedBox(
-            height: 60,
-            child: !sockets
-                ? const SizedBox()
-                : Row(
-                    children: [
-                      for (final m in moduleProfiles.where((m) => !m.weapon))
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2),
-                            child: Semantics(
-                              button: true,
-                              excludeSemantics: true,
-                              label: tr('${m.id} 보조 슬롯'),
-                              onTap: audible(
-                                () => showModulePicker(
-                                  context,
-                                  widget.profile,
-                                  m.id,
-                                ),
-                              ),
-                              child: FilledButton(
-                                style: GameUi.compactButton.copyWith(
-                                  padding: const WidgetStatePropertyAll(
-                                    EdgeInsets.zero,
-                                  ),
-                                ),
-                                onPressed: audible(
-                                  () => showModulePicker(
-                                    context,
-                                    widget.profile,
-                                    m.id,
-                                  ),
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (widget.profile.moduleLoadout.parts[m.id]
-                                        case final part?)
-                                      ModulePartIcon(part.definition, size: 28)
-                                    else
-                                      const Icon(Icons.add, size: 24),
-                                    Text(
-                                      m.id,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(fontSize: 15),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-class _ModulePreviewPainter extends CustomPainter {
-  const _ModulePreviewPainter(this.snapshot, this.extent);
-  final ModuleSnapshot snapshot;
-  final double extent;
-  @override
-  void paint(Canvas c, Size size) =>
-      ModuleAircraftArt.paint(c, size.center(Offset.zero), extent, snapshot);
-  @override
-  bool shouldRepaint(_ModulePreviewPainter old) =>
-      old.snapshot != snapshot || old.extent != extent;
-}
 
 Future<void> showModulePicker(
   BuildContext context,
@@ -306,7 +59,7 @@ Future<void> showModulePicker(
                   title: part.definition.name,
                   status: 'Lv.${part.level}',
                   semanticLabel: '${part.instanceId} 파츠 특성',
-                  image: ModulePartIcon(part.definition),
+                  image: ShipSpriteArt.partSprite(part.definition, 56),
                   selected: snap.parts[mount]?.instanceId == part.instanceId,
                   onTap: () =>
                       showModulePartDetail(context, p, mount, part.instanceId),
@@ -349,7 +102,9 @@ Future<void> showModulePartDetail(
           ),
         );
       final stats = resolvePartStats(part, m), current = snap.parts[mount];
-      final before = current == null ? null : resolvePartStats(current, m);
+      final before = current == null || current.instanceId == id
+          ? null
+          : resolvePartStats(current, m);
       final same = current?.instanceId == id;
       final from = snap.parts.entries
           .where((e) => e.value.instanceId == id)
@@ -367,171 +122,175 @@ Future<void> showModulePartDetail(
           part.level < 40 &&
           p.credits >= p.moduleUpgradeCredits(part.level) &&
           p.blueprints >= p.moduleUpgradePlans(part.level);
-      String number(double? v) => v == null ? '—' : v.toStringAsFixed(1);
-      String change(double? was, double now) =>
-          was == null || same ? number(now) : '${number(was)} → ${number(now)}';
+      String n(double v) => v.toStringAsFixed(1);
+      // v12.15 mobile-RPG item popup: the part in its frame with its level,
+      // keyword pills, one icon line per stat ("now → this" in green when
+      // it would replace another part), the price over the actions.
+      StatLine line(String label, double now, double? was, Color color) =>
+          StatLine(
+            label: label,
+            value: n(now),
+            was: was == null ? null : n(was),
+            color: color,
+          );
       return GameDialog(
         title: '파츠 특성',
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (part.definition.weapon)
-              SizedBox(
-                width: 144,
-                height: 120,
-                child: CustomPaint(
-                  painter: _MountDiagram(p.moduleLoadout.hull, mount, part),
-                ),
-              )
-            else
-              ModulePartIcon(part.definition, size: 72),
-            _NameLevel(part.definition.name, part.level),
-            Text(
-              tr(part.definition.effect),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 15, height: 1.3),
+            ItemHero(
+              image: ShipSpriteArt.partSprite(
+                part.definition,
+                56,
+                mount: mount,
+              ),
+              name: part.definition.name,
+              rarity: 2,
+              chips: [
+                ('Lv.${part.level}/40', const Color(0xFFFFD43D)),
+                (mount, const Color(0xFF8FD3FF)),
+                if (same) ('장착 중', const Color(0xFF7CE08A)),
+              ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Wrap(
               alignment: WrapAlignment.center,
-              spacing: 6,
+              spacing: 5,
               runSpacing: 4,
               children: [
-                GameTag(mount, tone: GameTone.sky),
-                GameTag(m.direction, tone: GameTone.sky),
+                for (final t in tr(part.definition.effect).split(' · '))
+                  ItemPill(t, const Color(0xFF8FD3FF)),
+                ItemPill(m.direction, const Color(0xFF8FD3FF)),
                 if (part.definition.weapon)
-                  GameTag(
+                  ItemPill(
                     m.roleFor(part.definition.category),
-                    tone: GameTone.good,
+                    const Color(0xFF7CE08A),
                   ),
               ],
             ),
-            const SizedBox(height: 8),
-            // v12.14: each stat is its own labelled tile; when another part
-            // sits here the tile shows "now -> this part".
+            const SizedBox(height: 6),
             if (!part.definition.weapon)
-              GameFactRow([
-                GameFact(
-                  '지원 효율',
-                  '${(stats.supportPower * 100).round()}%',
-                  tone: GameTone.good,
+              StatGrid([
+                StatLine(
+                  label: '지원 효율',
+                  value: '${(stats.supportPower * 100).round()}%',
+                  color: const Color(0xFF7CE08A),
                 ),
               ])
-            else ...[
-              if (before != null && !same)
-                const GameHint('지금 장착 → 이 파츠', tone: GameTone.sky),
-              GameFactRow([
-                GameFact(
+            else
+              StatGrid([
+                line(
                   '피해',
-                  change(before?.damage, stats.damage),
-                  tone: GameTone.danger,
+                  stats.damage,
+                  before?.damage,
+                  const Color(0xFFFF8A5C),
                 ),
-                GameFact(
+                line(
                   '보스 피해',
-                  change(before?.bossDamage, stats.bossDamage),
-                  tone: GameTone.danger,
+                  stats.bossDamage,
+                  before?.bossDamage,
+                  const Color(0xFFFF8A5C),
                 ),
-                GameFact('초당 발사', change(before?.fireRate, stats.fireRate)),
-              ]),
-              const SizedBox(height: 6),
-              GameFactRow([
-                GameFact(
-                  '발사 수',
-                  before == null || same
-                      ? '${stats.count}'
-                      : '${before.count} → ${stats.count}',
+                line(
+                  '초당 발사',
+                  stats.fireRate,
+                  before?.fireRate,
+                  const Color(0xFFFFD43D),
                 ),
-                GameFact('관통', '+${stats.pierce}'),
-                GameFact(
-                  '폭발 범위',
-                  change(before?.aoe, stats.aoe),
-                  tone: GameTone.gold,
+                StatLine(
+                  label: '발사 수',
+                  value: '${stats.count}',
+                  was: before == null ? null : '${before.count}',
+                  color: const Color(0xFF7CC8FF),
                 ),
-                GameFact('사거리', '${stats.range.round()}'),
-              ]),
-              if (part.definition.category == PartCategory.drone) ...[
-                const SizedBox(height: 6),
-                GameFactRow([
-                  GameFact(
-                    '드론 체력',
-                    '${stats.droneHealth.round()}',
-                    tone: GameTone.good,
+                if (stats.pierce > 0)
+                  StatLine(
+                    label: '관통',
+                    value: '+${stats.pierce}',
+                    color: const Color(0xFFD9A8FF),
                   ),
-                  GameFact(
-                    '드론 복귀',
-                    message('{0}초', [stats.droneRecovery.round()]),
-                    tone: GameTone.good,
+                if (stats.aoe > 0)
+                  line(
+                    '폭발 범위',
+                    stats.aoe,
+                    before?.aoe,
+                    const Color(0xFFFFD43D),
                   ),
-                ]),
-              ],
+                if (part.definition.category == PartCategory.drone) ...[
+                  StatLine(
+                    label: '드론 체력',
+                    value: '${stats.droneHealth.round()}',
+                    color: const Color(0xFF7CE08A),
+                  ),
+                  StatLine(
+                    label: '드론 복귀',
+                    value: message('{0}초', [stats.droneRecovery.round()]),
+                    color: const Color(0xFF7CE08A),
+                  ),
+                ],
+              ]),
+            if (from != null && from != mount) ...[
+              const SizedBox(height: 4),
+              GameHint('$from → $mount', tone: GameTone.sky),
             ],
-            const SizedBox(height: 6),
-            if (from != null && from != mount)
-              GameHint('$from → $mount · 레벨 유지', tone: GameTone.sky),
-            if (duplicate)
-              const GameHint('같은 보조 부품은 중복 장착할 수 없습니다.', tone: GameTone.danger),
+            if (duplicate) ...[
+              const SizedBox(height: 4),
+              const GameHint('보조 부품 중복', tone: GameTone.danger),
+            ],
             const SizedBox(height: 8),
-            GameActionButton(
-              label: same ? '장착 중' : '장착',
-              primary: true,
-              icon: Icons.build,
-              onPressed: same || duplicate
-                  ? null
-                  : audible(() {
-                      if (p.equipModule(mount, id)) Navigator.pop(context);
-                    }),
+            Center(
+              child: part.level >= 40
+                  ? const ItemPill('최대 레벨', Color(0xFFFFD43D))
+                  : CostLabel(
+                      churu: p.moduleUpgradeCredits(part.level),
+                      stardust: p.moduleUpgradePlans(part.level),
+                      affordable: canUpgrade,
+                    ),
             ),
             const SizedBox(height: 8),
-            _CostRow(
-              '강화 비용',
-              p.moduleUpgradeCredits(part.level),
-              p.moduleUpgradePlans(part.level),
-            ),
-            const SizedBox(height: 6),
-            GameActionButton(
-              label: part.level >= 40 ? '최고 레벨' : '파츠 강화',
-              icon: Icons.upgrade,
-              onPressed: canUpgrade ? audible(() => p.upgradeModule(id)) : null,
-            ),
-            GameActionButton(
-              label: '파츠 분해',
-              icon: Icons.recycling,
-              onPressed: p.canSalvageModule(id)
-                  ? audible(() async {
-                      final approved = await showDialog<bool>(
-                        context: context,
-                        builder: (dialog) => GameDialog(
-                          title: '파츠 분해',
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _NameLevel(part.definition.name, part.level),
-                              const SizedBox(height: 8),
-                              _CostRow(
-                                '분해 시 획득',
-                                20 + part.level * 5,
-                                1 + part.level ~/ 3,
-                                tone: GameTone.good,
-                              ),
-                              const SizedBox(height: 12),
-                              GameActionButton(
-                                label: '분해',
-                                onPressed: () => Navigator.pop(dialog, true),
-                              ),
-                              GameActionButton(
-                                label: '취소',
-                                onPressed: () => Navigator.pop(dialog, false),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                      if (approved == true &&
-                          context.mounted &&
-                          p.salvageModule(id))
-                        Navigator.pop(context);
-                    })
-                  : null,
+            GameActionStrip(
+              children: [
+                GameActionTile(
+                  key: const Key('part-detail-equip'),
+                  label: same ? '장착 중' : '장착',
+                  icon: Icons.check,
+                  image: 'assets/art/ui_v13/act_check.webp',
+                  primary: !same,
+                  onPressed: same || duplicate
+                      ? null
+                      : () {
+                          if (p.equipModule(mount, id)) Navigator.pop(context);
+                        },
+                ),
+                GameActionTile(
+                  key: const Key('part-detail-upgrade'),
+                  label: part.level >= 40 ? '최고 레벨' : '파츠 강화',
+                  displayLabel: '강화',
+                  icon: Icons.upgrade,
+                  image: 'assets/art/ui_v13/act_upgrade.webp',
+                  onPressed: canUpgrade ? () => p.upgradeModule(id) : null,
+                ),
+                GameActionTile(
+                  key: const Key('part-detail-salvage'),
+                  label: '파츠 분해',
+                  displayLabel: '분해',
+                  icon: Icons.recycling,
+                  image: 'assets/art/ui_v13/act_dismantle.webp',
+                  onPressed: p.canSalvageModule(id)
+                      ? () async {
+                          final approved = await _confirmPartSalvage(
+                            context,
+                            part,
+                          );
+                          if (approved == true &&
+                              context.mounted &&
+                              p.salvageModule(id))
+                            Navigator.pop(context);
+                        }
+                      : null,
+                ),
+              ],
             ),
           ],
         ),
@@ -539,6 +298,52 @@ Future<void> showModulePartDetail(
     },
   ),
 );
+
+/// The salvage confirmation: the part, then its returns as picture slots.
+Future<bool?> _confirmPartSalvage(BuildContext context, OwnedModulePart part) =>
+    showDialog<bool>(
+      context: context,
+      builder: (dialog) => GameDialog(
+        title: '파츠 분해',
+        actions: [
+          GameActionButton(
+            label: '분해',
+            primary: true,
+            image: 'assets/art/ui_v13/act_dismantle.webp',
+            onPressed: () => Navigator.pop(dialog, true),
+          ),
+          GameActionButton(
+            label: '취소',
+            onPressed: () => Navigator.pop(dialog, false),
+          ),
+        ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ItemHero(
+              image: ShipSpriteArt.partSprite(part.definition, 48),
+              name: part.definition.name,
+              chips: [('Lv.${part.level}', const Color(0xFFFFD43D))],
+              size: 64,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GameRewardSlot(
+                  GameReward(GameIcons.churu, 20 + part.level * 5, '츄르'),
+                ),
+                const SizedBox(width: 10),
+                GameRewardSlot(
+                  GameReward(GameIcons.stardust, 1 + part.level ~/ 3, '별가루'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
 Future<void> showAirframeDetails(BuildContext context, Profile p) =>
     showDialog<void>(
       context: context,
@@ -546,39 +351,56 @@ Future<void> showAirframeDetails(BuildContext context, Profile p) =>
         animation: p,
         builder: (context, _) {
           final snap = p.moduleLoadout, level = snap.airframeLevel;
+          final canUpgrade =
+              level < 40 &&
+              p.credits >= p.moduleUpgradeCredits(level) &&
+              p.blueprints >= p.moduleUpgradePlans(level);
+          // v12.15: the airframe in its frame, its fixed main gun and
+          // ultimate as icon lines, the price over the upgrade button
           return GameDialog(
             title: '기체 정보',
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _NameLevel(ships[p.selectedShip].name, level, size: 22),
+                ItemHero(
+                  image: ShipSprite(hull: p.selectedShip, loadout: snap),
+                  name: ships[p.selectedShip].name,
+                  rarity: 4,
+                  size: 84,
+                  chips: [('Lv.$level/40', const Color(0xFFFFD43D))],
+                ),
                 const SizedBox(height: 8),
-                GameFactRow([
-                  GameFact('고유 주포', snap.signatureName, tone: GameTone.danger),
-                  GameFact('고유 궁극기', snap.ultimateName, tone: GameTone.gold),
+                StatGrid([
+                  StatLine(
+                    label: '고유 주포',
+                    value: snap.signatureName,
+                    color: const Color(0xFFFF8A5C),
+                  ),
+                  StatLine(
+                    label: '고유 궁극기',
+                    value: snap.ultimateName,
+                    color: const Color(0xFFD9A8FF),
+                  ),
                 ]),
-                const SizedBox(height: 6),
-                const GameHint('주포·궁극기는 탈착할 수 없습니다.'),
-                const GameHint(
-                  '기체 강화는 주포·궁극기·기본 체력을 올립니다.',
-                  tone: GameTone.sky,
+                const SizedBox(height: 10),
+                Center(
+                  child: level >= 40
+                      ? const ItemPill('최대 레벨', Color(0xFFFFD43D))
+                      : CostLabel(
+                          churu: p.moduleUpgradeCredits(level),
+                          stardust: p.moduleUpgradePlans(level),
+                          affordable: canUpgrade,
+                        ),
                 ),
                 const SizedBox(height: 8),
-                _CostRow(
-                  '강화 비용',
-                  p.moduleUpgradeCredits(level),
-                  p.moduleUpgradePlans(level),
-                ),
-                const SizedBox(height: 8),
-                GameActionButton(
-                  label: level >= 40 ? '최고 레벨' : '기체 강화',
-                  primary: true,
-                  onPressed:
-                      level < 40 &&
-                          p.credits >= p.moduleUpgradeCredits(level) &&
-                          p.blueprints >= p.moduleUpgradePlans(level)
-                      ? audible(p.upgradeAirframe)
-                      : null,
+                Center(
+                  child: GameActionButton(
+                    label: level >= 40 ? '최고 레벨' : '기체 강화',
+                    primary: true,
+                    image: 'assets/art/ui_v13/act_upgrade.webp',
+                    onPressed: canUpgrade ? audible(p.upgradeAirframe) : null,
+                  ),
                 ),
               ],
             ),
@@ -787,71 +609,4 @@ class _NameLevel extends StatelessWidget {
       GameTag('Lv.$level'),
     ],
   );
-}
-
-/// A labelled cost (or gain): tag, then churu and stardust chips.
-class _CostRow extends StatelessWidget {
-  const _CostRow(
-    this.label,
-    this.credits,
-    this.plans, {
-    this.tone = GameTone.gold,
-  });
-  final String label;
-  final int credits, plans;
-  final GameTone tone;
-  @override
-  Widget build(BuildContext context) => Wrap(
-    alignment: WrapAlignment.center,
-    crossAxisAlignment: WrapCrossAlignment.center,
-    spacing: 6,
-    runSpacing: 4,
-    children: [
-      GameTag(label, tone: tone),
-      GameRewardChip('츄르', credits, image: CurrencyArt.churu),
-      GameRewardChip('별가루', plans, image: CurrencyArt.stardust),
-    ],
-  );
-}
-
-class _MountDiagram extends CustomPainter {
-  const _MountDiagram(this.hull, this.mount, this.part);
-  final int hull;
-  final String mount;
-  final OwnedModulePart part;
-  @override
-  void paint(Canvas c, Size size) {
-    final extent = size.height * .80, center = size.center(Offset.zero);
-    ModuleAircraftArt.paint(
-      c,
-      center,
-      extent,
-      ModuleSnapshot(hull, 1, {mount: part}),
-    );
-    final origin = center - Offset(extent / 2, extent / 2);
-    final anchors = ModuleGeometry.anchors(mount);
-    for (var side = 0; side < anchors.length; side++) {
-      final at = origin + anchors[side] * extent;
-      final angles = mount == 'W4'
-          ? [0.0, math.pi / 2, math.pi, -math.pi / 2]
-          : mount == 'W3'
-          ? [math.pi - math.pi / 6, math.pi, math.pi + math.pi / 6]
-          : [ModuleGeometry.angle(mount, side)];
-      for (final angle in angles) {
-        final direction = Offset(math.sin(angle), -math.cos(angle)),
-            end = at + direction * extent * .22;
-        final pen = Paint()
-          ..color = const Color(0xff3ce8f2)
-          ..strokeWidth = 2.5;
-        c.drawLine(at, end, pen);
-        final cross = Offset(direction.dy, -direction.dx);
-        c.drawLine(end, end - direction * 6 + cross * 4, pen);
-        c.drawLine(end, end - direction * 6 - cross * 4, pen);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_MountDiagram old) =>
-      old.part != part || old.mount != mount || old.hull != hull;
 }

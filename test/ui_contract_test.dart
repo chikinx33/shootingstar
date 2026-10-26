@@ -132,21 +132,20 @@ void main() {
           expect(tester.takeException(), isNull);
         }
 
-        await checkActions(3);
+        // v12.15: resume is the one big button; the rest are round icons
+        await checkActions(1);
         await revealUi(tester, find.text('계속 비행'));
         await tester.tap(find.text('계속 비행'));
         await tester.pump(const Duration(milliseconds: 32));
         expect(game.paused, isFalse);
         await tester.tap(find.byTooltip('일시정지'));
         await tester.pump();
-        final exit = find.byWidgetPredicate(
-          (w) => w is GameActionButton && w.label == '귀환 · 현재 보상 정산',
-        );
+        final exit = find.byKey(const Key('pause-return'));
         await revealUi(tester, exit);
         await tester.tap(exit);
         await tester.pump(const Duration(milliseconds: 100));
         expect(game.finished, isTrue);
-        await checkActions(4);
+        await checkActions(1);
         final credits = profile.credits;
         await tester.pump(const Duration(seconds: 1));
         expect(profile.credits, credits);

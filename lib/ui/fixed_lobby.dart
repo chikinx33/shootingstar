@@ -299,7 +299,7 @@ class FixedLobby extends StatelessWidget {
   }
 
   /// The cat stands on the cushion painted in the living room: its feet go
-  /// where [RefitBackdrop] draws the cushion for this screen size. On short
+  /// where [GameBackdrop] draws the cushion for this screen size. On short
   /// screens it is lifted only as far as its name needs above the launch row.
   List<Widget> _standingCat(
     BuildContext context,

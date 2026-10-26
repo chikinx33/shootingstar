@@ -3,6 +3,7 @@ import '../l10n/app_language.dart';
 import 'audio_feedback.dart';
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
@@ -15,10 +16,13 @@ import '../data/profile.dart';
 import '../data/shop_ledger.dart';
 import '../main.dart';
 import 'components.dart';
+import 'info_dialog.dart';
+import '../data/houses.dart';
+import 'game_slots.dart';
 import 'reward_popup.dart';
 import 'collection_screen.dart';
-import 'catalog_screens.dart' show CatalogTabs, RewardChips, RewardGroup;
-import '../art/lobby_art.dart';
+import 'catalog_screens.dart' show CatalogTabs;
+import '../art/game_icons.dart';
 
 class FleetActivityScreen extends StatefulWidget {
   const FleetActivityScreen({
@@ -36,10 +40,7 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
   Profile get p => widget.profile;
   late int page = widget.initialPage.clamp(0, 3);
   late int chapter = p.selectedStage;
-  int signInCategory = 0,
-      missionCategory = 0,
-      chestPeriod = 0,
-      patrolCategory = 0;
+  int missionCategory = 0, chestPeriod = 0, patrolCategory = 0;
   Timer? timer;
   @override
   void initState() {
@@ -70,30 +71,6 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
     claimWithRewardPopup(context, p, action, adOffer: adOffer);
   }
 
-  Widget card(Widget child) => Padding(
-    padding: const EdgeInsets.only(bottom: 12),
-    child: Surface(child: child),
-  );
-  Widget heading(String title, String description) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 10),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(
-          tr(title),
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-
-          textAlign: TextAlign.center,
-        ),
-        gap(5),
-        Text(
-          tr(description),
-          style: const TextStyle(color: muted, fontSize: 14),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    ),
-  );
   Widget claim(
     String name,
     bool enabled,
@@ -106,7 +83,7 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
       label: name,
       displayLabel: claimed ? '수령 완료' : displayLabel,
       primary: true,
-      icon: Icons.card_giftcard,
+      image: GameIcons.chest,
       onPressed: audible(enabled ? () => act(action, adOffer: adOffer) : null),
     ),
   );
@@ -115,51 +92,33 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return Scaffold(
-      appBar: GameAppBar(title: Text(tr('함대 활동'), textAlign: TextAlign.center)),
+      appBar: GameAppBar(
+        title: Text(tr('함대 활동'), textAlign: TextAlign.center),
+        actions: [InfoAction(label: '활동 규칙', onPressed: _rules)],
+      ),
       body: Column(
         children: [
           FleetActivityTabs(
             selected: page,
             onSelected: (i) => setState(() => page = i),
           ),
-          if (page == 0)
-            CatalogTabs(
-              labels: const ['7일 보급', '누적 출석'],
-              selected: signInCategory,
-              tight: true,
-              onSelected: (i) => setState(() => signInCategory = i),
-            ),
           if (page == 1)
             CatalogTabs(
-              labels: const ['일일', '주간', '상자'],
+              labels: const ['일일', '주간'],
               selected: missionCategory,
               tight: true,
               onSelected: (i) => setState(() => missionCategory = i),
             ),
-          if (page == 1 && missionCategory == 2)
-            CatalogTabs(
-              labels: const ['일일 상자', '주간 상자'],
-              selected: chestPeriod,
-              tight: true,
-              onSelected: (i) => setState(() => chestPeriod = i),
-            ),
-          if (page == 3)
-            CatalogTabs(
-              labels: const ['자동 순찰', '빠른 순찰'],
-              selected: patrolCategory,
-              tight: true,
-              onSelected: (i) => setState(() => patrolCategory = i),
-            ),
           Expanded(
-            child: ListView(
-              key: ValueKey(
-                '$page/$signInCategory/$missionCategory/$chestPeriod/$patrolCategory/$chapter',
-              ),
-              padding: const EdgeInsets.all(12),
-              children: switch (page) {
-                0 => signIn(),
+            child: KeyedSubtree(
+              key: ValueKey('$page/$missionCategory/$chapter'),
+              child: switch (page) {
+                0 => ListView(
+                  padding: const EdgeInsets.all(12),
+                  children: signIn(),
+                ),
                 1 => missions(),
-                2 => chapters(),
+                2 => houses(),
                 _ => patrol(),
               },
             ),
@@ -169,405 +128,653 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
     );
   }
 
-  List<Widget> signIn() => [
-    if (signInCategory == 0) ...[
-      heading('7일 함대 보급', '누적 출석 ${p.journal.signIns}일\n결석해도 다음 보급부터 계속'),
-      card(
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const RasterIcon(Icons.calendar_month, size: 64, color: cyan),
-            gap(10),
-            RewardGroup(
-              label: '오늘 보급',
-              tone: GameTone.gold,
-              claimed: p.journal.signedInToday,
-              chips: RewardChips.of(
-                FleetJournal.signInRewards[p.journal.signedInToday
-                    ? (p.journal.signIns - 1) % 7
-                    : p.journal.signInNext],
-              ),
-            ),
-            gap(10),
-            claim(
-              p.journal.signedInToday ? '오늘 수령 완료' : '오늘 출석 보상 받기',
-              !p.journal.signedInToday,
-              () => p.claimSignIn(),
-              claimed: p.journal.signedInToday,
-            ),
-          ],
-        ),
+  /// Reset times and payout rules live here, not as sentences on the page.
+  void _rules() => showInfoDialog(
+    context,
+    title: '활동 규칙',
+    children: const [
+      InfoText('일일 임무·출석은 매일 0시(한국 시간), 주간 임무는 월요일 0시에 바뀝니다.'),
+      gap8,
+      InfoText('임무 보상을 받은 개수만큼 활동 상자가 열립니다. 훈련 기록은 주간 임무에 들어가지 않습니다.'),
+      gap8,
+      InfoText('집 보상은 집마다 한 번씩 받습니다.'),
+      gap8,
+      InfoText(
+        '자동 순찰은 30분마다 츄르 20, 1시간마다 별가루 1과 먹이 5가 쌓이고 최대 8시간까지 모입니다. 빠른 순찰은 유효 출격 뒤 하루 한 번 받습니다.',
       ),
-      LayoutBuilder(
-        builder: (context, box) => Wrap(
-          spacing: 6,
-          runSpacing: 8,
-          children: [
-            for (int i = 0; i < 7; i++)
-              SizedBox(
-                width: MediaQuery.textScalerOf(context).scale(1) > 1.15
-                    ? (box.maxWidth - 6) / 2
-                    : (box.maxWidth - 12) / 3,
-                child: Surface(
-                  padding: const EdgeInsets.all(8),
-                  active:
-                      i ==
-                      (p.journal.signedInToday
-                          ? (p.journal.signIns - 1) % 7
-                          : p.journal.signInNext),
-                  child: Column(
-                    children: [
-                      Text(
-                        message("{0}일차", [i + 1]),
-                        style: const TextStyle(fontWeight: FontWeight.w900),
+    ],
+  );
 
-                        textAlign: TextAlign.center,
-                      ),
-                      gap(8),
-                      RasterIcon(
-                        i == 6 ? Icons.workspace_premium : Icons.card_giftcard,
-                        color: i == 6 ? cyan : const Color(0xFF9EC8FF),
-                        size: 56,
-                      ),
-                      gap(8),
-                      Text(
-                        tr(FleetJournal.signInRewards[i].summary),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ],
+  /// v12.15 attendance in the mobile-game form (user 2026-10-26): the
+  /// cumulative chest track, the time to the next sign-in, six day cards and
+  /// a wide seventh-day card. Rewards are picture slots with ×N badges; the
+  /// glowing card is today's and claims on tap; claimed days carry a check.
+  List<Widget> signIn() {
+    final j = p.journal;
+    final done = j.signedInToday ? (j.signIns - 1) % 7 + 1 : j.signIns % 7;
+    SlotState state(int day) => day < done
+        ? SlotState.claimed
+        : day == done && !j.signedInToday
+        ? SlotState.today
+        : SlotState.open;
+    Widget day(int i, double slot) => GameDayCard(
+      grand: i == 6,
+      label: message('{0}일', [i + 1]),
+      rewards: GameReward.of(FleetJournal.signInRewards[i]),
+      state: state(i),
+      slotSize: slot,
+      onTap: state(i) == SlotState.today
+          ? () => act(() => p.claimSignIn())
+          : null,
+    );
+    return [
+      GameMilestoneTrack(
+        count: j.signIns,
+        targets: FleetJournal.signInTargets,
+        claimed: j.signInChests.contains,
+        onClaim: (i) => act(() => p.claimSignInChest(i)),
+      ),
+      gap(6),
+      // the countdown, with the collection survey as a round shortcut
+      Row(
+        children: [
+          // the countdown shrinks rather than overflow at large text
+          const Expanded(
+            child: FittedBox(fit: BoxFit.scaleDown, child: NextDayCountdown()),
+          ),
+          Semantics(
+            button: true,
+            label: tr('수집품 조사와 성장'),
+            excludeSemantics: true,
+            child: GestureDetector(
+              onTap: audible(
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => CollectionScreen(profile: p),
                   ),
                 ),
               ),
-          ],
-        ),
+              child: KitRound(
+                size: 48,
+                child: GameIconImage(GameIcons.collectTicket, size: 32),
+              ),
+            ),
+          ),
+        ],
       ),
-    ],
-    if (signInCategory == 1) ...[
-      heading('누적 출석 상자', '7일 보급이 반복돼도 누적 기록 유지'),
-      for (int i = 0; i < FleetJournal.signInTargets.length; i++)
-        card(
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+      gap(8),
+      LayoutBuilder(
+        builder: (context, box) {
+          const gapX = 8.0;
+          final w = (box.maxWidth - gapX * 2) / 3;
+          const slot = 52.0;
+          return Column(
             children: [
-              RewardGroup(
-                label: message('{0}일 출석', [FleetJournal.signInTargets[i]]),
-                tone: GameTone.gold,
-                claimed: p.journal.signInChests.contains(i),
-                chips: RewardChips.of(FleetJournal.signInChestRewards[i]),
-              ),
-              gap(8),
-              claim(
-                p.journal.signInChests.contains(i)
-                    ? '누적 상자 수령 완료'
-                    : '${FleetJournal.signInTargets[i]}일 상자 받기',
-                !p.journal.signInChests.contains(i) &&
-                    p.journal.signIns >= FleetJournal.signInTargets[i],
-                () => p.claimSignInChest(i),
-                claimed: p.journal.signInChests.contains(i),
-              ),
+              for (final row in const [
+                [0, 1, 2],
+                [3, 4, 5],
+              ]) ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (final i in row) ...[
+                      if (i != row.first) const SizedBox(width: gapX),
+                      SizedBox(width: w, child: day(i, slot)),
+                    ],
+                  ],
+                ),
+                gap(8),
+              ],
+              day(6, 64),
             ],
-          ),
-        ),
-    ],
-    OutlinedButton.icon(
-      onPressed: audible(
-        () => Navigator.push(
-          context,
-          MaterialPageRoute<void>(builder: (_) => CollectionScreen(profile: p)),
-        ),
+          );
+        },
       ),
-      icon: const RasterIcon(Icons.auto_awesome, size: 28),
-      label: Text(tr('수집품 조사와 성장'), textAlign: TextAlign.center),
-    ),
-  ];
+    ];
+  }
 
-  List<Widget> missions() => [
-    if (missionCategory == 0) ...[
-      heading('일일 임무', '매일 0시 갱신 (한국 시간)\n임무 보상 수령 → 활동 상자 개방'),
-      for (int i = 0; i < 3; i++)
-        task(
-          ContentSystems.dailyNames[i],
-          p.dailyProgress(i),
-          ContentSystems.dailyTargets[i],
-          p.dailyClaims.contains(i),
-          '일일 임무 ${i + 1} 보상 받기',
-          () => p.claimDaily(i),
-          RewardChips(
-            credits: 50,
-            food: 10,
-            seasonXp: 50,
-            gearKeys: i == 0 ? 1 : 0,
-            techKeys: i == 1 ? 1 : 0,
-            eggs: i == 2 ? 1 : 0,
-          ),
-        ),
-    ],
-    if (missionCategory == 2 && chestPeriod == 0) ...[
-      heading('일일 활동 상자', '매일 0시 갱신 (한국 시간)\n임무 보상 1·2·3개 수령 시 개방'),
-      for (int i = 0; i < 3; i++)
-        card(
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              RewardGroup(
-                label: message('임무 보상 {0}개 받으면', [i + 1]),
-                claimed: p.journal.dailyChests.contains(i),
-                chips: RewardChips.of(FleetJournal.dailyChestRewards[i]),
+  /// v12.15 quest list (user 2026-10-26): the activity chest track and the
+  /// reset clock on top, then compact rows — picture, name with gauge,
+  /// reward slots, a small claim button.
+  Widget missions() {
+    final weekly = missionCategory == 1;
+    final rows = weekly
+        ? [
+            for (var i = 0; i < 4; i++)
+              QuestRow(
+                key: ValueKey('weekly-mission-$i'),
+                icon: const [
+                  GameIcons.launch,
+                  GameIcons.crosshair,
+                  GameIcons.bomb,
+                  GameIcons.hourglass,
+                ][i],
+                name: _weeklyNames[i],
+                progress: p.journal.weeklyProgress(i),
+                target: FleetJournal.weeklyTargets[i],
+                rewards: GameReward.of(FleetJournal.weeklyReward),
+                claimed: p.journal.weeklyClaims.contains(i),
+                claimLabel: '주간 임무 ${i + 1} 보상 받기',
+                onClaim: () => act(() => p.claimWeeklyMission(i)),
               ),
-              gap(8),
-              claim(
-                p.journal.dailyChests.contains(i)
-                    ? '일일 상자 수령 완료'
-                    : '일일 활동 상자 ${i + 1}',
-                !p.journal.dailyChests.contains(i) &&
-                    p.dailyClaims.length >= i + 1,
-                () => p.claimDailyActivity(i),
-                claimed: p.journal.dailyChests.contains(i),
-                adOffer: AdOffer.chestDouble,
+          ]
+        : [
+            for (var i = 0; i < 3; i++)
+              QuestRow(
+                key: ValueKey('daily-mission-$i'),
+                icon: const [
+                  GameIcons.launch,
+                  GameIcons.crosshair,
+                  'assets/art/menu_v13/growth.webp',
+                ][i],
+                name: ContentSystems.dailyNames[i],
+                progress: p.dailyProgress(i),
+                target: ContentSystems.dailyTargets[i],
+                rewards: GameReward.of(
+                  FleetReward(
+                    credits: 50,
+                    food: 10,
+                    gearKeys: i == 0 ? 1 : 0,
+                    techKeys: i == 1 ? 1 : 0,
+                    eggs: i == 2 ? 1 : 0,
+                  ),
+                  seasonXp: 50,
+                ),
+                claimed: p.dailyClaims.contains(i),
+                claimLabel: '일일 임무 ${i + 1} 보상 받기',
+                onClaim: () => act(() => p.claimDaily(i)),
               ),
-            ],
-          ),
-        ),
-    ],
-    if (missionCategory == 1) ...[
-      heading('주간 임무', '월요일 0시 갱신 (한국 시간)\n훈련 기록 제외'),
-      for (int i = 0; i < 4; i++)
-        task(
-          FleetJournal.weeklyNames[i],
-          p.journal.weeklyProgress(i),
-          FleetJournal.weeklyTargets[i],
-          p.journal.weeklyClaims.contains(i),
-          '주간 임무 ${i + 1} 보상 받기',
-          () => p.claimWeeklyMission(i),
-          RewardChips.of(FleetJournal.weeklyReward),
-        ),
-    ],
-    if (missionCategory == 2 && chestPeriod == 1) ...[
-      heading('주간 활동 상자', '월요일 0시 갱신 (한국 시간)\n임무 보상 2·4개 수령 시 개방'),
-      for (int i = 0; i < 2; i++)
-        card(
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              RewardGroup(
-                label: message('임무 보상 {0}개 받으면', [(i + 1) * 2]),
-                claimed: p.journal.weeklyChests.contains(i),
-                chips: RewardChips.of(FleetJournal.weeklyChestRewards[i]),
-              ),
-              gap(8),
-              claim(
-                p.journal.weeklyChests.contains(i)
-                    ? '주간 상자 수령 완료'
-                    : '주간 활동 상자 ${i + 1}',
-                !p.journal.weeklyChests.contains(i) &&
-                    p.journal.weeklyClaims.length >= (i + 1) * 2,
-                () => p.claimWeeklyActivity(i),
-                claimed: p.journal.weeklyChests.contains(i),
-              ),
-            ],
-          ),
-        ),
-    ],
-  ];
-
-  Widget task(
-    String name,
-    int progress,
-    int target,
-    bool claimed,
-    String label,
-    bool Function() action,
-    Widget reward,
-  ) => card(
-    Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
+          ];
+    return Column(
       children: [
-        Text(
-          tr(name),
-          style: const TextStyle(fontWeight: FontWeight.w900),
-          textAlign: TextAlign.center,
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+          child: weekly
+              ? GameMilestoneTrack(
+                  key: const Key('weekly-chests'),
+                  count: p.journal.weeklyClaims.length,
+                  targets: const [2, 4],
+                  unit: '개',
+                  claimed: p.journal.weeklyChests.contains,
+                  onClaim: (i) => act(() => p.claimWeeklyActivity(i)),
+                )
+              : GameMilestoneTrack(
+                  key: const Key('daily-chests'),
+                  count: p.dailyClaims.length,
+                  targets: const [1, 2, 3],
+                  unit: '개',
+                  claimed: p.journal.dailyChests.contains,
+                  onClaim: (i) => act(
+                    () => p.claimDailyActivity(i),
+                    adOffer: AdOffer.chestDouble,
+                  ),
+                ),
         ),
-        gap(6),
-        RasterGauge(
-          value: progress / target,
-          minHeight: 8,
-          color: const Color(0xFFA7E6B3),
-        ),
-        gap(5),
-        GameHint(
-          message('진행 {0} / {1}', [progress.clamp(0, target), target]),
-          tone: GameTone.sky,
-        ),
-        gap(6),
-        RewardGroup(label: '보상', claimed: claimed, chips: reward),
-        gap(6),
-        claim(
-          claimed ? '보상 수령 완료' : label,
-          !claimed && progress >= target,
-          action,
-          claimed: claimed,
+        const SizedBox(height: 4),
+        _ResetClock(weekly: weekly),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(12, 6, 12, 12),
+            children: [
+              for (final row in rows)
+                Padding(padding: const EdgeInsets.only(bottom: 8), child: row),
+            ],
+          ),
         ),
       ],
-    ),
-  );
+    );
+  }
 
-  List<Widget> chapters() {
+  /// Display names (the data keeps its save keys).
+  static const _weeklyNames = [
+    '유효 출격 5회',
+    '군집 1,200기 격파',
+    '보스 3기 처치',
+    '집 지키기 30분',
+  ];
+
+  /// Houses the player has reached, in order.
+  List<int> get _houses => [
+    for (int i = 0; i < stages.length; i++)
+      if (p.canStage(i) ||
+          p.clearedStages.contains(i) ||
+          p.journal.chapterBest.containsKey(i))
+        i,
+  ];
+
+  /// v12.15 house rewards: pick a house with the arrows, see its best run
+  /// on a gauge, and claim the three milestone cards (⅓, ⅔, guarded).
+  Widget houses() {
+    final list = _houses;
+    final at = list.indexOf(chapter);
     final cleared =
         p.clearedStages.contains(chapter) ||
         p.journal.chapterWins.contains(chapter);
     final duration = stages[chapter].duration;
     final seconds = cleared ? duration : p.journal.chapterBest[chapter] ?? 0;
-    return [
-      heading('항로 보상', '최고 진행·클리어 기록 보상\n각 보상은 계정당 1회 수령'),
-      DropdownButtonFormField<int>(
-        onTap: audible(() {}),
-        initialValue: chapter,
-        isExpanded: true,
-        decoration: InputDecoration(labelText: tr('보상 항로 선택')),
-        items: [
-          for (int i = 0; i < stages.length; i++)
-            if (p.canStage(i) ||
-                p.clearedStages.contains(i) ||
-                p.journal.chapterBest.containsKey(i))
-              DropdownMenuItem(
-                value: i,
-                child: Text(
-                  tr(stages[i].name),
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                ),
+    String clock(int s) => '${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}';
+    void step(int by) {
+      if (list.isEmpty) return;
+      final next = list[((at < 0 ? 0 : at) + by) % list.length];
+      setState(() => chapter = next);
+    }
+
+    SlotState state(int i) {
+      if (p.journal.chapterClaims.contains(chapter * 3 + i)) {
+        return SlotState.claimed;
+      }
+      return p.journal.canClaimChapter(chapter, i, duration, p.clearedStages)
+          ? SlotState.today
+          : SlotState.locked;
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(12),
+      children: [
+        Row(
+          children: [
+            _Arrow(
+              icon: Icons.chevron_left,
+              label: '이전 집',
+              onTap: list.length > 1 ? () => step(-1) : null,
+            ),
+            Expanded(
+              child: Column(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      houseMap(chapter),
+                      height: 96,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      alignment: const Alignment(0, -.5),
+                      cacheWidth: 360,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      tr(houseOf(chapter).place),
+                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-        ],
-        onChanged: audibleChange((i) {
-          if (i != null) setState(() => chapter = i);
-        }),
-      ),
-      gap(14),
-      GameFactRow([
-        GameFact('최고 진행', message('{0}분 {1}초', [seconds ~/ 60, seconds % 60])),
-        GameFact(
-          '상태',
-          cleared ? '클리어' : '진행 중',
-          tone: cleared ? GameTone.good : GameTone.gold,
+            ),
+            _Arrow(
+              icon: Icons.chevron_right,
+              label: '다음 집',
+              onTap: list.length > 1 ? () => step(1) : null,
+            ),
+          ],
         ),
-      ]),
-      gap(8),
-      RasterGauge(value: seconds / duration, minHeight: 10),
-      gap(16),
-      for (int i = 0; i < 3; i++)
-        card(
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              RasterIcon(
-                i == 2 ? Icons.emoji_events : Icons.inventory_2,
-                size: 64,
-                color: i == 2 ? cyan : const Color(0xFFA7E6B3),
-              ),
-              gap(8),
-              Text(
-                tr(i == 2 ? '항로 클리어' : '${duration * (i + 1) ~/ 3}초 진행'),
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.w900),
-              ),
-              gap(5),
-              RewardChips.of(FleetJournal.chapterReward(i)),
-              gap(6),
-              claim(
-                p.journal.chapterClaims.contains(chapter * 3 + i)
-                    ? '항로 상자 수령 완료'
-                    : '항로 보상 받기 ${i + 1}',
-                p.journal.canClaimChapter(
-                  chapter,
-                  i,
-                  duration,
-                  p.clearedStages,
+        gap(8),
+        Row(
+          children: [
+            Expanded(child: KitGauge(seconds / duration, height: 14)),
+            const SizedBox(width: 8),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  children: [
+                    Text(
+                      '${clock(seconds)} / ${clock(duration)}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: GameUi.caption,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    GameTag(
+                      cleared ? '지킴' : '진행 중',
+                      tone: cleared ? GameTone.good : GameTone.gold,
+                    ),
+                  ],
                 ),
-                () => p.claimChapterReward(chapter, i),
-                claimed: p.journal.chapterClaims.contains(chapter * 3 + i),
+              ),
+            ),
+          ],
+        ),
+        gap(12),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var i = 0; i < 3; i++) ...[
+              if (i > 0) const SizedBox(width: 8),
+              Expanded(
+                child: Semantics(
+                  label: tr('집 보상 받기 ${i + 1}'),
+                  child: GameDayCard(
+                    key: ValueKey('house-reward-$i'),
+                    label: i == 2
+                        ? '지키기'
+                        : message('{0}초', [duration * (i + 1) ~/ 3]),
+                    grand: i == 2,
+                    rewards: GameReward.of(FleetJournal.chapterReward(i)),
+                    state: state(i),
+                    slotSize: 44,
+                    onTap: state(i) == SlotState.today
+                        ? () => act(() => p.claimChapterReward(chapter, i))
+                        : null,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// v12.15 patrol on one screen: the idle stash (gauge, what claiming now
+  /// gives, one button) and the once-a-day quick patrol row below.
+  Widget patrol() {
+    final minutes = p.patrolMinutes(DateTime.now());
+    final ready = minutes >= 30;
+    final stash = FleetReward(
+      credits: math.max(1, minutes ~/ 30) * 20,
+      plans: math.max(1, minutes ~/ 60),
+      food: math.max(1, minutes ~/ 60) * 5,
+    );
+    return ListView(
+      padding: const EdgeInsets.all(12),
+      children: [
+        Surface(
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  const GameIconImage(
+                    'assets/art/menu_v13/patrol.webp',
+                    size: 64,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        const GameTag('자동 순찰'),
+                        const SizedBox(height: 6),
+                        KitGauge(minutes / 480, height: 14),
+                        const SizedBox(height: 2),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            message('{0}시간 {1}분 / 8시간', [
+                              minutes ~/ 60,
+                              minutes % 60,
+                            ]),
+                            maxLines: 1,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: GameUi.caption,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              gap(10),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 8,
+                children: [
+                  for (final r in GameReward.of(stash))
+                    GameRewardSlot(
+                      r,
+                      size: 56,
+                      state: ready ? SlotState.open : SlotState.locked,
+                    ),
+                ],
+              ),
+              gap(10),
+              claim(
+                '순찰 보상 회수',
+                ready,
+                () => p.claimPatrol(DateTime.now()),
+                displayLabel: '보상 회수',
+                adOffer: AdOffer.patrolDouble,
               ),
             ],
           ),
         ),
-    ];
+        gap(12),
+        QuestRow(
+          key: const ValueKey('quick-patrol'),
+          icon: GameIcons.fastForward,
+          name: '빠른 순찰',
+          progress: math.min(p.dailyRuns, 1),
+          target: 1,
+          rewards: GameReward.of(FleetJournal.quickPatrolReward),
+          claimed: p.journal.quickPatrolClaimed,
+          claimLabel: '빠른 순찰 보상 받기',
+          onClaim: () => act(() => p.claimQuickPatrol()),
+        ),
+      ],
+    );
   }
+}
 
-  List<Widget> patrol() => [
-    if (patrolCategory == 0) ...[
-      heading('자동 순찰', '30분부터 회수 · 최대 8시간\n실제 누적 시간 기준'),
-      card(
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+/// A round arrow for stepping through houses.
+class _Arrow extends StatelessWidget {
+  const _Arrow({required this.icon, required this.label, required this.onTap});
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+  @override
+  Widget build(BuildContext context) => Opacity(
+    opacity: onTap == null ? .4 : 1,
+    child: Semantics(
+      button: true,
+      label: tr(label),
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: audible(onTap),
+        child: KitRound(size: 44, child: Icon(icon, size: 32)),
+      ),
+    ),
+  );
+}
+
+/// "초기화까지 3시간 12분" — to the next KST midnight or Monday.
+class _ResetClock extends StatelessWidget {
+  const _ResetClock({required this.weekly});
+  final bool weekly;
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    final kst = DateTime.now().toUtc().add(const Duration(hours: 9));
+    final days = weekly ? (8 - kst.weekday) % 7 : 1;
+    final next = DateTime.utc(
+      kst.year,
+      kst.month,
+      kst.day + (days == 0 ? 7 : days),
+    );
+    final left = next.difference(kst);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const GameIconImage(GameIcons.hourglass, size: 20),
+        const SizedBox(width: 6),
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              left.inDays > 0
+                  ? message('초기화까지 {0}일 {1}시간', [
+                      left.inDays,
+                      left.inHours % 24,
+                    ])
+                  : message('초기화까지 {0}시간 {1}분', [
+                      left.inHours,
+                      left.inMinutes % 60,
+                    ]),
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: GameTone.muted.color,
+                fontSize: GameUi.caption,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// v12.15 mobile-game quest row: picture · name with gauge and count ·
+/// reward slots · a small claim button (a check once claimed).
+class QuestRow extends StatelessWidget {
+  const QuestRow({
+    super.key,
+    required this.icon,
+    required this.name,
+    required this.progress,
+    required this.target,
+    required this.rewards,
+    required this.claimed,
+    required this.claimLabel,
+    required this.onClaim,
+    this.tag,
+    this.iconSize = 44,
+  });
+  final String icon, name, claimLabel;
+  final String? tag;
+  final int progress, target;
+  final List<GameReward> rewards;
+  final bool claimed;
+  final VoidCallback onClaim;
+  final double iconSize;
+
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    final ready = !claimed && progress >= target;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xE614284A),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: ready ? const Color(0xFFFFC928) : const Color(0xFF0B1830),
+          width: ready ? 3 : 2,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Row(
           children: [
-            const RasterIcon(Icons.explore, size: 64, color: Color(0xFFA7E6B3)),
-            gap(8),
-            RasterGauge(
-              value: p.patrolMinutes(DateTime.now()) / 480,
-              minHeight: 10,
+            Opacity(
+              opacity: claimed ? .5 : 1,
+              child: GameIconImage(icon, size: iconSize),
             ),
-            gap(4),
-            GameHint(
-              message('누적 {0}분 / 최대 480분', [p.patrolMinutes(DateTime.now())]),
-              tone: GameTone.sky,
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            tr(name),
+                            maxLines: 1,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              height: 1.25,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (tag != null) ...[
+                        const SizedBox(width: 4),
+                        GameTag(tag!, tone: GameTone.gold),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: KitGauge(
+                          target == 0 ? 1 : progress / target,
+                          height: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${progress.clamp(0, target)}/$target',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: GameUi.caption,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      for (final r in rewards)
+                        GameRewardSlot(
+                          r,
+                          size: 36,
+                          state: claimed ? SlotState.claimed : SlotState.open,
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            gap(8),
-            RewardGroup(
-              label: '지금 회수하면',
-              chips: p.patrolMinutes(DateTime.now()) < 30
-                  ? const GameHint('30분부터 회수할 수 있습니다')
-                  : RewardChips(
-                      credits: p.patrolMinutes(DateTime.now()) ~/ 30 * 20,
-                      plans: p.patrolMinutes(DateTime.now()) ~/ 60,
-                      food: p.patrolMinutes(DateTime.now()) ~/ 60 * 5,
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 64,
+              child: claimed
+                  ? Semantics(
+                      label: tr('받음'),
+                      child: const GameIconImage(GameIcons.check, size: 40),
+                    )
+                  : Semantics(
+                      button: true,
+                      enabled: ready,
+                      label: tr(claimLabel),
+                      excludeSemantics: true,
+                      child: FilledButton(
+                        style: GameUi.compactButton,
+                        onPressed: audible(ready ? onClaim : null),
+                        child: Text(
+                          tr('받기'),
+                          maxLines: 1,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     ),
             ),
-            gap(4),
-            const GameHint('30분마다 츄르 20\n1시간마다 별가루 1과 먹이 5'),
-            claim(
-              '순찰 보상 회수',
-              p.patrolMinutes(DateTime.now()) >= 30,
-              () => p.claimPatrol(DateTime.now()),
-              displayLabel: '보상 회수',
-              adOffer: AdOffer.patrolDouble,
-            ),
           ],
         ),
       ),
-    ],
-    if (patrolCategory == 1) ...[
-      heading('빠른 순찰', '유효 출격 후 하루 1회 지급\n자동 순찰 누적 시간 유지'),
-      card(
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const RasterIcon(Icons.fast_forward, color: cyan, size: 42),
-            gap(10),
-            RewardGroup(
-              label: '하루 한 번',
-              claimed: p.journal.quickPatrolClaimed,
-              chips: RewardChips.of(FleetJournal.quickPatrolReward),
-            ),
-            gap(8),
-            GameFactRow([
-              GameFact(
-                '오늘 유효 출격',
-                message('{0}회', [p.dailyRuns]),
-                tone: p.dailyRuns > 0 ? GameTone.good : GameTone.muted,
-              ),
-            ]),
-            gap(6),
-            claim(
-              p.journal.quickPatrolClaimed ? '빠른 순찰 수령 완료' : '빠른 순찰 보상 받기',
-              !p.journal.quickPatrolClaimed && p.dailyRuns > 0,
-              () => p.claimQuickPatrol(),
-              claimed: p.journal.quickPatrolClaimed,
-            ),
-          ],
-        ),
-      ),
-    ],
-  ];
+    );
+  }
 }
 
 /// Four fixed icon destinations. Labels never determine the number of rows.
@@ -582,7 +789,7 @@ class FleetActivityTabs extends StatelessWidget {
   static const entries = [
     ('출석', '출석', Icons.storefront),
     ('임무', '임무', Icons.assignment_turned_in),
-    ('항로 보상', '항로', Icons.emoji_events),
+    ('집 보상', '집', Icons.emoji_events),
     ('순찰', '순찰', Icons.explore),
   ];
 

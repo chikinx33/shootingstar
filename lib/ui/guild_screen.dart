@@ -13,8 +13,10 @@ import '../data/profile.dart';
 import '../data/guild_client.dart';
 import 'components.dart';
 import 'account_screen.dart';
-import 'arcade_home_widgets.dart' show CurrencyArt;
 import 'catalog_screens.dart';
+import 'game_slots.dart';
+import 'info_dialog.dart';
+import '../art/game_icons.dart';
 
 class GuildScreen extends StatefulWidget {
   const GuildScreen({super.key, required this.profile});
@@ -94,6 +96,11 @@ class _GuildScreenState extends State<GuildScreen> {
       appBar: GameAppBar(
         title: Text(tr('성간 길드'), textAlign: TextAlign.center),
         actions: [
+          InfoAction(
+            key: const Key('guild-info'),
+            label: '길드 안내',
+            onPressed: _rules,
+          ),
           IconButton(
             onPressed: audible(busy || !signed ? null : () => run('state')),
             style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
@@ -104,14 +111,30 @@ class _GuildScreenState extends State<GuildScreen> {
       ),
       body: Column(
         children: [
+          // v12.15: the guild's emblem card (name, level, members, coins)
+          // instead of a ribbon and a "a · b" status line
           if (MediaQuery.viewInsetsOf(context).bottom == 0)
-            CatalogHeader(
-              title: '함께하는 함대',
-              localizeStatus: g == null,
-              icon: Icons.groups,
-              status: g == null
-                  ? '출석 · 기여 · 주간 토벌 · 보급'
-                  : '${g['name']} · ${tr('코인')} ${user['coins']}',
+            Padding(
+              key: const Key('guild-banner'),
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+              child: _GuildBanner(
+                name: g == null ? '함께하는 함대' : '${g['name']}',
+                facts: g == null
+                    ? const []
+                    : [
+                        GameTag('Lv.${1 + (g['xp'] as int) ~/ 200}'),
+                        GameTag(
+                          message('{0}/20명', [
+                            (state!['members'] as List).length,
+                          ]),
+                          tone: GameTone.sky,
+                        ),
+                        GameTag(
+                          message('코인 {0}', [user['coins']]),
+                          tone: GameTone.good,
+                        ),
+                      ],
+              ),
             ),
           SizedBox(height: 6, child: busy ? const RasterGauge() : null),
           if (signed &&
@@ -150,7 +173,9 @@ class _GuildScreenState extends State<GuildScreen> {
                     centerContent: true,
                     child: Column(
                       children: [
-                        const RasterIcon(Icons.wifi_off, size: 72),
+                        const Center(
+                          child: GameIconImage(Mascot.defeat, size: 96),
+                        ),
                         Text(
                           tr(error!),
                           style: const TextStyle(
@@ -191,10 +216,7 @@ class _GuildScreenState extends State<GuildScreen> {
                           children: [
                             Row(
                               children: [
-                                const RasterIcon(
-                                  Icons.person_outline,
-                                  size: 64,
-                                ),
+                                const GameIconImage(_emblem, size: 56),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
@@ -247,10 +269,8 @@ class _GuildScreenState extends State<GuildScreen> {
                       children: [
                         if (!signed) ...[
                           // v12.9: the guild flag over a squad of guardians
-                          const Center(
-                            child: RasterIcon(Icons.groups, size: 120),
-                          ),
                           Row(
+                            key: const Key('guild-intro-cats'),
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               for (final (k, face)
@@ -274,19 +294,13 @@ class _GuildScreenState extends State<GuildScreen> {
                           ),
                           gap(8),
                           const GameSectionTitle('동료와 함께 성장하세요'),
-                          Text(
-                            tr(
-                              '같은 서버의 동료와 초대 코드로 합류하세요. 출석·기여·주간 토벌 기록은 온라인 계정에 저장됩니다.',
-                            ),
-                            style: TextStyle(fontSize: 16),
-
-                            textAlign: TextAlign.center,
-                          ),
-                          gap(24),
+                          gap(6),
+                          const _PerkRow(),
+                          gap(20),
                           GameActionButton(
                             label: '계정 로그인 · 가입',
                             primary: true,
-                            icon: Icons.person,
+                            image: LobbyCatHero.faces.first,
                             onPressed: audible(() async {
                               await Navigator.push(
                                 context,
@@ -302,7 +316,7 @@ class _GuildScreenState extends State<GuildScreen> {
                           ),
                         ] else if (state == null) ...[
                           const Center(
-                            child: RasterIcon(Icons.groups, size: 144),
+                            child: GameIconImage(_emblem, size: 120),
                           ),
                           Text(
                             tr('길드 서버에 연결해 가입 상태와 기록을 불러오세요.'),
@@ -359,18 +373,6 @@ class _GuildScreenState extends State<GuildScreen> {
                             ),
                           ),
                         ] else if (selected == 0) ...[
-                          const Center(
-                            child: RasterIcon(Icons.groups, size: 112),
-                          ),
-                          Text(
-                            g['name'],
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900,
-                            ),
-
-                            textAlign: TextAlign.center,
-                          ),
                           // v12.14: the code keeps its copyable text beside a
                           // tag; guild numbers sit in labelled tiles.
                           Row(
@@ -399,10 +401,6 @@ class _GuildScreenState extends State<GuildScreen> {
                             ),
                             GameFact('기여 경험치', '${g['xp']}'),
                             GameFact(
-                              '인원',
-                              '${(state!['members'] as List).length}/20',
-                            ),
-                            GameFact(
                               '내 코인',
                               '${user['coins']}',
                               tone: GameTone.good,
@@ -414,7 +412,7 @@ class _GuildScreenState extends State<GuildScreen> {
                                 ? '오늘 출석 완료'
                                 : '출석 · 코인 +10',
                             primary: true,
-                            icon: Icons.calendar_month,
+                            image: GameIcons.calendar,
                             onPressed: audible(
                               busy || user['checkday'] == state!['day']
                                   ? null
@@ -424,6 +422,7 @@ class _GuildScreenState extends State<GuildScreen> {
                           gap(12),
                           GameActionButton(
                             label: '기여 · 코인 10',
+                            image: GameIcons.coin,
                             onPressed: audible(
                               busy || (user['coins'] as int) < 10
                                   ? null
@@ -436,8 +435,9 @@ class _GuildScreenState extends State<GuildScreen> {
                             onPressed: audible(busy ? null : _leave),
                           ),
                         ] else if (selected == 1) ...[
+                          // the weekly target: the Vacuum King's flagship
                           const Center(
-                            child: RasterIcon(Icons.shield, size: 144),
+                            child: GameIconImage(_flagship, size: 132),
                           ),
                           GameSectionTitle('주간 토벌 · ${state!['week']}'),
                           RasterGauge(
@@ -455,10 +455,6 @@ class _GuildScreenState extends State<GuildScreen> {
                             ),
                             GameFact('오늘 기여', '${state!['attempts']}/3'),
                           ]),
-                          gap(6),
-                          const GameHint(
-                            '30초·10격파 이상 일반 출격이 자동 기여됩니다. 1격파 = 피해 3, 1회 최대 3,000. 월요일 초기화.',
-                          ),
                           gap(24),
                           GameActionButton(
                             label: '토벌 보상 우편 수령',
@@ -472,37 +468,31 @@ class _GuildScreenState extends State<GuildScreen> {
                           ),
                         ] else ...[
                           const Center(
-                            child: RasterIcon(Icons.storefront, size: 144),
+                            child: GameIconImage(GameIcons.chest, size: 112),
                           ),
                           const GameSectionTitle('길드 보급소'),
-                          gap(8),
-                          const GameInfoBlock(
-                            label: '보급 내용',
-                            tone: GameTone.good,
+                          gap(10),
+                          const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              SizedBox(height: 6),
-                              Wrap(
-                                alignment: WrapAlignment.center,
-                                spacing: 6,
-                                runSpacing: 6,
-                                children: [
-                                  GameRewardChip('먹이', 30),
-                                  GameRewardChip(
-                                    '별가루',
-                                    2,
-                                    image: CurrencyArt.stardust,
-                                  ),
-                                ],
+                              GameRewardSlot(
+                                GameReward(GameIcons.food, 30, '먹이'),
+                                size: 72,
+                              ),
+                              SizedBox(width: 12),
+                              GameRewardSlot(
+                                GameReward(GameIcons.stardust, 2, '별가루'),
+                                size: 72,
                               ),
                             ],
                           ),
-                          gap(6),
-                          const GameHint('하루 1회 · 보상은 우편으로 지급됩니다'),
-                          const GameCostLine('길드 코인 10'),
-                          gap(24),
+                          gap(8),
+                          const GameHint('하루 1회 · 우편으로 지급'),
+                          gap(20),
                           GameActionButton(
                             label: '길드 코인 10 · 우편 지급',
-                            displayLabel: '보급 우편 받기',
+                            displayLabel: '10 · 받기',
+                            image: GameIcons.coin,
                             primary: true,
                             onPressed: audible(
                               busy || (user['coins'] as int) < 10
@@ -549,5 +539,96 @@ class _GuildScreenState extends State<GuildScreen> {
       tab = 0;
       await run('leave');
     }
+  }
+
+  /// The rules live behind the app bar's '?': short lines with pictures.
+  void _rules() => showInfoDialog(
+    context,
+    title: '길드 안내',
+    children: const [
+      RuleLine(GameIcons.calendar, '매일 출석하면 코인 10'),
+      RuleLine(GameIcons.coin, '코인 10으로 길드 경험치 기여'),
+      RuleLine(_flagship, '30초·10격파 이상 출격이 주간 토벌에 자동 기여'),
+      RuleLine(GameIcons.bomb, '1격파 = 피해 3 · 1회 최대 3,000'),
+      RuleLine(GameIcons.hourglass, '토벌은 매주 월요일 초기화'),
+      RuleLine(GameIcons.chest, '보급소는 하루 1회 · 우편으로 지급'),
+    ],
+  );
+}
+
+const _emblem = 'assets/art/menu_v13/guild.webp';
+const _flagship = 'assets/art/enemies_v14/boss_9.webp';
+
+/// The guild's emblem with its name and tags in one card.
+class _GuildBanner extends StatelessWidget {
+  const _GuildBanner({required this.name, required this.facts});
+  final String name;
+  final List<Widget> facts;
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return GameInset(
+      tone: GameTone.gold,
+      padding: const EdgeInsets.fromLTRB(8, 6, 10, 6),
+      child: Row(
+        children: [
+          const GameIconImage(_emblem, size: 56),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: GameLettering(name, size: 22),
+                ),
+                if (facts.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: facts,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// What a guild gives, as four pictures with one word each.
+class _PerkRow extends StatelessWidget {
+  const _PerkRow();
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    Widget perk(String asset, String label) => Expanded(
+      child: Column(
+        children: [
+          GameIconImage(asset, size: 44),
+          Text(
+            tr(label),
+            maxLines: 1,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: GameUi.caption,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+    return Row(
+      children: [
+        perk(GameIcons.calendar, '출석'),
+        perk(GameIcons.coin, '기여'),
+        perk(_flagship, '토벌'),
+        perk(GameIcons.chest, '보급'),
+      ],
+    );
   }
 }

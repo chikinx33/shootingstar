@@ -42,7 +42,8 @@ class LobbyCatHero extends StatefulWidget {
     Offset(.518, .932),
   ];
 
-  static Offset feetOf(Profile profile) => feet[profile.selectedShip.clamp(0, 2)];
+  static Offset feetOf(Profile profile) =>
+      feet[profile.selectedShip.clamp(0, 2)];
 
   @override
   State<LobbyCatHero> createState() => _LobbyCatHeroState();
