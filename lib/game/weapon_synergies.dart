@@ -6,7 +6,6 @@ class WeaponSynergy {
     this.name,
     this.armament,
     this.description, {
-    this.branch,
     this.weapons = const {},
     this.passives = const {},
     this.tags = const {},
@@ -14,7 +13,6 @@ class WeaponSynergy {
   });
   final String id, name, description;
   final String? armament;
-  final MainBranch? branch;
   final Set<String> weapons, passives;
   final Set<WeaponTag> tags;
   final Map<String, int> weaponMinimums;
@@ -36,7 +34,6 @@ const weaponSynergies = [
     '정면 돌파',
     'pulse',
     '레이저 명중으로 일반 적을 0.8초 감속. 감속된 적에 주포 3회 연속 명중하면 1.25초 동안 새 주포탄 관통 +1. 전체 재발동 3초.',
-    branch: MainBranch.pulseFocus,
     weapons: {'laser'},
     tags: {WeaponTag.pierce},
   ),
@@ -78,8 +75,6 @@ extension WeaponSynergies on GameEngine {
   List<String> synergyMissing(WeaponSynergy spec) => [
     if (spec.armament != null && armament != spec.armament)
       spec.armament == 'pulse' ? '펄스 주포' : '산탄 캐논',
-    if (spec.branch != null && mainBranch != spec.branch)
-      mainBranches.firstWhere((s) => s.branch == spec.branch).name,
     for (final id in spec.weapons)
       if ((upgrades[id] ?? 0) < (spec.weaponMinimums[id] ?? 1))
         '${skillFor(id).name}${(spec.weaponMinimums[id] ?? 1) > 1 ? ' ${spec.weaponMinimums[id]}단계' : ''}',
@@ -98,8 +93,7 @@ extension WeaponSynergies on GameEngine {
             (id == 'explosive-spread' && !moduleSkillAvailable('missile'))))
       return false;
     final spec = weaponSynergies.firstWhere((s) => s.id == id);
-    if ((spec.armament != null && armament != spec.armament) ||
-        (spec.branch != null && mainBranch != spec.branch)) {
+    if (spec.armament != null && armament != spec.armament) {
       return false;
     }
     if (spec.weapons.any(

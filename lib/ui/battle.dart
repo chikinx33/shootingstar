@@ -192,7 +192,7 @@ class _BattleScreenState extends State<BattleScreen>
           // the cat is the pilot: its fixed trait grows with its level
           pilot: catTraitFor(p.selectedShip).id,
           traitLevel: catTraitLevel(p.pilotLevel),
-          bonusSpeed: gear.speed,
+          hurtGuard: gear.guard,
           bonusPickup: gear.pickup,
           bonusCooldown: 0,
           damageReduction: gear.reduction,
@@ -203,6 +203,18 @@ class _BattleScreenState extends State<BattleScreen>
           petRank: p.equippedPetRank,
           petAwakePower: p.petBond.powerBonus(p.activePet),
           petAwakeCooldown: p.petBond.cooldownReduction(p.activePet),
+          // v12.17: every deploy card is rescued in turn during the run
+          chickRoster: [
+            for (final id in p.deployedChicks)
+              if (p.chickOwned(id))
+                ChickLoadout(
+                  id,
+                  level: p.petLevels[id],
+                  rank: p.petRanks[id],
+                  awakePower: p.petBond.powerBonus(id),
+                  awakeCooldown: p.petBond.cooldownReduction(id),
+                ),
+          ],
         );
     // v12.16 real sorties shed their parts in the intro and earn them back
     if (widget.engineFactory == null && !widget.presentationAutoplay) {
@@ -1023,8 +1035,6 @@ class _BattleScreenState extends State<BattleScreen>
                           )
                           .name,
                     ),
-                    if (game.mainBranchSpec != null)
-                      GameTag(game.mainBranchSpec!.name),
                     for (final s in game.synergyHudText.split('\n'))
                       if (s.trim().isNotEmpty)
                         GameTag(s.trim(), tone: GameTone.good),
@@ -1487,7 +1497,13 @@ class _BattleScreenState extends State<BattleScreen>
                                       return;
                                     }
                                   }
-                                  setState(() => _newGame());
+                                  // v12.17: the next house's street and map
+                                  // load before it flies (was a blank sky)
+                                  setState(() {
+                                    _newGame();
+                                    _artLoading = true;
+                                  });
+                                  _loadArt();
                                   _focus.requestFocus();
                                 },
                         ),

@@ -21,6 +21,19 @@ extension ModuleProfile on Profile {
         '와스프 드론 ${drones.length}개는 기체에 붙는 장치가 아니어서 정리했습니다. 츄르 $churu · 별가루 $dust',
       );
     }
+    final supports = fleet.retireSupports();
+    if (supports.isNotEmpty) {
+      var churu = 0, dust = 0;
+      for (final d in supports) {
+        churu += 20 + d.level * 5;
+        dust += 1 + d.level ~/ 3;
+      }
+      credits = (credits + churu).clamp(0, 9999999);
+      blueprints = (blueprints + dust).clamp(0, 999999);
+      addUpdateNotice(
+        '자석·추진기 보조 장치 ${supports.length}개는 효과가 날개·자석 스킬로 옮겨져 정리했습니다. 츄르 $churu · 별가루 $dust',
+      );
+    }
     return fleet;
   }
 
@@ -69,7 +82,6 @@ extension ModuleProfile on Profile {
           .where((g) => g.spec >= 12)
           .map((g) => g.id)
           .toList(),
-      'armamentCollection': armamentCollection.toJson(),
     });
     for (final hull in unlockedShips) {
       fleet.seed(hull);
@@ -105,7 +117,7 @@ extension ModuleProfile on Profile {
               ? 'armor'
               : id,
       'sensor',
-      'magnet',
+      'capacitor',
     ];
     final used = <String>{};
     var index = 1;

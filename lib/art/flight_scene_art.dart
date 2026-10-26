@@ -246,13 +246,17 @@ abstract final class FlightSceneArt {
     bool houseMap = false,
     double time = 0,
   }) {
-    final art = houseImages[houseArt(house)],
-        road = streets[neighborhoodOf(house)];
-    if (art == null || road == null || size.isEmpty) return false;
+    // v12.17 safety net: a missing picture never leaves a blank sky — any
+    // street already decoded stands in until this house's art arrives
+    final road =
+        streets[neighborhoodOf(house)] ??
+        (streets.isEmpty ? null : streets.values.first);
+    final art = houseImages[houseArt(house)];
+    if (road == null || size.isEmpty) return false;
     final paint = Paint()..filterQuality = FilterQuality.medium;
     c.save();
     c.clipRect(Offset.zero & size);
-    if (houseMap) {
+    if (houseMap && art != null) {
       // the boss's house fills the view (cover fit, centred)
       final scale = math.max(size.width / art.width, size.height / art.height);
       final w = art.width * scale, h = art.height * scale;

@@ -38,9 +38,32 @@ mixin ContentSystems {
   ); // Unspent v2 parts, converted explicitly.
   int nextItemId = 7, gearKeys = 1, techKeys = 1, petEggs = 1, petFood = 30;
   int supplySerial = 0, petSerial = 1, techSerial = 0, dropSerial = 0;
-  List<int> petLevels = [1, 0, 0], petRanks = [0, 0, 0], petShards = [0, 0, 0];
+  // v12.17: nine chick kinds; level 0 = not rescued yet
+  List<int> petLevels = [1, ...List.filled(petNames.length - 1, 0)],
+      petRanks = List.filled(petNames.length, 0),
+      petShards = List.filled(petNames.length, 0);
   int activePet = 0;
   Set<int> assistingPets = {};
+
+  /// v12.17 pet screen 출전 cards (max [maxDeployedChicks]) in tail order.
+  /// [activePet] follows the first card for older callers.
+  List<int> deployedChicks = [0];
+
+  bool chickOwned(int id) =>
+      id >= 0 && id < petNames.length && petLevels[id] > 0;
+
+  /// Toggles an owned chick's deploy card; a seventh card is refused.
+  bool toggleDeployChick(int id) {
+    if (!chickOwned(id)) return false;
+    if (!deployedChicks.remove(id)) {
+      if (deployedChicks.length >= maxDeployedChicks) return false;
+      deployedChicks.add(id);
+    }
+    activePet = deployedChicks.isEmpty ? -1 : deployedChicks.first;
+    contentChanged();
+    return true;
+  }
+
   List<List<int>> techStock = List.generate(8, (_) => List.filled(6, 0));
   Set<int> equippedTech = {};
   String dayKey = '', seasonKey = '';
@@ -242,7 +265,7 @@ mixin ContentSystems {
   bool giftPet(int id, {DateTime? now}) {
     refreshContentClock(now ?? DateTime.now());
     if (id < 0 ||
-        id >= 3 ||
+        id >= petNames.length ||
         !petBond.gift(
           id,
           unlocked: petLevels[id] > 0,
@@ -259,7 +282,7 @@ mixin ContentSystems {
 
   bool awakenPet(int id) {
     refreshContentClock(DateTime.now());
-    if (id < 0 || id >= 3) return false;
+    if (id < 0 || id >= petNames.length) return false;
     final cost = petBond.awaken(
       id,
       petLevel: petLevels[id],
@@ -279,7 +302,7 @@ mixin ContentSystems {
 
   bool selectPetAwakeSkill(int id, int skill) {
     if (id < 0 ||
-        id >= 3 ||
+        id >= petNames.length ||
         petLevels[id] <= 0 ||
         !petBond.selectSkill(id, skill)) {
       return false;
@@ -290,7 +313,7 @@ mixin ContentSystems {
   }
 
   bool resetPetAwakening(int id) {
-    if (id < 0 || id >= 3) return false;
+    if (id < 0 || id >= petNames.length) return false;
     final refund = petBond.resetRefund(id);
     if (refund == null ||
         credits + refund.credits > 9999999 ||
@@ -452,10 +475,18 @@ mixin ContentSystems {
     return true;
   }
 
+  /// A rescue ticket (펫 구조권, from missions and the shop) brings home the
+  /// next chick kind not yet owned; once all nine are home it becomes a
+  /// gene (promotion shard) for the kinds in turn.
   bool rescuePet() {
     if (petEggs < 1) return false;
-    final id = petSerial++ % 3;
+    final missing = petLevels.indexWhere((l) => l == 0);
+    final id = missing >= 0 ? missing : petSerial++ % petNames.length;
     petEggs--;
+    // a newly rescued chick takes a free deploy card
+    if (missing >= 0 && deployedChicks.length < maxDeployedChicks) {
+      deployedChicks.add(id);
+    }
     if (petLevels[id] == 0) {
       petLevels[id] = 1;
       lastLoot = '${petNames[id]} 구조 완료';
@@ -467,8 +498,12 @@ mixin ContentSystems {
     return true;
   }
 
+  /// Puts [id] at the head of the deploy cards (the tail's first chick).
   bool deployPet(int id) {
-    if (id < 0 || id >= 3 || petLevels[id] == 0) return false;
+    if (!chickOwned(id)) return false;
+    deployedChicks.remove(id);
+    deployedChicks.insert(0, id);
+    if (deployedChicks.length > maxDeployedChicks) deployedChicks.removeLast();
     activePet = id;
     assistingPets.remove(id);
     contentChanged();
@@ -490,7 +525,7 @@ mixin ContentSystems {
   bool feedPet(int id) {
     refreshContentClock(DateTime.now());
     if (id < 0 ||
-        id >= 3 ||
+        id >= petNames.length ||
         petLevels[id] == 0 ||
         petLevels[id] >= 20 + petRanks[id] * 10 ||
         petFood < petLevels[id] * 10) {
@@ -506,7 +541,7 @@ mixin ContentSystems {
   bool evolvePet(int id) {
     refreshContentClock(DateTime.now());
     if (id < 0 ||
-        id >= 3 ||
+        id >= petNames.length ||
         petLevels[id] == 0 ||
         petRanks[id] >= 5 ||
         petShards[id] < 3 * (petRanks[id] + 1)) {
@@ -860,6 +895,7 @@ mixin ContentSystems {
     'petShards': petShards,
     'activePet': activePet,
     'assistingPets': assistingPets.toList(),
+    'deployedChicks': deployedChicks,
     'techStock': techStock,
     'equippedTech': equippedTech.toList(),
     'dayKey': dayKey,
@@ -969,10 +1005,12 @@ mixin ContentSystems {
     techSerial = boundedInt(v['techSerial'], 0, 9999999);
     petSerial = boundedInt(v['petSerial'], 1, 9999999);
     dropSerial = boundedInt(v['dropSerial'], 0, 9999999);
-    petLevels = ints('petLevels', 3, 70, [1, 0, 0]);
-    petRanks = ints('petRanks', 3, 5, [0, 0, 0]);
-    petShards = ints('petShards', 3, 9999, [0, 0, 0]);
-    activePet = boundedInt(v['activePet'], 0, 2);
+    // older saves hold three kinds; the six new ones start unrescued
+    final kinds = petNames.length;
+    petLevels = ints('petLevels', kinds, 70, [1, ...List.filled(kinds - 1, 0)]);
+    petRanks = ints('petRanks', kinds, 5, List.filled(kinds, 0));
+    petShards = ints('petShards', kinds, 9999, List.filled(kinds, 0));
+    activePet = boundedInt(v['activePet'], 0, kinds - 1);
     if (petLevels[activePet] == 0) {
       activePet = petLevels.indexWhere((l) => l > 0);
     }
@@ -983,6 +1021,15 @@ mixin ContentSystems {
           .take(2)
           .toSet();
     }
+    // v12.17 deploy cards; before them the active pet led and helpers followed
+    final cards = v['deployedChicks'] is List
+        ? (v['deployedChicks'] as List).whereType<int>()
+        : [activePet, ...assistingPets];
+    deployedChicks = [
+      for (final id in cards.toSet())
+        if (chickOwned(id)) id,
+    ].take(maxDeployedChicks).toList();
+    activePet = deployedChicks.isEmpty ? -1 : deployedChicks.first;
     final tech = v['techStock'];
     techStock = List.generate(
       8,

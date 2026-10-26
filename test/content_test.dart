@@ -267,30 +267,35 @@ void main() {
     expect(shot.pierce, 1);
     expect(shot.damage, closeTo(17 * g.damageFactor * 1.15, .001));
   });
-  test('assault pet attacks and pause freezes pet recovery', () {
-    final g = game(pet: 0, petLevel: 5);
+  test('fire chick attacks and pause freezes its fall-off', () {
+    final g = game(pet: 0, petLevel: 5)..seatChicks();
     g.enemies.add(Foe(g.position + const Offset(150, 0), 100, 0, 10, 0));
     g.update(.01);
     expect(g.shots.where((s) => s.weapon == 'pet').length, 2);
-    g.petHp = 0;
-    g.petPosition = g.position;
+    final c = g.squad.tail.single..hp = .1;
+    g.shots.add(Shot(c.position, Offset.zero, 1, 4, life: 2));
+    g.enemies.clear();
+    g.update(.01);
+    expect(c.state, ChickState.falling);
     g.setPaused(true);
     g.update(.05);
-    expect(g.petRevive, 0);
+    expect(c.fall, 0);
     g.setPaused(false);
-    for (int i = 0; i < 161; i++) {
+    for (int i = 0; i < 30; i++) {
       g.enemies.clear();
       g.update(.05);
     }
-    expect(g.petHp, 100);
+    expect(c.state, ChickState.waiting);
   });
   test('medic heals and guardian removes hostile bullets', () {
-    final medic = game(pet: 1);
+    final medic = game(pet: 1)..seatChicks();
     medic.hp = 20;
     medic.update(.01);
     expect(medic.hp, greaterThan(20));
-    final shield = game(pet: 2);
-    shield.shots.add(Shot(shield.petPosition, Offset.zero, 10, 4));
+    final shield = game(pet: 2)..seatChicks();
+    shield.shots.add(
+      Shot(shield.squad.tail.single.position, Offset.zero, 10, 4),
+    );
     shield.update(.01);
     expect(shield.shots.any((s) => s.kind == 4), false);
   });

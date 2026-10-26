@@ -116,15 +116,12 @@ const moduleProfiles = <MountProfile>[
 ];
 
 /// The support parts and the core each shows in the airframe's middle.
-const supportPartIds = [
-  'shield',
-  'repair',
-  'armor',
-  'sensor',
-  'capacitor',
-  'magnet',
-  'thruster',
-];
+const supportPartIds = ['shield', 'repair', 'armor', 'sensor', 'capacitor'];
+
+/// v12.17 (user 2026-10-27): retired support devices — the magnet (gem
+/// intake belongs to the wings and the magnet skill) and the thruster
+/// (movement speed is no longer a stat). Owned ones are refunded.
+const retiredSupportIds = {'magnet', 'thruster'};
 String supportOrbAsset(String partId) =>
     'assets/art/ship_parts/orbs/$partId.webp';
 
@@ -133,7 +130,9 @@ bool mountAccepts(String mount, ModulePart part) => switch (mount) {
   'W1' => part.id == 'gun_vulcan',
   'W2' => part.category == PartCategory.missile,
   'W3' => part.id == 'mortar_cat' || part.id == 'gun_vulcan',
-  'S1' => part.category == PartCategory.support,
+  'S1' =>
+    part.category == PartCategory.support &&
+        !retiredSupportIds.contains(part.id),
   _ => false,
 };
 
@@ -521,6 +520,22 @@ class ModuleFleet {
     return drones;
   }
 
+  /// v12.17: takes the retired support devices off every loadout and out
+  /// of the fleet; the caller refunds them like a salvage.
+  List<OwnedModulePart> retireSupports() {
+    final retired = [
+      for (final p in owned.values)
+        if (retiredSupportIds.contains(p.partId)) p,
+    ];
+    for (final r in retired) {
+      owned.remove(r.instanceId);
+      for (final l in loadouts.values) {
+        l.removeWhere((_, id) => id == r.instanceId);
+      }
+    }
+    return retired;
+  }
+
   OwnedModulePart add(String definition, {int level = 1, String? id}) {
     final item = OwnedModulePart(
       id ?? 'p${serial++}',
@@ -699,13 +714,13 @@ const legacyModulePartIds = [
   'gun_vulcan',
   'missile_hawk',
   'sensor',
-  'magnet',
+  'sensor',
   'capacitor',
   'capacitor',
   'armor',
   'repair',
   'shield',
   'shield',
-  'thruster',
-  'magnet',
+  'armor',
+  'sensor',
 ];

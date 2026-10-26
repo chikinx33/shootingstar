@@ -52,126 +52,57 @@ void main() {
       }
     }
   });
-  test('all three weapons offer exclusive branches through real level-up, without slots', () {
+  test('the three cat guns get no 주포 특화 choice through real level-up', () {
     for (final weapon in ['pulse', 'revolver', 'shotgun']) {
       final g = arena(weapon: weapon);
-      nextLevel(g);
-      final pair = g.choices.where((c) => c.specialization).toList();
-      expect(pair.length, 2);
-      final upgrades = Map.of(g.upgrades), passives = Map.of(g.passives);
-      g.chooseUpgrade(pair.first.id);
-      expect(g.mainBranchSpec!.id, pair.first.id);
-      expect(g.upgrades, upgrades);
-      expect(g.passives, passives);
-      g.chooseUpgrade(pair.last.id); // stale/unoffered input cannot replace it
-      expect(g.mainBranchSpec!.id, pair.first.id);
-      nextLevel(g);
-      expect(g.choices.any((c) => c.specialization), false);
-      expect(arena(weapon: weapon).mainBranch, isNull); // run-only state
-    }
-    final other = arena(weapon: 'kunai');
-    nextLevel(other);
-    // Phase5 extends the same exclusive offer contract to the remaining weapons.
-    expect(other.choices.where((c) => c.specialization).length, 2);
-  });
-
-  test(
-    'branches remain selectable at six plus six and rerolls respect exclusions',
-    () {
-      final g = arena();
-      g.upgrades.addAll({
-        'missile': 1,
-        'drone': 1,
-        'side': 1,
-        'mine': 1,
-        'trail': 1,
-        'guardian': 1,
-      });
-      g.passives.addAll({
-        'attack': 1,
-        'area': 1,
-        'speed': 1,
-        'hull': 1,
-        'magnet': 1,
-        'duration': 1,
-      });
-      nextLevel(g);
-      final offered = g.choices.map((c) => c.id).toSet();
-      expect(g.rerollChoices(), true);
-      expect(g.choices.any((c) => offered.contains(c.id)), false);
-      g.choices = [mainBranches.first.choice];
-      g.chooseUpgrade(mainBranches.first.id);
-      expect(g.weaponCount, 6);
-      expect(g.passives.length, 6);
-    },
-  );
-
-  test(
-    'R/P/N independent evolution is retained for every branch and no branch',
-    () {
-      for (final branch in mainBranches.take(6)) {
-        final g = arena(weapon: branch.armament)..mainBranch = branch.branch;
-        for (final kind in [4, 4, 4, 5, 5, 5, 6, 6]) {
-          g.supplies.add(Supply(g.position, kind));
-          g.update(.001);
-        }
-        expect([g.mainRate, g.mainPower, g.mainCount], [3, 3, 2]);
-        expect(g.evolved, contains('gun'));
-        expect(g.mainBranch, branch.branch);
-        expect(volley(arena(weapon: branch.armament)), isNotEmpty);
+      for (var i = 0; i < 3; i++) {
+        nextLevel(g);
+        expect(g.choices.any((c) => c.specialization), false, reason: weapon);
+        g.choices.clear();
       }
-    },
-  );
-
-  test('pulse focus pierces while spread trades per-bullet damage for angle and count', () {
-    final base = volley(arena());
-    final focus = volley(arena()..mainBranch = MainBranch.pulseFocus);
-    final spread = volley(arena()..mainBranch = MainBranch.pulseSpread);
-    expect(focus.length, base.length);
-    expect(focus.first.pierce, base.first.pierce + 2);
-    expect(focus.first.damage, closeTo(base.first.damage * .9, .0001));
-    expect(spread.length, base.length + 2);
-    expect(spread.first.velocity.dx, lessThan(0));
-    expect(spread.last.velocity.dx, greaterThan(0));
-    expect(spread.every((s) => s.velocity.dy < 0), true);
-    expect(spread.first.damage, closeTo(base.first.damage * .72, .0001));
+    }
   });
 
-  test('rail penetrates distinct targets and charge applies once after a slower reload', () {
-    final base = volley(arena(weapon: 'revolver')).first;
-    final over = arena(weapon: 'revolver')..mainBranch = MainBranch.railPierce;
-    final a = Foe(over.position + const Offset(0, -100), 10000, 0, 12, 0);
-    final b = Foe(over.position + const Offset(0, -155), 10000, 0, 12, 0);
-    over.enemies
-      ..clear()
-      ..addAll([a, b]);
-    final bullet = volley(over).first;
-    expect(bullet.pierce, 5);
-    expect(bullet.damage, closeTo(base.damage * .8, .0001));
-    for (int i = 0; i < 18; i++) over.update(.02);
-    expect(a.hp, lessThan(a.maxHp));
-    expect(b.hp, lessThan(b.maxHp));
-    final g = arena(weapon: 'revolver')
-      ..mainBranch = MainBranch.railCharge
-      ..revolverAmmo = 1;
-    expect(volley(g).first.damage, base.damage);
-    g.shots.clear();
-    for (int i = 0; i < 34; i++) g.update(.05);
-    expect(g.shots.where((s) => s.kind == 0), isEmpty); // 1.7s < reload 1.8s
-    g.setPaused(true);
-    for (int i = 0; i < 40; i++) g.update(.05);
-    g.setPaused(false);
-    for (int i = 0; i < 4; i++) g.update(.05);
-    expect(
-      g.shots.firstWhere((s) => s.kind == 0).damage,
-      closeTo(base.damage * 2, .0001),
-    );
-    g.shots.clear();
-    for (int i = 0; i < 12; i++) g.update(.05);
-    expect(g.shots.firstWhere((s) => s.kind == 0).damage, base.damage);
+  test('rerolls respect exclusions at six plus six', () {
+    final g = arena();
+    g.upgrades.addAll({
+      'missile': 1,
+      'drone': 1,
+      'side': 1,
+      'mine': 1,
+      'trail': 1,
+      'guardian': 1,
+    });
+    g.passives.addAll({
+      'attack': 1,
+      'area': 1,
+      'speed': 1,
+      'hull': 1,
+      'magnet': 1,
+      'duration': 1,
+    });
+    nextLevel(g);
+    final offered = g.choices.map((c) => c.id).toSet();
+    expect(g.rerollChoices(), true);
+    expect(g.choices.any((c) => offered.contains(c.id)), false);
+    expect(g.weaponCount, 6);
+    expect(g.passives.length, 6);
   });
 
-  test('compressed shells reward actual distance; shards do not hit parent or recurse', () {
+  test('R/P/N independent evolution is retained for every cat gun', () {
+    for (final weapon in ['pulse', 'revolver', 'shotgun']) {
+      final g = arena(weapon: weapon);
+      for (final kind in [4, 4, 4, 5, 5, 5, 6, 6]) {
+        g.supplies.add(Supply(g.position, kind));
+        g.update(.001);
+      }
+      expect([g.mainRate, g.mainPower, g.mainCount], [3, 3, 2]);
+      expect(g.evolved, contains('gun'));
+      expect(volley(arena(weapon: weapon)), isNotEmpty);
+    }
+  });
+
+  test('close-range shells reward actual distance', () {
     double hitAt(double distance) {
       final g = arena(weapon: 'shotgun');
       g.upgrades.clear();
@@ -188,35 +119,15 @@ void main() {
 
     expect(hitAt(100), closeTo(150, .001));
     expect(hitAt(200), closeTo(55, .001));
-    final g = arena(weapon: 'shotgun')..mainBranch = MainBranch.shellSplit;
-    final shells = volley(g);
-    expect(shells.every((s) => s.splitOnHit), true);
-    final target = Foe(g.position + const Offset(0, -80), 10000, 0, 20, 0);
-    g.enemies
-      ..clear()
-      ..add(target);
-    g.shots
-      ..clear()
-      ..add(
-        Shot(target.position, const Offset(0, -420), 100, 0, weapon: 'gun')
-          ..splitOnHit = true,
-      );
-    g.update(.001);
-    final shards = g.shots.where((s) => s.hitTargets.contains(target)).toList();
-    expect(shards.length, 2);
-    expect(shards.every((s) => !s.splitOnHit && s.life <= .45), true);
-    final hp = target.hp;
-    g.update(.001);
-    expect(target.hp, hp);
   });
 
   test(
-    'N pickups add firepower to all six branches before and after evolution',
+    'N pickups add firepower to all three cat guns before and after evolution',
     () {
-      for (final spec in mainBranches.take(6)) {
+      for (final weapon in ['pulse', 'revolver', 'shotgun']) {
         for (final evolved in [false, true]) {
-          final a = arena(weapon: spec.armament)..mainBranch = spec.branch;
-          final b = arena(weapon: spec.armament)..mainBranch = spec.branch;
+          final a = arena(weapon: weapon);
+          final b = arena(weapon: weapon);
           if (evolved) {
             a.evolved.add('gun');
             b.evolved.add('gun');
@@ -225,7 +136,7 @@ void main() {
           expect(
             volley(b).length,
             greaterThan(volley(a).length),
-            reason: spec.name,
+            reason: weapon,
           );
         }
       }
@@ -282,7 +193,7 @@ void main() {
     g.setPaused(true);
     g.update(.05);
     g.setPaused(false);
-    g.choices = [mainBranches.first.choice];
+    g.choices = [GameEngine.catalog.first];
     g.update(.05);
     expect(e.phase, phase);
     expect(e.position, at);

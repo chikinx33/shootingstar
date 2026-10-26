@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'support/tabs.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/data/content_systems.dart';
@@ -139,10 +141,12 @@ void main() {
       // the first activity chest opens from the track
       await tapUi(
         t,
-        find.descendant(
-          of: find.byKey(const Key('daily-chests')),
-          matching: find.byType(GestureDetector),
-        ).first,
+        find
+            .descendant(
+              of: find.byKey(const Key('daily-chests')),
+              matching: find.byType(GestureDetector),
+            )
+            .first,
       );
       await tapUi(t, action('확인'));
       expect(p.journal.dailyChests, contains(0));

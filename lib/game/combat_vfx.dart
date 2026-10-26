@@ -24,10 +24,6 @@ abstract final class CombatVfx {
         source.contains('heal') ||
         source.contains('repair'))
       return const Color(0xFF95F7AB);
-    if (source.contains('void') ||
-        source.contains('soul') ||
-        source.contains('disorder'))
-      return const Color(0xFFD3A6FF);
     if (source.contains('missile') ||
         source.contains('mine') ||
         source.contains('shotgun') ||

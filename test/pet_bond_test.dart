@@ -40,9 +40,9 @@ void main() {
       'lastClock': -1,
       'runs': [5, '', 'valid'],
     });
-    expect(book.favor, [300, 0, 0]);
-    expect(book.awakening, [3, 0, 0]);
-    expect(book.skills, [1, 0, 0]);
+    expect(book.favor, [300, 0, 0, 0, 0, 0, 0, 0, 0]);
+    expect(book.awakening, [3, 0, 0, 0, 0, 0, 0, 0, 0]);
+    expect(book.skills, [1, 0, 0, 0, 0, 0, 0, 0, 0]);
     expect(book.giftsToday, 2);
     expect(book.combatFavorToday, 0);
     expect(book.resetRefund(0)!.credits, 600);
@@ -59,7 +59,7 @@ void main() {
     expect(book.gift(0, unlocked: true, food: 10, now: beforeMidnight), true);
     expect(book.gift(1, unlocked: true, food: 10, now: beforeMidnight), true);
     expect(book.gift(2, unlocked: true, food: 10, now: beforeMidnight), false);
-    expect(book.favor, [10, 10, 0]);
+    expect(book.favor, [10, 10, 0, 0, 0, 0, 0, 0, 0]);
     expect(book.advance(afterMidnight), true);
     expect(book.day, '2026-10-17');
     expect(book.gift(2, unlocked: true, food: 10, now: afterMidnight), true);
@@ -72,7 +72,7 @@ void main() {
 
   test('gift rejects invalid IDs locked pets poor stock and capped favor', () {
     final book = PetBond();
-    for (final id in [-1, 3]) {
+    for (final id in [-1, 9]) {
       expect(
         book.gift(id, unlocked: true, food: 10, now: beforeMidnight),
         false,
@@ -109,7 +109,7 @@ void main() {
       expect(record('short', seconds: 119), 0);
       expect(record('empty', kills: 9), 0);
       expect(record('locked', unlocked: false), 0);
-      expect(record('bad', pet: 3), 0);
+      expect(record('bad', pet: 9), 0);
       expect(record(''), 0);
       expect(record('a'), 10);
       expect(record('a'), 0);
@@ -118,7 +118,7 @@ void main() {
       expect(record('b', pet: 1), 10);
       expect(record('c', pet: 2), 10);
       expect(record('d'), 0);
-      expect(book.favor, [10, 10, 10]);
+      expect(book.favor, [10, 10, 10, 0, 0, 0, 0, 0, 0]);
       expect(book.combatFavorToday, 30);
       book.advance(afterMidnight);
       expect(record('a'), 0);
@@ -284,8 +284,8 @@ void main() {
     final older = q.exportProgress();
     (older['content'] as Map).remove('petBond');
     await q.replaceProgress(older);
-    expect(q.petBond.awakening, [0, 0, 0]);
-    expect(q.petBond.favor, [0, 0, 0]);
+    expect(q.petBond.awakening, [0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    expect(q.petBond.favor, [0, 0, 0, 0, 0, 0, 0, 0, 0]);
     expect([q.petLevels[0], q.petRanks[0]], [15, 3]);
     expect([q.credits, q.petFood, q.petShards[0]], [1000, 500, 10]);
     p.dispose();
@@ -315,12 +315,12 @@ void main() {
       );
       finish('training', training: true);
       finish('short', seconds: 119);
-      expect(p.petBond.favor, [0, 0, 0]);
+      expect(p.petBond.favor, [0, 0, 0, 0, 0, 0, 0, 0, 0]);
       finish('valid');
       finish('valid');
-      expect(p.petBond.favor, [10, 0, 0]);
+      expect(p.petBond.favor, [10, 0, 0, 0, 0, 0, 0, 0, 0]);
       finish('invalid-pet', pet: 2);
-      expect(p.petBond.favor, [10, 0, 0]);
+      expect(p.petBond.favor, [10, 0, 0, 0, 0, 0, 0, 0, 0]);
       await p.save();
       final q = await Profile.load();
       q.completeRun(
@@ -333,7 +333,7 @@ void main() {
         runId: 'valid',
         deployedPet: 0,
       );
-      expect(q.petBond.favor, [10, 0, 0]);
+      expect(q.petBond.favor, [10, 0, 0, 0, 0, 0, 0, 0, 0]);
       p.dispose();
       q.dispose();
     },

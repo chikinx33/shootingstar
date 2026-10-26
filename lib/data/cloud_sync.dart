@@ -169,10 +169,7 @@ class CloudSync extends ChangeNotifier {
       await _accept(value);
       return;
     }
-    if (!signedIn ||
-        busy ||
-        inBattle ||
-        conflict != null) {
+    if (!signedIn || busy || inBattle || conflict != null) {
       return;
     }
     busy = true;

@@ -263,7 +263,7 @@ void main() {
       expect(healthy.hp, 60);
     },
   );
-  test('defensive sets and speed obey thresholds and existing damage reduction cap', () {
+  test('defensive sets obey thresholds and existing damage reduction cap, speed stays fixed', () {
     expect(incoming(arena(5, health: 40)), closeTo(9.4, .001));
     expect(incoming(arena(5, health: 60)), closeTo(10, .001));
     final b = arena(7);
@@ -285,8 +285,11 @@ void main() {
           ..hp = 40
           ..upgrades.clear();
     expect(incoming(cap), closeTo(3, .001));
-    expect(arena(6).moveSpeed, closeTo(arena(-1).moveSpeed * 1.08, .001));
-    expect(arena(6, health: 79).moveSpeed, arena(-1).moveSpeed);
+    // v12.17: movement speed is not a stat; the sun set's old +8% speed at
+    // high hull no longer changes the fixed follow pace.
+    expect(arena(-1).moveSpeed, GameEngine.followSpeed);
+    expect(arena(6).moveSpeed, GameEngine.followSpeed);
+    expect(arena(6, health: 79).moveSpeed, GameEngine.followSpeed);
   });
   test('critical set increases actual critical hits while preserving the 65 percent cap', () {
     final g = arena(8);

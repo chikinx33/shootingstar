@@ -22,9 +22,8 @@ void main() {
           MaterialApp(
             theme: ThemeData.dark(),
             builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(
-                context,
-              ).copyWith(textScaler: TextScaler.linear(scale)),
+              data: MediaQuery.of(context)
+                  .copyWith(textScaler: TextScaler.linear(scale)),
               child: child!,
             ),
             home: Scaffold(body: CampaignSelector(profile: p)),
@@ -65,9 +64,8 @@ void main() {
       MaterialApp(
         theme: ThemeData.dark(),
         builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(
-            context,
-          ).copyWith(textScaler: const TextScaler.linear(1.3)),
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: const TextScaler.linear(1.3)),
           child: child!,
         ),
         home: Scaffold(body: CampaignSelector(profile: p)),

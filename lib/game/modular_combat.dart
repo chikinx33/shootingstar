@@ -347,139 +347,27 @@ extension ModularCombat on GameEngine {
               ? 1.5
               : armament == 'revolver'
               ? 1.4
-              : armament == 'void'
-              ? 3.2
-              : 1) *
-          (const {
-                MainBranch.needleSwarm,
-                MainBranch.bladeLong,
-                MainBranch.batRam,
-              }.contains(mainBranch)
-              ? 1.25
               : 1)) /
       (unifiedModules ? mainRateGrowth : 1);
 
+  /// The three cat main guns (v12.17: the legacy families and the old
+  /// '주포 특화' branches are gone): 치즈 pulse, 구름 revolver, 까미 shotgun.
   void _fireModularMain() {
     final at = moduleMuzzle(AircraftMount.main), gun = upgrades['gun'] ?? 1;
-    var count =
-        mainProjectiles +
-        (armament == 'shotgun'
-            ? 4
-            : armament == 'lance'
-            ? 1
-            : 0);
+    var count = mainProjectiles + (armament == 'shotgun' ? 4 : 0);
     var multiplier = armament == 'shotgun'
         ? .48
         : armament == 'revolver'
         ? 2.5
-        : armament == 'bat'
-        ? 1.4
-        : armament == 'void'
-        ? 1.6
         : 1.0;
-    var radius = armament == 'katana' || armament == 'lightchaser'
-        ? 9.0
-        : armament == 'bat'
-        ? 16.0
-        : mainWidth;
+    var radius = mainWidth;
     var pierce = (techSpecial('gun') ? 1 : 0) + _gearPrimaryPierce();
-    var spacing = armament == 'shotgun' ? .09 : .025;
-    var life = armament == 'bat'
-        ? .6
-        : armament == 'katana'
-        ? .65
-        : armament == 'lightchaser'
-        ? .85
-        : 2.0;
+    final spacing = armament == 'shotgun' ? .09 : .025;
+    var life = 2.0;
     if (evolved.contains('gun')) {
       pierce++;
       multiplier *= 1.2;
     }
-    switch (mainBranch) {
-      case MainBranch.pulseFocus:
-        pierce += 2;
-        multiplier *= .9;
-      case MainBranch.pulseSpread:
-        count += 2;
-        spacing = .12;
-        multiplier *= .72;
-      case MainBranch.railPierce:
-        pierce += 5;
-        multiplier *= .8;
-      case MainBranch.railCharge:
-        if (_revolverCharged) {
-          multiplier *= 2;
-          radius *= 1.6;
-          _revolverCharged = false;
-        }
-      case MainBranch.shellClose:
-        spacing = .025;
-        multiplier *= 1.5;
-        life = .33;
-      case MainBranch.shellSplit:
-        count += 2;
-        spacing = .14;
-        multiplier *= .65;
-      case MainBranch.needlePierce:
-        pierce += 2;
-        multiplier *= .85;
-      case MainBranch.needleSwarm:
-        count += 2;
-        spacing = .11;
-        multiplier *= .55;
-      case MainBranch.bladeLong:
-        life *= 1.5;
-        radius *= .75;
-        multiplier *= 1.1;
-      case MainBranch.bladeFan:
-        count += 2;
-        spacing = .22;
-        life *= .7;
-        multiplier *= .6;
-      case MainBranch.batRam:
-        life *= 1.6;
-        radius *= .8;
-        multiplier *= 1.2;
-      case MainBranch.batOrbit:
-        radius *= 1.7;
-        life *= .7;
-        multiplier *= .7;
-      case MainBranch.lightLance:
-        life *= 1.5;
-        radius *= .7;
-        multiplier *= 1.15;
-      case MainBranch.lightCross:
-        count += 2;
-        spacing = .2;
-        life *= .65;
-        multiplier *= .5;
-      case MainBranch.voidWell:
-        radius = 30;
-        multiplier *= 1.45;
-      case MainBranch.voidDrift:
-        radius = 65;
-        multiplier *= .7;
-      case MainBranch.soulPierce:
-        pierce += 2;
-        multiplier *= .8;
-      case MainBranch.soulRelease:
-        final spent = math.min(10, soulStacks);
-        soulStacks -= spent;
-        count += 2;
-        spacing = .16;
-        multiplier *= .8 + spent * .04;
-      case MainBranch.lanceRing:
-        radius *= 2.5;
-        life = .5;
-        multiplier *= .7;
-      case MainBranch.lanceThrust:
-        pierce += 3;
-        radius *= .7;
-        multiplier *= 1.3;
-      case null:
-        break;
-    }
-    if (armament == 'disorder') multiplier *= 1 + soulStacks * .008;
     if (frontBreakRemaining > 0) pierce++;
     final counter = shieldCounterPending;
     if (counter) multiplier *= 1.5;
@@ -522,13 +410,7 @@ extension ModularCombat on GameEngine {
     final n = count.clamp(1, 12);
     for (var i = 0; i < n; i++) {
       final angle = (i - (n - 1) / 2) * spacing;
-      final speed = armament == 'bat'
-          ? 240.0
-          : armament == 'revolver'
-          ? 520.0
-          : armament == 'void'
-          ? 210.0
-          : 420.0;
+      final speed = armament == 'revolver' ? 520.0 : 420.0;
       _moduleBullet(
         AircraftMount.main,
         at + Offset((i - (n - 1) / 2) * 3, 0),
@@ -542,8 +424,8 @@ extension ModularCombat on GameEngine {
             techDamage('gun') *
             multiplier *
             (precisionLinkActive ? 1.08 : 1),
-        kind: armament == 'void' ? 27 : 6,
-        radius: armament == 'void' ? 9 : radius,
+        kind: 6,
+        radius: radius,
         pierce: pierce,
         life: life * mainReachFactor,
       );
@@ -557,8 +439,8 @@ extension ModularCombat on GameEngine {
           at - position + clone + Offset((i - (n - 1) / 2) * 3, 0),
           Offset(math.sin(angle), -math.cos(angle)) * 420 * skillSpeed,
           (13 + gun * 4) * damageFactor * mainDamage * multiplier * .7,
-          kind: armament == 'void' ? 27 : 6,
-          radius: armament == 'void' ? 9 : radius,
+          kind: 6,
+          radius: radius,
           pierce: pierce,
           life: life * mainReachFactor,
         );
@@ -573,9 +455,7 @@ extension ModularCombat on GameEngine {
     }
     if (armament == 'revolver' && --revolverAmmo <= 0) {
       revolverAmmo = 6;
-      _moduleTimers['main'] =
-          (mainBranch == MainBranch.railCharge ? 1.8 : 1.4) * cooldownFactor;
-      _revolverCharged = mainBranch == MainBranch.railCharge;
+      _moduleTimers['main'] = 1.4 * cooldownFactor;
     }
     if (cycleLinkActive && ++_mainLinkVolleys % 8 == 0) {
       moduleShield = math.max(
@@ -585,29 +465,6 @@ extension ModularCombat on GameEngine {
     }
     _event('shoot');
   }
-
-  String moduleBranchDescription(MainBranch branch) => switch (branch) {
-    MainBranch.pulseFocus => '전방 관통 +2 · 피해 −10%',
-    MainBranch.pulseSpread => '전방 부채꼴 · 탄수 +2 · 피해 −28%',
-    MainBranch.railPierce => '전방 관통 +5 · 피해 −20%',
-    MainBranch.railCharge => '재장전 후 첫 발 2배 · 재장전 1.8초',
-    MainBranch.shellClose => '좁은 전방 산탄 · 피해 +50% · 짧은 사거리',
-    MainBranch.shellSplit => '넓은 전방 산탄 · 탄수 +2 · 피해 −35%',
-    MainBranch.needlePierce => '전방 유도 · 관통 +2 · 피해 −15%',
-    MainBranch.needleSwarm => '전방 유도 · 탄수 +2 · 피해 −45% · 간격 +25%',
-    MainBranch.bladeLong => '전방 파동 · 사거리 +50% · 폭 축소 · 피해 +10%',
-    MainBranch.bladeFan => '짧은 전방 파동 · 탄수 +2 · 피해 −40%',
-    MainBranch.batRam => '전방 충격 · 사거리 +60% · 피해 +20% · 간격 +25%',
-    MainBranch.batOrbit => '넓고 짧은 전방 충격 · 피해 −30%',
-    MainBranch.lightLance => '긴 전방 파동 · 좁은 폭 · 피해 +15%',
-    MainBranch.lightCross => '짧은 전방 3갈래 파동 · 피해 −50%',
-    MainBranch.voidWell => '전방 중력탄 · 폭발 반경 30 · 피해 +45%',
-    MainBranch.voidDrift => '전방 중력탄 · 폭발 반경 65 · 피해 −30%',
-    MainBranch.soulPierce => '전방 영혼탄 · 관통 +2 · 피해 −20%',
-    MainBranch.soulRelease => '전방 탄수 +2 · 영혼 최대10 소비 · 피해 강화',
-    MainBranch.lanceRing => '넓고 짧은 전방 광탄 · 피해 −30%',
-    MainBranch.lanceThrust => '좁은 전방 광탄 · 관통 +3 · 피해 +30%',
-  };
 
   void _modularHit(Shot shot, Foe target, double before) {
     growthMainHit(shot, target);
@@ -735,58 +592,6 @@ extension ModularCombat on GameEngine {
   bool _stepModularShot(Shot shot, double dt) {
     if (_stepPartShot(shot, dt)) return true;
     if (_gearShot(shot, dt)) return true;
-    if (shot.weapon == 'module-main' && armament == 'kunai' && shot.kind == 6) {
-      final target = _moduleTarget(
-        shot.position,
-        axis: -math.pi / 2,
-        halfArc: .65,
-        range: 300,
-      );
-      if (target != null) {
-        final angle = math
-            .atan2(
-              target.position.dx - shot.position.dx,
-              shot.position.dy - target.position.dy,
-            )
-            .clamp(-.55, .55);
-        shot.velocity = Offset.lerp(
-          shot.velocity,
-          Offset(math.sin(angle), -math.cos(angle)) * 420 * skillSpeed,
-          math.min(1, dt * 3),
-        )!;
-      }
-    }
-    if (shot.kind == 27) {
-      shot.position += shot.velocity * dt;
-      final hit = enemies.any(
-        (e) =>
-            e.plane == AircraftTarget.air &&
-            e.hp > 0 &&
-            (e.position - shot.position).distance < e.radius + shot.radius,
-      );
-      if (hit || shot.age >= .8) {
-        final radius = mainBranch == MainBranch.voidWell
-            ? 30.0
-            : mainBranch == MainBranch.voidDrift
-            ? 65.0
-            : 46.0;
-        for (final foe in enemies) {
-          if (foe.plane == AircraftTarget.air &&
-              foe.hp > 0 &&
-              (foe.position - shot.position).distance <
-                  radius * areaFactor + foe.radius)
-            _hit(foe, shot.damage, 'module-main');
-        }
-        visuals.emit(
-          CombatCueKind.explosion,
-          shot.position,
-          source: 'module-main',
-          radius: radius * areaFactor,
-        );
-        shot.life = 0;
-      }
-      return true;
-    }
     if (shot.kind != 26) return false;
     if (shot.age >= .45 && shot.life > 0) {
       final center = shot.anchor ?? shot.position;

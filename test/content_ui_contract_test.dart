@@ -2,7 +2,9 @@ import 'ui_actions.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'support/tabs.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/cat_gear.dart';
 import 'package:shootingstar/data/profile.dart';
@@ -34,8 +36,11 @@ void main() {
     expect(gear.earned(p).single.index, p.inventory.last.spec);
     expect(gear.earned(p).single.atlas, 'equipment');
     p.petEggs = 1;
-    p.petSerial =
-        0; // Existing Lumi: this fixture exercises duplicate-gene display.
+    // every kind rescued: a ticket turns into genes for Lumi (serial 0)
+    for (var i = 0; i < p.petLevels.length; i++) {
+      if (p.petLevels[i] == 0) p.petLevels[i] = 1;
+    }
+    p.petSerial = 0;
     final pet = RewardSnapshot(p);
     expect(p.rescuePet(), isTrue);
     expect(pet.earned(p).single.name, contains('유전자'));

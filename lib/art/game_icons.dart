@@ -33,6 +33,9 @@ abstract final class GameIcons {
   // battle drops and stats
   static const heal = '${_v14}heal.webp';
   static const magnet = '${_v14}magnet.webp';
+
+  /// The field magnet drop: a classic horseshoe (v12.17).
+  static const magnetDrop = '${_v14}magnet_drop.webp';
   static const bomb = '${_v14}bomb.webp';
   static const heart = '${_kit}act_heart.webp';
   static const shield = '${_v14}shield.webp';
@@ -75,6 +78,7 @@ abstract final class GameIcons {
     calendar,
     heal,
     magnet,
+    magnetDrop,
     bomb,
     heart,
     shield,

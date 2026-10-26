@@ -5,11 +5,12 @@ import '../l10n/app_language.dart';
 import 'audio_feedback.dart';
 
 import 'dart:async';
+import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../data/profile.dart';
-import '../art/toon_assets.dart';
 import '../art/ui_kit.dart';
 import '../data/content_catalog.dart';
 import 'components.dart';
@@ -131,33 +132,83 @@ class _ContentHubState extends State<ContentHub> {
 
   /// v12.10.1 (user 2026-10-26): a pet slot shows its details in the free
   /// space under the slots instead of a popup.
+  /// v12.17 (user 2026-10-27): nine chick kinds as picture slots; up to six
+  /// carry a numbered 출전 badge (their order in the battle tail).
   Widget petsPage() {
-    final i = (petPick ?? p.activePet).clamp(0, 2);
+    final i = (petPick ?? math.max(0, p.activePet)).clamp(
+      0,
+      petNames.length - 1,
+    );
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-          child: GameSlotRows(
+          padding: const EdgeInsets.fromLTRB(12, 2, 12, 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              for (var k = 0; k < 3; k++)
-                PickedGlow(
-                  on: k == i,
-                  child: GameItemSlot(
-                    key: ValueKey('pet-slot-$k'),
-                    title: petNames[k],
-                    image: ToonTile('ships', 3 + k, size: 56),
-                    status: p.petLevels[k] == 0
-                        ? '미구조'
-                        : 'Lv.${p.petLevels[k]}',
-                    selected: p.activePet == k,
-                    rarity: p.petRanks[k],
-                    onTap: audible(
-                      () => setState(() => petPick = k),
-                      cue: 'select',
-                    ),
+              GameTag(
+                message('출전 {0}/{1}', [
+                  p.deployedChicks.length,
+                  maxDeployedChicks,
+                ]),
+                tone: GameTone.good,
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+          // three kit slots on screen, the rest a swipe away
+          child: LayoutBuilder(
+            builder: (context, box) {
+              const gap = 6.0;
+              final w = (box.maxWidth - gap * 2) / 3;
+              // the web test build swipes with a mouse as well as a finger
+              return ScrollConfiguration(
+                behavior: ScrollConfiguration.of(context)
+                    .copyWith(dragDevices: PointerDeviceKind.values.toSet()),
+                child: SingleChildScrollView(
+                  key: const Key('pet-slots'),
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (var k = 0; k < petNames.length; k++)
+                        Padding(
+                          padding: EdgeInsets.only(left: k == 0 ? 0 : gap),
+                          child: SizedBox(
+                            width: w,
+                            child: GameItemSlot(
+                              key: ValueKey('pet-slot-$k'),
+                              title: petNames[k],
+                              image: Opacity(
+                                opacity: p.chickOwned(k) ? 1 : .45,
+                                child: GameIconImage(
+                                  'assets/art/pets_v14/pet_$k.webp',
+                                  size: 56,
+                                ),
+                              ),
+                              status: !p.chickOwned(k)
+                                  ? '미구조'
+                                  : p.deployedChicks.contains(k)
+                                  ? message('출전 {0}', [
+                                      p.deployedChicks.indexOf(k) + 1,
+                                    ])
+                                  : 'Lv.${p.petLevels[k]}',
+                              selected: p.deployedChicks.contains(k),
+                              rarity: p.petRanks[k],
+                              onTap: audible(
+                                () => setState(() => petPick = k),
+                                cue: 'select',
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-            ],
+              );
+            },
           ),
         ),
         Expanded(
@@ -184,7 +235,7 @@ class _ContentHubState extends State<ContentHub> {
 
   List<Widget> petDetail(int i) {
     final rescued = p.petLevels[i] > 0;
-    final active = p.activePet == i;
+    final active = p.deployedChicks.contains(i);
     final maxLevel = 20 + p.petRanks[i] * 10;
     final food = p.petLevels[i] * 10;
     final shards = 3 * (p.petRanks[i] + 1);
@@ -192,7 +243,7 @@ class _ContentHubState extends State<ContentHub> {
     // one line of flavour, then icon lines for food, cost and shards.
     return [
       ItemHero(
-        image: ToonTile('ships', 3 + i, size: 64),
+        image: GameIconImage('assets/art/pets_v14/pet_$i.webp', size: 64),
         name: petNames[i],
         rarity: p.petRanks[i],
         chips: [
@@ -258,21 +309,16 @@ class _ContentHubState extends State<ContentHub> {
         // deployment on one line, growth on the next
         GameActionStrip(
           children: [
+            // v12.17: one 출전 card toggle (up to six cards)
             GameActionTile(
               key: const Key('pet-deploy'),
-              label: active ? '출전 중' : '출전',
+              label: active ? '출전 해제' : '출전',
               icon: Icons.rocket_launch,
               image: 'assets/art/ui_v13/act_launch.webp',
               primary: !active,
-              onPressed: active ? null : () => act(() => p.deployPet(i)),
-            ),
-            GameActionTile(
-              key: const Key('pet-assist'),
-              label: p.assistingPets.contains(i) ? '보조 해제' : '보조 배치',
-              displayLabel: p.assistingPets.contains(i) ? '보조 해제' : '보조',
-              icon: Icons.groups,
-              image: 'assets/art/ui_v13/act_helpers.webp',
-              onPressed: active ? null : () => act(() => p.assistPet(i)),
+              onPressed: active || p.deployedChicks.length < maxDeployedChicks
+                  ? () => act(() => p.toggleDeployChick(i))
+                  : null,
             ),
           ],
         ),

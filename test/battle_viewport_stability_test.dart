@@ -66,8 +66,6 @@ void main() {
       await unchanged('enemy spawn');
       foe.hp = 0;
       await unchanged('enemy death');
-      game.mainBranch = MainBranch.pulseSpread;
-      await unchanged('specialization status appears');
       game.level = 99;
       game.hp = game.maxHp = 9999;
       await unchanged('HP and level digit growth');

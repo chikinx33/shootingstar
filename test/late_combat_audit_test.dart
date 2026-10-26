@@ -75,10 +75,9 @@ void main() {
                 frame++
               ) {
                 phases.add(g.bossPhase);
-                // Perfect tracking isolates damage; melee uses its intended range.
+                // Perfect tracking isolates damage at a fixed range.
                 // No ultimate, consumables, branch, tech, pet, or kill stacks.
-                g.position =
-                    g.boss!.position + Offset(0, weapon.id == 'bat' ? 90 : 150);
+                g.position = g.boss!.position + const Offset(0, 150);
                 g.movementAngle = -math.pi / 2;
                 g.choices.clear();
                 g.update(.025);

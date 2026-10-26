@@ -20,7 +20,6 @@ GameEngine arena({String armament = 'pulse', bool ready = true}) {
         ..xpNeeded = 1e9;
   g.upgrades.clear();
   if (ready && armament == 'pulse') {
-    g.mainBranch = MainBranch.pulseFocus;
     g.upgrades['laser'] = 1;
   } else if (ready && armament == 'shotgun') {
     g.upgrades['missile'] = 1;
@@ -125,10 +124,10 @@ void main() {
     expect(g.auxiliaryTags, {WeaponTag.explosive, WeaponTag.chain});
   });
 
-  test('recipes require exact weapon, branch and passive without consuming or occupying slots', () {
+  test('recipes require exact weapon and passive without consuming or occupying slots', () {
     final front = arena();
     expect(front.synergyReady('front-break'), true);
-    front.mainBranch = MainBranch.pulseSpread;
+    front.upgrades.remove('laser');
     expect(front.synergyReady('front-break'), false);
     final blast = arena(armament: 'shotgun');
     expect(blast.synergyReady('explosive-spread'), true);
@@ -161,7 +160,9 @@ void main() {
     'laser applies build-specific slow only on actual hits, excluding bosses',
     () {
       for (final ready in [false, true]) {
-        final g = arena(ready: ready)..upgrades['laser'] = 1;
+        // v12.17: front-break needs the 치즈 pulse gun plus the laser.
+        final g = arena(armament: ready ? 'pulse' : 'revolver', ready: ready)
+          ..upgrades['laser'] = 1;
         final along = target(g, offset: const Offset(110, 0));
         final away = target(g, offset: const Offset(-110, -70));
         g.update(.001);
@@ -186,7 +187,7 @@ void main() {
     g.upgrades['gun'] = 1;
     g.shots.clear();
     g.update(.001);
-    expect(g.shots.firstWhere((s) => s.kind == 0).pierce, 3);
+    expect(g.shots.firstWhere((s) => s.kind == 0).pierce, 1);
     g.upgrades.remove('gun');
     for (int i = 0; i < 10; i++) hit(g, e);
     expect(g.synergyTriggers('front-break'), 1);
@@ -195,7 +196,7 @@ void main() {
     g.upgrades['gun'] = 1;
     g.shots.clear();
     g.update(.001);
-    expect(g.shots.firstWhere((s) => s.kind == 0).pierce, 2);
+    expect(g.shots.firstWhere((s) => s.kind == 0).pierce, 0);
     expect(g.synergyTriggers('front-break'), 1);
   });
 
@@ -236,7 +237,7 @@ void main() {
     g.setPaused(true);
     advance(g, 2);
     g.setPaused(false);
-    g.choices = [mainBranches.first.choice];
+    g.choices = [GameEngine.catalog.first];
     advance(g, 2);
     g.choices.clear();
     expect(g.frontBreakRemaining, remaining);

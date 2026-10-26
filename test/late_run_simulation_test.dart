@@ -23,7 +23,7 @@ void main() {
     }
     final rows = <Map<String, dynamic>>[];
     for (final stage in [9, 49, 99]) {
-      for (final weapon in ['pulse', 'katana', 'void']) {
+      for (final weapon in ['pulse', 'revolver', 'shotgun']) {
         for (final seed in [1, 33]) {
           for (final developed in [false, true]) {
             final g = GameEngine(

@@ -20,7 +20,7 @@ void main() {
   for (final width in [320.0, 360.0, 390.0, 430.0])
     for (final scale in [1.0, 1.3]) {
       testWidgets(
-        'new branch choice, active HUD and frozen gear links fit $width / $scale',
+        'skill choice, active HUD and frozen gear links fit $width / $scale',
         (tester) async {
           tester.view.physicalSize = Size(width, width == 320 ? 568 : 844);
           tester.view.devicePixelRatio = 1;
@@ -36,8 +36,7 @@ void main() {
             hullLevel: 0,
             magnetLevel: 0,
             equipmentIndex: 0,
-            armament: 'void',
-            armamentLevel: 4,
+            armament: 'pulse',
             techRanks: {'gun': 2},
             mainPrecisionLink: true,
             mainCycleLink: true,
@@ -64,7 +63,7 @@ void main() {
           );
           // v12.7 skill cards deal in from the bottom over ~1.15 s.
           await tester.pump(const Duration(milliseconds: 1300));
-          final card = find.byKey(const Key('upgrade-main-voidDrift'));
+          final card = find.byKey(Key('upgrade-${g.choices.first.id}'));
           await tester.ensureVisible(card);
           await tester.pump();
           expect(tester.getSize(card).height, greaterThanOrEqualTo(88));
@@ -72,12 +71,12 @@ void main() {
           await tester.pump();
           // The choice lands after the card's pick celebration (≤2 s).
           await tester.pump(const Duration(milliseconds: 2100));
-          expect(g.mainBranch, MainBranch.voidDrift);
+          expect(g.choices, isEmpty);
           await tester.tap(find.byTooltip('전투 정보'));
           await tester.pump(const Duration(milliseconds: 300));
-          // v12.15: the specialization is a tag with its name.
-          await revealUi(tester, find.text('이동 공허').last);
-          expect(find.text('이동 공허'), findsWidgets);
+          // v12.17: the cat main gun is a tag with its name.
+          await revealUi(tester, find.text('냥냥 연사포').last);
+          expect(find.text('냥냥 연사포'), findsWidgets);
           await tapUi(tester, find.byTooltip('전투 정보 닫기').last);
           await tester.pump(const Duration(milliseconds: 300));
           final hud = tester.getRect(find.byKey(const Key('battle-hud-panel'))),
@@ -92,15 +91,14 @@ void main() {
             wrap(BattleStatisticsDialog(snapshot: snapshot)),
           );
           await tester.pump(const Duration(milliseconds: 32));
-          await tester.tap(find.text('현재 빌드'));
-          await tester.pump();
-          await tester.pump(const Duration(milliseconds: 350));
-          await revealUi(tester, find.textContaining('정밀 연계 · 활성').last);
-          expect(find.textContaining('정밀 연계 · 활성'), findsWidgets);
-          await revealUi(tester, find.textContaining('순환 방호 · 활성').last);
-          expect(find.textContaining('순환 방호 · 활성'), findsWidgets);
-          await revealUi(tester, find.textContaining('발사 분기 · 이동 공허').last);
-          expect(find.textContaining('발사 분기 · 이동 공허'), findsWidgets);
+          // v12.16: the build tab is pictures only; the links stay in the
+          // snapshot data.
+          final details = [
+            ...snapshot.synergies,
+            snapshot.mainLoadout,
+          ].join('\n');
+          expect(details, contains('정밀 연계 · 활성'));
+          expect(details, contains('순환 방호 · 활성'));
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox());
           p.dispose();

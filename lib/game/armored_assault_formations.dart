@@ -33,17 +33,7 @@ extension ArmoredAssaultFormations on GameEngine {
   double formationDamageFactor(Foe e, String source) {
     // Auxiliary fire, explosions, status and the ultimate bypass the main-gun
     // barrier. This is a bounded front guard, never an invulnerability gate.
-    if (!const {
-      'gun',
-      'primary',
-      'soul',
-      'havoc',
-      'starforge',
-      'lance',
-      'void',
-      'sword-array',
-      'fissure',
-    }.contains(source)) {
+    if (!const {'gun', 'primary'}.contains(source)) {
       return 1;
     }
     if (formationShieldActive(e) && _formationFront(e)) return .45;

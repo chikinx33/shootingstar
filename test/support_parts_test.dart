@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/aircraft_assembly.dart';
+import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/data/ship_modules.dart';
 import 'package:shootingstar/game/engine.dart';
 
@@ -35,6 +37,7 @@ void run(GameEngine g, double seconds, [void Function()? each]) {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   test('armor: 6% less damage taken, growing with level (cap 18%)', () {
     expect(flight({}).moduleArmorReduction, 0);
     expect(flight({'S1': 'armor'}).moduleArmorReduction, closeTo(.06, 1e-9));
@@ -81,15 +84,71 @@ void main() {
     expect(g.hp, greaterThan(50));
   });
 
-  test('magnet and thruster: pickup +20%, speed +8%', () {
-    final base = flight({});
+  test('magnet and thruster are retired: no flight effect', () {
+    // v12.17: gem intake belongs to the wings and the magnet skill, and
+    // movement speed is no longer a stat, so both devices are gone.
+    expect(retiredSupportIds, {'magnet', 'thruster'});
+    expect(supportPartIds, hasLength(5));
+    expect(supportPartIds.toSet().intersection(retiredSupportIds), isEmpty);
+    // the slot no longer takes them at all
+    for (final id in retiredSupportIds) {
+      expect(mountAccepts('S1', modulePart(id)), isFalse);
+      expect(() => flight({'S1': id}), throwsFormatException);
+    }
+    expect(flight({}).moveSpeed, GameEngine.followSpeed);
+  });
+
+  test('supply never offers a retired support device', () async {
+    SharedPreferences.setMockInitialValues({});
+    final p = await Profile.load();
+    p.petEggs = supportPartIds.length * 2 + 2;
+    final granted = <String>[];
+    while (p.petEggs > 0) {
+      expect(p.openModuleSupply(support: true), isTrue);
+      granted.add(moduleParts.firstWhere((m) => m.name == p.lastLoot).id);
+    }
+    expect(granted.where(retiredSupportIds.contains), isEmpty);
+    expect(granted.toSet(), supportPartIds.toSet());
+    expect(p.updateNotices, isEmpty);
+    p.dispose();
+  });
+
+  test('owned magnets and thrusters leave the fleet, refunded with a notice', () async {
+    SharedPreferences.setMockInitialValues({});
+    final p = await Profile.load();
+    // An old save: a magnet fitted in S1 and a spare thruster in storage.
+    final fleet = p.shipModules, ship = p.selectedShip;
+    final kept = fleet.loadouts[ship]!['S1']!;
+    final magnet = fleet.add('magnet', level: 7),
+        thruster = fleet.add('thruster', level: 1);
+    fleet.loadouts[ship]!['S1'] = magnet.instanceId;
+    final credits = p.credits,
+        dust = p.blueprints,
+        notices = p.updateNotices.length;
+    final after = p.shipModules;
+    expect(after.owned.keys, isNot(contains(magnet.instanceId)));
+    expect(after.owned.keys, isNot(contains(thruster.instanceId)));
     expect(
-      flight({'S1': 'magnet'}).collectionRadius / base.collectionRadius,
-      closeTo(1.2, 1e-9),
+      after.owned.values.where((o) => retiredSupportIds.contains(o.partId)),
+      isEmpty,
     );
-    expect(
-      flight({'S1': 'thruster'}).moveSpeed / base.moveSpeed,
-      closeTo(1.08, 1e-9),
-    );
+    // S1 is cleared (not refilled with something the player never chose)
+    expect(after.loadouts[ship]!.containsKey('S1'), isFalse);
+    expect(p.moduleLoadout.parts['S1'], isNull);
+    expect(after.owned.containsKey(kept), isTrue); // the old armor stays
+    // churu 20 + level * 5, stardust 1 + level ~/ 3, per device
+    const churu = (20 + 7 * 5) + (20 + 1 * 5), stardust = (1 + 7 ~/ 3) + 1;
+    expect(p.credits, credits + churu);
+    expect(p.blueprints, dust + stardust);
+    expect(p.updateNotices, hasLength(notices + 1));
+    expect(p.updateNotices.last, contains('2개'));
+    expect(p.updateNotices.last, contains('츄르 $churu'));
+    expect(p.updateNotices.last, contains('별가루 $stardust'));
+    // a second look refunds nothing more
+    p.shipModules;
+    expect(p.credits, credits + churu);
+    expect(p.blueprints, dust + stardust);
+    expect(p.updateNotices, hasLength(notices + 1));
+    p.dispose();
   });
 }

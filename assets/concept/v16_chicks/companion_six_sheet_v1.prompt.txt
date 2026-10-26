@@ -1,0 +1,19 @@
+Mode: built-in image_gen, style-transfer. One initial generation and one layout correction.
+References: ref_pet0.png and ref_pet2.png
+
+Use case: style-transfer.
+Asset type: one sprite sheet of six companion pets for a cute cat-themed vertical shooter mobile game.
+Input images: Image 1 and Image 2 are exact style and character references. Preserve their round cute yellow baby chick identity, tiny cat-ear-shaped flying eggshell pod silhouette, proportions, viewing angle, thick even dark navy outline, flat colors with one cel-shade step and small white highlights. Each pet has a small yellow exhaust flame below.
+Create exactly SIX pets in a strict 3 columns x 2 rows grid on a landscape 3:2 canvas (1536x1024). Six equal square cells, each pet centered and wholly contained at about 70% of its cell height, generous empty spacing. No drawn cell boundaries.
+Row 1 left to right:
+1. Lightning chick: spiky electric yellow head tuft, yellow-and-purple pod with a lightning bolt emblem and tiny sparks.
+2. Ice chick: little blue knit beanie with a snowflake, pale cyan pod with a snowflake emblem.
+3. Bomb chick: tiny miner helmet, dark red pod with a round black bomb emblem with a short fuse.
+Row 2 left to right:
+4. Sniper chick: small green beret and one goggle lens, olive pod with a crosshair emblem.
+5. Starlight chick: tiny golden star crown, white-and-gold pod with a sparkling star emblem.
+6. Mirror chick: little round silver mirror shield held up, lavender pod with a diamond mirror emblem.
+The whole canvas outside the pets must be perfectly flat solid pure magenta #FF00FF. No magenta pigment inside pets. No diffuse glow, gradient, texture, or shadow on the background. No grid lines, no text, no watermark. Do not add extra pets. Preserve the same chick, pod shape, line weight and front viewing angle from both references; vary only the listed accessories, pod colors and emblems.
+
+Layout correction prompt:
+Edit this six-pet sprite sheet with only a layout/scale correction. Keep all six existing pet designs, colors, accessories, emblems, outlines and relative proportions unchanged. Keep landscape 1536x1024, strict 3 columns x 2 rows of equal 512x512 square cells. Scale each COMPLETE pet including tuft/hat/accessories/sparks/exhaust down to fit within approximately 358 pixels height (70% of cell height), and center it in its own cell. Cell centers: (256,256), (768,256), (1280,256), (256,768), (768,768), (1280,768). Each whole pet must have at least 75 pixels of blank magenta above and below within its cell. Generous space between rows and canvas edges is critical. Entire background perfectly uniform flat solid pure magenta RGB(255,0,255), #FF00FF, no texture, no noise, no gradient, no shadow, no glow. No grid, text or extra subjects. Preserve row order lightning, ice, bomb; sniper, starlight, mirror.

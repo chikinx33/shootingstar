@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'support/tabs.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/hangar_preset.dart';
 import 'package:shootingstar/data/profile.dart';
@@ -199,7 +201,10 @@ void main() {
         ),
       );
       await settle();
-      expect(find.textContaining('Paragraph 29.').hitTestable(), findsOneWidget);
+      expect(
+        find.textContaining('Paragraph 29.').hitTestable(),
+        findsOneWidget,
+      );
       // The dialog title stays fixed while the paragraphs move.
       expect(find.text('라이선스').hitTestable(), findsWidgets);
       await close();

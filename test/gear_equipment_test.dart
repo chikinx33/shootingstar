@@ -153,14 +153,19 @@ void main() {
       expect(g.hp, lessThan(g.maxHp));
     },
   );
-  test('thrusters change motion versus collection-triggered charge', () {
-    final booster = arena(variant(5, 10));
-    final base = booster.moveSpeed;
-    booster.input = const Offset(1, 0);
+  test('thrusters no longer change motion; collection-triggered charge stays', () {
+    // v12.17: movement speed is not a stat — the boost thruster gear leaves
+    // the fixed follow pace untouched while moving, during and after its
+    // old burst window, and the craft travels exactly as far as without it.
+    final booster = arena(variant(5, 10)), plain = arena(utility);
+    expect(booster.moveSpeed, GameEngine.followSpeed);
+    booster.input = plain.input = const Offset(1, 0);
     booster.update(.025);
-    expect(booster.moveSpeed / base, closeTo(1.12, .0001));
+    plain.update(.025);
+    expect(booster.moveSpeed, GameEngine.followSpeed);
+    expect(booster.position.dx, closeTo(plain.position.dx, 1e-9));
     advance(booster, 45);
-    expect(booster.moveSpeed, base);
+    expect(booster.moveSpeed, GameEngine.followSpeed);
     final salvage = arena(utility);
     salvage.crystals.addAll(List.filled(16, salvage.position));
     salvage.update(.025);

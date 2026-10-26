@@ -157,68 +157,29 @@ extension ExpandedWeapons on GameEngine {
         (13 + gun * 4) * mainDamage * techDamage('gun') * _mainAttackMultiplier;
     final target = _mainTarget();
     final forward = _direction(movementAngle);
-    if (_fireExpandedMainBranch(power, evo, target, forward)) return;
     switch (armament) {
-      case 'kunai':
-        if (target != null) {
-          for (int i = 0; i < mainProjectiles + (evo ? 2 : 0); i++) {
-            shots.add(
-              Shot(
-                position + Offset(i * 6.0, -12),
-                _unit(target.position - position) * 360 * skillSpeed,
-                power * damageFactor,
-                9,
-                weapon: 'primary',
-                target: target,
-                life: 2,
-              ),
-            );
-          }
-        }
-        if (evo) _gun *= .65;
       case 'shotgun':
         final count = evo ? mainProjectiles + 1 : 5 + mainCount;
-        final close = mainBranch == MainBranch.shellClose;
-        final split = mainBranch == MainBranch.shellSplit;
-        final aimed = close || split
-            ? -math.pi / 2
-            : math.atan2(forward.dy, forward.dx);
-        final spacing = close
-            ? (evo ? .02 : .035)
-            : split
-            ? (evo ? .11 : .19)
-            : (evo ? .04 : .13);
+        final aimed = math.atan2(forward.dy, forward.dx);
+        final spacing = evo ? .04 : .13;
         for (int i = 0; i < count; i++) {
           shots.add(
             Shot(
-                position,
-                _direction(aimed + (i - (count - 1) / 2) * spacing) *
-                    420 *
-                    skillSpeed,
-                power * .65 * damageFactor * (split ? .65 : 1),
-                0,
-                weapon: 'gun',
-                radius: mainWidth,
-              )
-              ..closeRange = close
-              ..splitOnHit = split,
+              position,
+              _direction(aimed + (i - (count - 1) / 2) * spacing) *
+                  420 *
+                  skillSpeed,
+              power * .65 * damageFactor,
+              0,
+              weapon: 'gun',
+              radius: mainWidth,
+            ),
           );
         }
         _gun *= evo ? .55 : 1.5;
       case 'revolver':
-        final overpenetrate = mainBranch == MainBranch.railPierce;
-        final charged = mainBranch == MainBranch.railCharge && _revolverCharged;
-        _revolverCharged = false;
-        final railDamage =
-            power *
-            3 *
-            damageFactor *
-            (overpenetrate
-                ? .8
-                : charged
-                ? 2
-                : 1);
-        final railPierce = (evo ? 3 : 0) + (overpenetrate ? 5 : 0);
+        final railDamage = power * 3 * damageFactor;
+        final railPierce = evo ? 3 : 0;
         final direction = target == null
             ? forward
             : _unit(target.position - position);
@@ -229,7 +190,7 @@ extension ExpandedWeapons on GameEngine {
             railDamage,
             0,
             weapon: 'gun',
-            radius: mainWidth * (charged ? 1.6 : 1),
+            radius: mainWidth,
             pierce: railPierce,
           ),
         );
@@ -241,7 +202,7 @@ extension ExpandedWeapons on GameEngine {
               railDamage,
               0,
               weapon: 'gun',
-              radius: mainWidth * (charged ? 1.6 : 1),
+              radius: mainWidth,
               pierce: railPierce,
             ),
           );
@@ -249,181 +210,9 @@ extension ExpandedWeapons on GameEngine {
         revolverAmmo--;
         _gun *= 1.4;
         if (revolverAmmo <= 0) {
-          _gun = mainBranch == MainBranch.railCharge ? 1.8 : 1.4;
-          _revolverCharged = mainBranch == MainBranch.railCharge;
+          _gun = 1.4;
           revolverAmmo = 6;
         }
-      case 'katana':
-      case 'bat':
-      case 'lightchaser':
-        final radius = (armament == 'bat' ? 105.0 : 175.0) * areaFactor;
-        if (armament == 'bat' && evo) {
-          _radialDamage(position, radius, power * 2, 'gun');
-        } else {
-          _lineDamage(
-            position,
-            forward,
-            radius,
-            armament == 'bat' ? 55 : 35,
-            power * 2,
-            'gun',
-          );
-          if (armament == 'katana' ||
-              (armament == 'lightchaser' &&
-                  (_primaryStrikes % 5 == 0 || evo))) {
-            _lineDamage(position, -forward, radius, 30, power * 1.5, 'gun');
-          }
-        }
-        for (int i = 1; i < mainProjectiles; i++) {
-          _lineDamage(
-            position + Offset((i.isOdd ? 1 : -1) * ((i + 1) ~/ 2) * 16.0, 0),
-            forward,
-            radius,
-            25 + mainPower * 2,
-            power * 1.5,
-            'gun',
-          );
-        }
-        if (armament == 'bat') {
-          for (final e in enemies) {
-            if (e.kind != 3 && (e.position - position).distance < radius) {
-              e.position += _unit(e.position - position) * 30;
-            }
-          }
-        }
-        if (armament == 'katana' &&
-            evo &&
-            target != null &&
-            (target.position - position).distance < radius) {
-          hp = math.min(maxHp, hp + maxHp * .005);
-        }
-        if (armament == 'lightchaser' && evo && _primaryStrikes % 10 == 0) {
-          shots.add(
-            Shot(
-              position,
-              Offset.zero,
-              power * damageFactor,
-              13,
-              weapon: 'sword-array',
-              life: 2,
-              radius: 90 * areaFactor,
-            ),
-          );
-        }
-        _gun *= 2;
-        _primaryStrikes++;
-      case 'void':
-        if (target != null) {
-          shots.add(
-            Shot(
-              target.position,
-              Offset.zero,
-              power * .65 * damageFactor,
-              13,
-              weapon: 'void',
-              life: evo ? 3 : 2,
-              radius: 70 * areaFactor,
-            ),
-          );
-        }
-        if (target != null) {
-          for (int i = 1; i < mainProjectiles; i++) {
-            shots.add(
-              Shot(
-                target.position +
-                    Offset((i.isOdd ? 1 : -1) * ((i + 1) ~/ 2) * 70.0, 0),
-                Offset.zero,
-                power * .65 * damageFactor,
-                13,
-                weapon: 'void',
-                life: evo ? 3 : 2,
-                radius: 70 * areaFactor,
-              ),
-            );
-          }
-        }
-        _gun = 1.8 * cooldownFactor * mainInterval;
-      case 'disorder':
-        if (target != null) {
-          shots.add(
-            Shot(
-              position,
-              _unit(target.position - position) * 330 * skillSpeed,
-              power * (1 + soulStacks * .008) * damageFactor,
-              9,
-              weapon: 'soul',
-              target: target,
-              life: 3,
-            ),
-          );
-        }
-        if (target != null) {
-          for (int i = 1; i < mainProjectiles; i++) {
-            shots.add(
-              Shot(
-                position + Offset(i * 10.0, 0),
-                _unit(target.position - position) * 330 * skillSpeed,
-                power * (1 + soulStacks * .008) * damageFactor,
-                9,
-                weapon: 'soul',
-                target: target,
-                life: 3,
-              ),
-            );
-          }
-        }
-        if (evo && _primaryStrikes++ % 8 == 0) {
-          _radialDamage(
-            position,
-            150,
-            power + soulStacks * permanentMainFactor * _mainAttackMultiplier,
-            'soul',
-          );
-        }
-      case 'lance':
-        _radialDamage(
-          position,
-          (100 + mainPower * 10) * areaFactor,
-          power * 1.2,
-          'starforge',
-        );
-        for (int i = 0; i < mainProjectiles; i++) {
-          _lineDamage(
-            position,
-            _direction(movementAngle + (i - (mainProjectiles - 1) / 2) * .16),
-            250,
-            25,
-            power * 2,
-            'havoc',
-          );
-        }
-        if (evo) {
-          shots.add(
-            Shot(
-              position + forward * 100,
-              Offset.zero,
-              power * damageFactor,
-              13,
-              weapon: 'fissure',
-              life: 1.6,
-              radius: 60,
-            ),
-          );
-          if (target != null) {
-            shots.add(
-              Shot(
-                position,
-                _unit(target.position - position) * 320,
-                power * damageFactor,
-                9,
-                weapon: 'lance',
-                target: target,
-                life: 2,
-              ),
-            );
-          }
-        }
-        _gun = 1.2 * cooldownFactor * mainInterval;
       default:
         _radialDamage(position, 150 * areaFactor, power, 'gun');
         _gun = 1 * cooldownFactor * mainInterval;
@@ -599,15 +388,6 @@ extension ExpandedWeapons on GameEngine {
     }
     if (s.kind < 7) return false;
     if (s.kind == 13) {
-      if (s.weapon == 'void') s.position += s.velocity * dt;
-      if (s.weapon == 'void') {
-        for (final e in enemies) {
-          if (e.kind != 3 &&
-              (e.position - s.position).distance < s.radius * 1.5) {
-            e.position += _unit(s.position - e.position) * 40 * dt;
-          }
-        }
-      }
       if (s.hitCooldown <= 0) {
         for (final e in enemies) {
           if (e.hp > 0 &&
@@ -616,15 +396,6 @@ extension ExpandedWeapons on GameEngine {
           }
         }
         s.hitCooldown = .4;
-      }
-      if (s.life <= 0 && s.weapon == 'void' && evolved.contains('gun')) {
-        _radialDamage(
-          s.position,
-          s.radius * 1.5,
-          s.damage / damageFactor * 2,
-          'void',
-        );
-        pilotShield = math.max(pilotShield, maxHp * .08);
       }
       return true;
     }
@@ -689,13 +460,12 @@ extension ExpandedWeapons on GameEngine {
       }
     }
     if (s.kind == 9 &&
-        (s.target != null ||
-            const {'primary', 'soul', 'lance'}.contains(s.weapon))) {
+        (s.target != null || const {'primary'}.contains(s.weapon))) {
       if (s.target == null ||
           s.target!.hp <= 0 ||
           !enemies.contains(s.target) ||
           s.hitTargets.contains(s.target)) {
-        s.target = const {'primary', 'soul', 'lance'}.contains(s.weapon)
+        s.target = const {'primary'}.contains(s.weapon)
             ? _mainTarget(exclude: s.hitTargets)
             : _nearest();
       }
@@ -742,7 +512,7 @@ extension ExpandedWeapons on GameEngine {
       }
     }
     if (s.kind == 9 &&
-        const {'primary', 'soul', 'lance'}.contains(s.weapon) &&
+        const {'primary'}.contains(s.weapon) &&
         (s.pierce > 0 || s.hitTargets.isNotEmpty)) {
       // Distinct-target tracking is authoritative; a global hit delay would
       // let fast penetrating missiles pass through the next foe harmlessly.
@@ -759,8 +529,7 @@ extension ExpandedWeapons on GameEngine {
         if (s.kind == 10 || (s.kind == 9 && !evolved.contains('drill'))) {
           s.hitTargets.add(e);
         }
-        if (s.kind == 9 &&
-            ['primary', 'soul', 'lance', 'medicDrone'].contains(s.weapon)) {
+        if (s.kind == 9 && ['primary', 'medicDrone'].contains(s.weapon)) {
           // Main-weapon penetration must retarget and never hit one foe twice.
           s.hitTargets.add(e);
           if (s.pierce > 0) {

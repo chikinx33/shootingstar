@@ -125,9 +125,8 @@ class _GooglePlayCommerce implements CommercePlatform {
   Future<bool> _prepareAds() async {
     if (!supported) return false;
     // Without an app ID in the manifest the SDK stays uninitialized.
-    final configured = await const MethodChannel(
-      'shootingstar/commerce_config',
-    ).invokeMethod<String>('admobAppId');
+    final configured = await const MethodChannel('shootingstar/commerce_config')
+        .invokeMethod<String>('admobAppId');
     if (configured == null || configured.isEmpty) return false;
     final consent = Completer<bool>();
     ConsentInformation.instance.requestConsentInfoUpdate(

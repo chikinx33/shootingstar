@@ -39,7 +39,7 @@ void main() {
           equipmentIndex: 0,
           armament: 'shotgun',
           seed: 17,
-        )..mainBranch = MainBranch.shellSplit;
+        );
         g.choices = [
           const UpgradeChoice(
             'missile',
@@ -101,17 +101,18 @@ void main() {
         final snap = BattleStatisticsSnapshot.fromGame(g);
         await tester.pumpWidget(wrap(BattleStatisticsDialog(snapshot: snap)));
         await tester.pump(const Duration(milliseconds: 32));
-        await tester.tap(find.text('현재 빌드'));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 350));
-        await revealUi(tester, find.textContaining('폭발 확산 · 활성').last);
-        expect(find.textContaining('폭발 확산 · 활성'), findsWidgets);
+        // v12.16: the build tab opens first and shows pictures only; the
+        // synergy state stays in the snapshot data.
+        expect(
+          DefaultTabController.of(tester.element(find.byType(TabBar))).index,
+          0,
+        );
+        expect(snap.synergies.join('\n'), contains('폭발 확산 · 활성'));
         // v12.15: owned skills are picture slots; the recipe is the slot's
         // long-press tooltip.
         expect(
           find.byWidgetPredicate(
-            (w) =>
-                w is Tooltip && (w.message ?? '').contains('우선 표적 · 폭발'),
+            (w) => w is Tooltip && (w.message ?? '').contains('우선 표적 · 폭발'),
           ),
           findsWidgets,
         );

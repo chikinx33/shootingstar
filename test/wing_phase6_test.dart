@@ -132,7 +132,7 @@ void main() {
         g.setPaused(true);
         advance(g, 3);
         g.setPaused(false);
-        g.choices = [mainBranches.first.choice];
+        g.choices = [GameEngine.catalog.first];
         advance(g, 3);
         g.choices.clear();
         expect(e.phase, phase);

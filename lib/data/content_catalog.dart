@@ -82,13 +82,34 @@ const techNames = [
   '연쇄 축전기',
 ];
 
-/// Chick companions: hatched from star eggs the cats sat on.
-const petNames = ['삐약 · 불꽃 병아리', '코코 · 간호 병아리', '뚜껑 · 냄비뚜껑 병아리'];
+/// Chick companions (v12.17, user 2026-10-27): nine kinds, collected with
+/// rescue tickets, up to six deployed. In battle they are rescued and fly
+/// in a tail behind the craft; every body blocks bullets (chick_squad.dart).
+const petNames = [
+  '삐약 · 불꽃 병아리',
+  '코코 · 간호 병아리',
+  '뚜껑 · 방패 병아리',
+  '찌릿 · 번개 병아리',
+  '꽁꽁 · 얼음 병아리',
+  '콩콩 · 폭탄 병아리',
+  '피융 · 저격 병아리',
+  '반짝 · 별빛 병아리',
+  '핑퐁 · 거울 병아리',
+];
 const petDescriptions = [
   '공격 · 가까운 적에게 불씨를 쏩니다 (Lv.5부터 2발)',
-  '회복 · 12초마다 선체를 회복합니다',
-  '방어 · 3초마다 주변 적탄을 냄비뚜껑으로 막습니다',
+  '회복 · 10초마다 기체와 줄의 병아리를 회복합니다',
+  '방어 · 체력 2배 · 3초마다 주변 적탄을 지웁니다',
+  '연결 · 앞뒤 병아리와 번개 줄로 이어져 닿은 적에게 피해',
+  '제어 · 지나간 자리에 서리 길 · 적과 적탄 감속',
+  '범위 · 6초마다 알 폭탄 · 떨어질 때도 폭발',
+  '저격 · 4초마다 체력이 가장 많은 적에게 관통탄',
+  '성장 · 줄에 있는 동안 경험치 +15%',
+  '반사 · 막은 적탄을 적에게 되돌려 쏩니다',
 ];
+
+/// Most chicks deployed at once (pet screen 출전 cards).
+const maxDeployedChicks = 6;
 
 int boundedInt(dynamic value, int fallback, int max) =>
     value is num && value.isFinite ? value.toInt().clamp(0, max) : fallback;

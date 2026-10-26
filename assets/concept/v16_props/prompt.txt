@@ -1,0 +1,6 @@
+Use case: style-transfer. Asset type: one mobile game prop sprite sheet. Image 1 is the exact style reference (chunky cute cat-themed shooter kit, thick even dark navy outlines, flat colors with one cel-shade step, small white highlight).
+Create exactly 3 props in a strict 3 columns x 1 row grid on a wide 3:1 canvas, each centered in its own square cell at about 70% of the cell, readable at 40 pixels:
+(1) a small fluffy white cloud parachute canopy seen from slightly below, with four thin strings meeting at the bottom center (nothing attached under it).
+(2) a tiny red SOS flag on a short wooden stick, white letters-free paw print on the flag instead of text.
+(3) a small burst of three soft yellow chick feathers flying apart.
+Background: the whole canvas outside the props is perfectly flat solid pure magenta #FF00FF with generous space. No magenta pigment inside the props, no diffuse glow or shadow on the background, no grid lines, no text or letters.

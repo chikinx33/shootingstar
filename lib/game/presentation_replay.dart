@@ -36,7 +36,7 @@ GameEngine buildPresentationReplay(Profile p, PresentationReplay kind) {
     equipmentIndex: 0,
     armament: kind == PresentationReplay.shieldCounter
         ? 'pulse'
-        : armaments[p.activeArmamentIndex].id,
+        : armaments[p.selectedShip.clamp(0, armaments.length - 1)].id,
     seed: 623,
   )..developerInvincible = true;
   if (kind == PresentationReplay.boss) {

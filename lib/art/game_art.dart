@@ -24,7 +24,11 @@ abstract final class GameArt {
   /// Names drawn in menus as well as battle (decoded at boot).
   static final Map<String, String> _menuPictures = {
     for (var i = 0; i < 10; i++) 'boss-$i': '${_enemies}boss_$i.webp',
-    for (var i = 0; i < 3; i++) 'pet-$i': '${_pets}pet_$i.webp',
+    // v12.17: nine chick kinds and the rescue props
+    for (var i = 0; i < 9; i++) 'pet-$i': '${_pets}pet_$i.webp',
+    'chick-chute': '${_pets}chute.webp',
+    'chick-sos': '${_pets}sos.webp',
+    'chick-feathers': '${_pets}feathers.webp',
     for (final asset in GameIcons.all) asset: asset,
     // supply shelf / reward names
     'gear-cargo': GameIcons.chest,
@@ -95,7 +99,7 @@ abstract final class GameArt {
   static String? address(String atlas, int id) {
     switch (atlas) {
       case 'ships':
-        return id < 3 ? GameIcons.launch : 'pet-${(id - 3).clamp(0, 2)}';
+        return id < 3 ? GameIcons.launch : 'pet-${(id - 3).clamp(0, 8)}';
       case 'enemies':
         return id == 11 ? GameIcons.shield : 'enemy-${id.clamp(0, 10)}';
       case 'bosses':
@@ -147,7 +151,7 @@ abstract final class GameArt {
     8: GameIcons.pause,
     9: GameIcons.heart,
     10: GameIcons.heal,
-    11: GameIcons.magnet,
+    11: GameIcons.magnetDrop,
     12: GameIcons.bomb,
     13: GameIcons.bossChest,
     14: GameIcons.fastForward,

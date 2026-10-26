@@ -58,9 +58,9 @@ void main() {
       final r = ui.PictureRecorder();
       GameBackdropPainter(true).paint(Canvas(r), const Size(40, 60));
       final p = r.endRecording(), image = await p.toImage(40, 60);
-      final data = (await image.toByteData(
-        format: ui.ImageByteFormat.rawRgba,
-      ))!.buffer.asUint8List();
+      final data = (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!
+          .buffer
+          .asUint8List();
       image.dispose();
       p.dispose();
       final i = (30 * 40 + 20) * 4;

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'support/tabs.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/main.dart';
@@ -86,7 +88,7 @@ void main() {
 
           await mount(DeveloperTestScreen(profile: dev));
           columns();
-          await choose('test-weapon-4');
+          await choose('test-weapon-1');
           await tab('기체');
           columns();
           await choose('test-ship-2');
@@ -105,7 +107,6 @@ void main() {
           final reloaded = prefs.getString(Profile.storageKey);
           await reload.restoreDeveloperSession();
           final restored = reload.developerSession!;
-          expect(restored.activeArmamentIndex, 4);
           expect(restored.selectedShip, 2);
           expect(restored.selectedStage, 68);
           await mount(DeveloperTestScreen(profile: restored));

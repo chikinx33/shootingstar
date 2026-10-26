@@ -214,10 +214,22 @@ void main() {
     p.gearKeys = 3;
     p.petEggs = 7;
     final before = RewardSnapshot(p), start = p.shipModules.owned.length;
+    final credits = p.credits, dust = p.blueprints;
     for (var i = 0; i < 3; i++) expect(p.openModuleSupply(), isTrue);
-    for (var i = 0; i < 7; i++)
+    final supports = <String>[];
+    for (var i = 0; i < 7; i++) {
       expect(p.openModuleSupply(support: true), isTrue);
+      // what the receipt says was granted, before any later cleanup
+      supports.add(moduleParts.firstWhere((m) => m.name == p.lastLoot).id);
+    }
+    // v12.17: the support supply cycles the five live devices only; a
+    // retired magnet/thruster is never handed out (and then refunded).
+    expect(supports, everyElement(isIn(supportPartIds)));
+    expect(supports.toSet(), supportPartIds.toSet());
     expect(p.shipModules.owned.length, start + 10);
+    expect(p.credits, credits);
+    expect(p.blueprints, dust);
+    expect(p.updateNotices, isEmpty);
     expect(
       before.earned(p).where((e) => e.modulePartId != null),
       hasLength(10),
@@ -309,34 +321,33 @@ void main() {
       expect(report.weapons.any((w) => w.name.contains('발칸 건')), isTrue);
     },
   );
-  testWidgets(
-    '320px unified four slots, picker and mount stats',
-    (tester) async {
-      tester.view.physicalSize = const Size(320, 568);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      final p = await Profile.load();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(body: ModuleWorkshop(profile: p, embedded: true)),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.byType(GameItemSlot), findsNWidgets(moduleProfiles.length));
-      await tapUi(tester, find.bySemanticsLabel('W1 모듈 편집'));
-      await tester.pumpAndSettle();
-      final id = p.moduleLoadout.parts['W1']!.instanceId;
-      await tapUi(tester, find.byKey(ValueKey('module-item-$id')));
-      await tester.pumpAndSettle();
-      expect(find.textContaining('전방 ±15°'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-      await tester.tap(find.byTooltip('닫기').last);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('닫기').last);
-      await tester.pumpAndSettle();
-      await tester.pumpWidget(const SizedBox());
-      p.dispose();
-    },
-  );
+  testWidgets('320px unified four slots, picker and mount stats', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final p = await Profile.load();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: ModuleWorkshop(profile: p, embedded: true)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(GameItemSlot), findsNWidgets(moduleProfiles.length));
+    await tapUi(tester, find.bySemanticsLabel('W1 모듈 편집'));
+    await tester.pumpAndSettle();
+    final id = p.moduleLoadout.parts['W1']!.instanceId;
+    await tapUi(tester, find.byKey(ValueKey('module-item-$id')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('전방 ±15°'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.byTooltip('닫기').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('닫기').last);
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const SizedBox());
+    p.dispose();
+  });
 }

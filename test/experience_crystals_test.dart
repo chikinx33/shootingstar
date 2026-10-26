@@ -132,8 +132,12 @@ void main() {
       copy.absorbingCrystals.fold<double>(0, (s, m) => s + m.value),
       closeTo(28 * 1.16, 1e-8),
     );
-    final magnet = reload(copy);
+    // v12.17: kills pay XP at once; silence the guns so this checks the
+    // gems alone (kill XP has its own test below).
+    final magnet = reload(copy)..upgrades.clear();
+    final killsBefore = magnet.kills;
     for (var i = 0; i < 200; i++) magnet.update(.01);
+    expect(magnet.kills, killsBefore);
     expect(magnet.xp, closeTo(44 * 1.16, 1e-8));
     final overflow = arena();
     overflow.crystals.addAll(
@@ -148,6 +152,45 @@ void main() {
     final kept = reload(overflow);
     expect(kept.xp + fieldValue(kept), 16 + 1401 * 8);
     expect(kept.crystals.length, 1400);
+  });
+
+  test('v12.17: each kill pays its own XP at once, its gems on pickup', () {
+    final g = arena()
+      ..passives['xp'] = 2
+      ..upgrades.clear();
+    final far = g.position + const ui.Offset(250, -100);
+    final foes = [
+      Foe(far, 1, 0, 10, 0),
+      Foe(far, 1, 0, 10, 2),
+      Foe(far, 1, 0, 10, 0)..elite = true,
+    ];
+    expect(foes.map(GameEngine.killExperience), [1, 3, 10]);
+    final killXp = foes.fold<double>(
+      0,
+      (s, e) => s + GameEngine.killExperience(e),
+    );
+    g.enemies.addAll([for (final e in foes) e..hp = 0]);
+    g.update(.001);
+    expect(g.kills, 3);
+    expect(g.xp, closeTo(killXp * 1.16, 1e-8));
+    final dropped = fieldValue(g);
+    expect(dropped, greaterThanOrEqualTo(24)); // the elite's three 8s
+    g.supplies.add(Supply(g.position, 1));
+    for (var i = 0; i < 200; i++) {
+      g.update(.01);
+    }
+    expect(g.kills, 3);
+    expect(g.crystals, isEmpty);
+    expect(g.xp, closeTo((killXp + dropped) * 1.16, 1e-8));
+
+    final boss = arena()..elapsed = 60;
+    final b = Foe(boss.position + const ui.Offset(100, -150), 1, 0, 34, 3)
+      ..hp = 0;
+    expect(GameEngine.killExperience(b), 0);
+    boss.enemies.add(b);
+    boss.update(.001);
+    expect(boss.xp, 0);
+    expect(fieldValue(boss), 40);
   });
 
   test(

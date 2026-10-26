@@ -47,13 +47,18 @@ void charge(GameEngine g) =>
 /// Runs until the active ultimate ends, checking it never recharges meanwhile.
 void finishUltimate(GameEngine g) {
   for (var i = 0; i < 2000 && g.ultimateRemaining > 0; i++) {
-    expect(g.ultimateCharge, 0, reason: 'no charge while the ultimate is active');
+    expect(
+      g.ultimateCharge,
+      0,
+      reason: 'no charge while the ultimate is active',
+    );
     g.update(.02);
     g.enemies.clear();
     g.shots.clear();
   }
   expect(g.ultimateRemaining, 0);
 }
+
 void arm(GameEngine g) {
   g.upgrades['guardian'] = 3;
   g.passives['armor'] = 1;
@@ -97,7 +102,7 @@ void main() {
     charge(g);
     expect(g.ultimateCharge, 0);
     g.setPaused(false);
-    g.choices = [mainBranches.first.choice];
+    g.choices = [GameEngine.catalog.first];
     charge(g);
     expect(g.ultimateCharge, 0);
     g.choices.clear();
@@ -109,7 +114,7 @@ void main() {
     expect(g.ultimateReady, false);
     expect(g.activateCommonUltimate(), false);
     g.setPaused(false);
-    g.choices = [mainBranches.first.choice];
+    g.choices = [GameEngine.catalog.first];
     expect(g.ultimateReady, false);
     expect(g.activateCommonUltimate(), false);
     g.choices.clear();
@@ -133,9 +138,7 @@ void main() {
     expect(g.invincibleActive, false);
     expect(g.clonesActive, false);
     g.update(.02);
-    final missiles = <Shot>{
-      ...g.shots.where((s) => s.weapon == 'ult-missile'),
-    };
+    final missiles = <Shot>{...g.shots.where((s) => s.weapon == 'ult-missile')};
     expect(missiles, isNotEmpty);
     expect(
       missiles.every((s) => s.kind == 1 && !s.hostile && s.target != null),
@@ -147,7 +150,7 @@ void main() {
     advance(g, 2);
     g.setPaused(false);
     expect(g.ultimateRemaining, remaining);
-    g.choices = [mainBranches.first.choice];
+    g.choices = [GameEngine.catalog.first];
     advance(g, 2);
     g.choices.clear();
     expect(g.ultimateRemaining, remaining);
@@ -227,10 +230,7 @@ void main() {
       expect(g.shots.where((s) => s.interceptable), isEmpty);
       expect(g.clonesActive, ship == 1, reason: 'ship $ship');
       expect(g.invincibleActive, ship == 2, reason: 'ship $ship');
-      expect(
-        g.ultimateRemaining,
-        closeTo(const [2.4, 10.0, 8.0][ship], 1e-9),
-      );
+      expect(g.ultimateRemaining, closeTo(const [2.4, 10.0, 8.0][ship], 1e-9));
       g.update(.02);
       expect(
         (g.damageByWeapon['common-ultimate'] ?? 0) > 0,
@@ -300,7 +300,7 @@ void main() {
   test(
     'pet interception and inactive guardian shield do not arm a counter',
     () {
-      final pet = arena(pet: 2);
+      final pet = arena(pet: 2)..seatChicks();
       arm(pet);
       expect(pet.shieldCounterPending, false);
       final g = arena()..combatTime = 2;
@@ -316,7 +316,7 @@ void main() {
     g.setPaused(true);
     advance(g, 4);
     g.setPaused(false);
-    g.choices = [mainBranches.first.choice];
+    g.choices = [GameEngine.catalog.first];
     advance(g, 4);
     g.choices.clear();
     expect(g.combatTime, frozen);
@@ -385,11 +385,10 @@ void main() {
       }
     },
   );
-  test('counter does not consume on an empty target-only attack and snapshots freeze new details', () {
-    final g = arena(weapon: 'kunai');
+  // v12.17: the target-only main guns are gone; every cat gun fires forward.
+  test('armed counter snapshots freeze new details', () {
+    final g = arena();
     arm(g);
-    g.upgrades['gun'] = 1;
-    g.update(.001);
     expect(g.shieldCounterPending, true);
     final snap = BattleStatisticsSnapshot.fromGame(g);
     expect(snap.synergies.any((s) => s.contains('방패 역습 · 활성')), true);

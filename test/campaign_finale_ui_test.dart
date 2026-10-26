@@ -30,59 +30,56 @@ void main() {
       'NotoSansKR',
     )..addFont(rootBundle.load('assets/fonts/NotoSansKR.ttf'))).load();
   });
-  test(
-    'final destruction survives a checkpoint round-trip and settles the next loop exactly once',
-    () async {
-      SharedPreferences.setMockInitialValues({});
-      final p = await Profile.load();
-      p.onboarded = true;
-      p.soundEnabled = false;
-      p.selectedStage = 99;
-      p.clearedStages.addAll(List.generate(99, (i) => i));
-      final initial = engine(99, 0)
-        ..elapsed = 240
-        ..kills = 300
-        ..bossesDefeated = 2;
-      final boss = Foe(initial.position + const Offset(0, -150), 100, 0, 34, 3)
-        ..hp = .1;
-      initial.enemies.add(boss);
-      final data = initial.checkpoint(), state = data['state'] as Map;
-      state['_bossWave'] = 3;
-      state['_lastBossPhase'] = 2;
-      state['bossCycle'] = 3.3;
-      final g = BattleCheckpoint.restore(jsonDecode(jsonEncode(data)));
-      g.shots.add(Shot(g.boss!.position, Offset.zero, 100, 0));
-      g.update(.01);
-      expect(g.resolvingBoss, true);
-      expect(g.finished, false);
-      final restored = BattleCheckpoint.restore(
-        jsonDecode(jsonEncode(g.checkpoint())),
-      );
-      restored.setPaused(false);
-      for (var frame = 0; frame < 120; frame++) {
-        restored.update(.05);
-      }
-      expect(restored.victory, true);
-      void settle() => p.completeRun(
-        victory: restored.victory,
-        stageIndex: 99,
-        kills: restored.kills,
-        level: restored.level,
-        seconds: restored.elapsed.floor(),
-        bossesDefeated: restored.bossesDefeated,
-        training: false,
-        runId: 'finale-v33',
-      );
-      settle();
-      final credits = p.credits;
-      settle();
-      expect(p.credits, credits);
-      expect(p.campaignLoop, 1);
-      expect(p.selectedStage, 0);
-      await p.save();
-      p.dispose();
-    },
-  );
+  test('final destruction survives a checkpoint round-trip and settles the next loop exactly once', () async {
+    SharedPreferences.setMockInitialValues({});
+    final p = await Profile.load();
+    p.onboarded = true;
+    p.soundEnabled = false;
+    p.selectedStage = 99;
+    p.clearedStages.addAll(List.generate(99, (i) => i));
+    final initial = engine(99, 0)
+      ..elapsed = 240
+      ..kills = 300
+      ..bossesDefeated = 2;
+    final boss = Foe(initial.position + const Offset(0, -150), 100, 0, 34, 3)
+      ..hp = .1;
+    initial.enemies.add(boss);
+    final data = initial.checkpoint(), state = data['state'] as Map;
+    state['_bossWave'] = 3;
+    state['_lastBossPhase'] = 2;
+    state['bossCycle'] = 3.3;
+    final g = BattleCheckpoint.restore(jsonDecode(jsonEncode(data)));
+    g.shots.add(Shot(g.boss!.position, Offset.zero, 100, 0));
+    g.update(.01);
+    expect(g.resolvingBoss, true);
+    expect(g.finished, false);
+    final restored = BattleCheckpoint.restore(
+      jsonDecode(jsonEncode(g.checkpoint())),
+    );
+    restored.setPaused(false);
+    for (var frame = 0; frame < 120; frame++) {
+      restored.update(.05);
+    }
+    expect(restored.victory, true);
+    void settle() => p.completeRun(
+      victory: restored.victory,
+      stageIndex: 99,
+      kills: restored.kills,
+      level: restored.level,
+      seconds: restored.elapsed.floor(),
+      bossesDefeated: restored.bossesDefeated,
+      training: false,
+      runId: 'finale-v33',
+    );
+    settle();
+    final credits = p.credits;
+    settle();
+    expect(p.credits, credits);
+    expect(p.campaignLoop, 1);
+    expect(p.selectedStage, 0);
+    await p.save();
+    p.dispose();
+  });
   for (final size in [
     const Size(320, 568),
     const Size(360, 640),

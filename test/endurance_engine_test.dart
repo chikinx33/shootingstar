@@ -12,7 +12,7 @@ void main() {
     () {
       final rows = <Map<String, dynamic>>[];
       for (final world in [4, 9])
-        for (final weapon in ['pulse', 'void']) {
+        for (final weapon in ['pulse', 'shotgun']) {
           var g =
               GameEngine(
                   stageIndex: world * 10 + 9,

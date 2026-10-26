@@ -207,34 +207,37 @@ void main() {
       }
     });
 
-    test('mid-boss: sturdy elite fires its reference set, golden box drop', () async {
-      final g = await safeRun(seed: 5);
-      Foe? elite() => g.enemies.where((e) => e.elite).firstOrNull;
-      fly(g, 150, until: () => elite() != null);
-      final e = elite()!;
-      expect(e.radius, 30);
-      final escort = g.enemies.firstWhere((o) => !o.elite && o.kind != 3);
-      expect(e.maxHp, greaterThan(escort.maxHp * 3));
-      // v12.9.8: the first house's mid-boss is the reference M1 three-way
-      // bomber: it lobs big orbs in fans
-      var bigOrbs = 0;
-      for (var i = 0; i < 12 * 40; i++) {
+    test(
+      'mid-boss: sturdy elite fires its reference set, golden box drop',
+      () async {
+        final g = await safeRun(seed: 5);
+        Foe? elite() => g.enemies.where((e) => e.elite).firstOrNull;
+        fly(g, 150, until: () => elite() != null);
+        final e = elite()!;
+        expect(e.radius, 30);
+        final escort = g.enemies.firstWhere((o) => !o.elite && o.kind != 3);
+        expect(e.maxHp, greaterThan(escort.maxHp * 3));
+        // v12.9.8: the first house's mid-boss is the reference M1 three-way
+        // bomber: it lobs big orbs in fans
+        var bigOrbs = 0;
+        for (var i = 0; i < 12 * 40; i++) {
+          g.update(.025);
+          bigOrbs = math.max(
+            bigOrbs,
+            g.shots.where((s) => s.weapon == 'enemy-big').length,
+          );
+        }
+        expect(bigOrbs, greaterThanOrEqualTo(3));
+        e.hp = 0;
         g.update(.025);
-        bigOrbs = math.max(
-          bigOrbs,
-          g.shots.where((s) => s.weapon == 'enemy-big').length,
-        );
-      }
-      expect(bigOrbs, greaterThanOrEqualTo(3));
-      e.hp = 0;
-      g.update(.025);
-      final box = g.supplies.where((s) => s.kind == 9).single;
-      g.input = Offset.zero;
-      g.position = box.position;
-      g.update(.025);
-      expect(g.supplies.where((s) => s.kind == 9), isEmpty);
-      expect(g.enh('gun') + g.evo('gun'), greaterThanOrEqualTo(1));
-    });
+        final box = g.supplies.where((s) => s.kind == 9).single;
+        g.input = Offset.zero;
+        g.position = box.position;
+        g.update(.025);
+        expect(g.supplies.where((s) => s.kind == 9), isEmpty);
+        expect(g.enh('gun') + g.evo('gun'), greaterThanOrEqualTo(1));
+      },
+    );
 
     test('clouds veil the street, then the boss house appears', () async {
       final g = await safeRun();

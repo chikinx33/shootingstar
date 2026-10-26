@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/data/profile.dart';
 import 'package:shootingstar/game/developer_battle.dart';
-import 'package:shootingstar/game/engine.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -18,8 +17,7 @@ void main() {
     final dev = await normal.startDeveloperSession();
     dev.selectShip(2);
     dev.selectStage(77);
-    dev.selectArmament(4);
-    dev.developerConfigure(pilotLevel: 25, armamentLevel: 7);
+    dev.developerConfigure(pilotLevel: 25);
     final config = DeveloperBattleConfig()
       ..level = 50
       ..rate = 3
@@ -28,7 +26,6 @@ void main() {
       ..scene = 1
       ..phase = 2
       ..speed = 4
-      ..branch = MainBranch.shellSplit
       ..invincible = true;
     config.skills.addAll({'missile': 5, 'area': 3});
     config.evolutions.add('missile');
@@ -48,7 +45,6 @@ void main() {
     final restored = reloaded.developerSession!;
     expect(restored.selectedStage, 77);
     expect(restored.selectedShip, 2);
-    expect(restored.activeArmamentLevel, 7);
     expect(restored.pilotLevel, 25);
     expect(restored.online, isNull);
     expect(

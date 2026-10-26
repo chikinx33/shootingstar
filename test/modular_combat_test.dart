@@ -283,7 +283,7 @@ void main() {
     expect(reload.moduleLoadout.toJson(), next.modules!.toJson());
     await reload.replaceProgress(p.exportProgress());
     expect(reload.moduleLoadout.toJson(), next.modules!.toJson());
-    expect(reload.petLevels, [3, 2, 0]);
+    expect(reload.petLevels, [3, 2, 0, 0, 0, 0, 0, 0, 0]);
     expect(reload.credits, 876);
   });
   test('new modular combat stays bounded through eight minutes in early middle and final worlds', () {

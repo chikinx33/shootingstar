@@ -98,13 +98,25 @@ void main() {
       // 60 + level * 16; house gems 4, wiped formation 8) mean fewer, later
       // drafts than the v10.0.62 18 XP curve. v12.5.2 removed the hidden
       // 8-second wait between drafts: every level opens exactly one draft.
+      // v12.17: every kill also pays 1-10 XP at once, so the developed,
+      // active flights (750+ kills) reach about one level more and their
+      // first draft comes a few seconds sooner.
       for (final row in active) {
-        expect(row['level'], inInclusiveRange(5, 10));
-        expect(row['firstDraft'], inInclusiveRange(20, 70));
+        expect(row['level'], inInclusiveRange(5, 12));
+        expect(row['firstDraft'], inInclusiveRange(12, 70));
         expect(row['drafts'], (row['level'] as int) - 1);
         expect(row['bossSeconds'], inInclusiveRange(8, 80));
         expect(row['peakCrystals'], lessThan(100));
         expect(row['bossPatterns'].length, 3);
+      }
+      // more kills now also mean more XP: development never levels slower
+      for (final seed in [11, 31]) {
+        int level(bool developed) =>
+            active.firstWhere(
+                  (r) => r['seed'] == seed && r['developed'] == developed,
+                )['level']
+                as int;
+        expect(level(true), greaterThanOrEqualTo(level(false)));
       }
     }
   });

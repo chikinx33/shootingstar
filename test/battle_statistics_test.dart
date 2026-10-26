@@ -137,14 +137,22 @@ void main() {
       await revealUi(tester, find.byKey(const Key('pause-battle-statistics')));
       await tester.tap(find.byKey(const Key('pause-battle-statistics')));
       await tester.pump(const Duration(milliseconds: 300));
-      expect(find.text('누적 피해 400.0'), findsOneWidget);
-      expect(find.text('75.0%'), findsOneWidget);
+      // v12.16: the build tab opens first
+      expect(
+        DefaultTabController.of(tester.element(find.byType(TabBar))).index,
+        0,
+      );
       await tester.sendKeyEvent(LogicalKeyboardKey.keyP);
       await tester.pump(const Duration(seconds: 2));
       expect(game.paused, isTrue);
       expect(game.combatTime, 60);
       expect(game.input, Offset.zero);
-      await tester.tap(find.text('현재 빌드'));
+      await tester.drag(
+        find.byKey(const Key('battle-build-scroll')),
+        const Offset(0, -350),
+      );
+      await tester.pump();
+      await tester.tap(find.text('피해 기여'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
@@ -152,11 +160,9 @@ void main() {
         DefaultTabController.of(tester.element(find.byType(TabBar))).index,
         1,
       );
-      await tester.drag(
-        find.byKey(const Key('battle-build-scroll')),
-        const Offset(0, -350),
-      );
-      await tester.pump();
+      // rows are a picture, a bar and the damage number
+      expect(find.text('300.0'), findsOneWidget);
+      expect(find.text('100.0'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.tap(find.byKey(const Key('close-battle-statistics')));
       await tester.pump();
@@ -207,8 +213,11 @@ void main() {
         );
         await tester.tap(find.byKey(const Key('result-battle-statistics')));
         await tester.pump(const Duration(milliseconds: 300));
-        expect(find.text('누적 피해 125.0'), findsOneWidget);
-        expect(find.text('이번 출격의 최종 기록'), findsOneWidget);
+        final dialog = tester.widget<BattleStatisticsDialog>(
+          find.byType(BattleStatisticsDialog),
+        );
+        expect(dialog.snapshot.damage.totalDamage, 125);
+        expect(dialog.snapshot.finished, isTrue);
         await tester.pump(const Duration(seconds: 1));
         expect(game.combatTime, 25);
         await tester.tap(find.byKey(const Key('close-battle-statistics')));

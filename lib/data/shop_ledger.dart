@@ -25,7 +25,12 @@ const adOfferNames = {
 enum ShopItem { starter, growthFund, monthly, adPass, supporter }
 
 class ShopProduct {
-  const ShopProduct(this.id, this.title, this.summary, {this.consumable = false});
+  const ShopProduct(
+    this.id,
+    this.title,
+    this.summary, {
+    this.consumable = false,
+  });
   final String id, title, summary;
 
   /// Consumables can be bought again; one-time items are owned once.
@@ -69,7 +74,12 @@ ShopItem? shopItemOf(String productId) {
   return null;
 }
 
-const starterReward = FleetReward(credits: 1000, plans: 20, gearKeys: 2, eggs: 1);
+const starterReward = FleetReward(
+  credits: 1000,
+  plans: 20,
+  gearKeys: 2,
+  eggs: 1,
+);
 const fundReward = FleetReward(plans: 15, gearKeys: 1);
 const monthlyFirstReward = FleetReward(plans: 20);
 const monthlyDailyReward = FleetReward(credits: 200, plans: 2, food: 20);
@@ -140,11 +150,9 @@ class ShopLedger {
   static ShopLedger restore(Object? raw) {
     final l = ShopLedger();
     if (raw is! Map) return l;
-    String text(Object? v, int max) =>
-        v is String && v.length <= max ? v : '';
-    int time(Object? v) => v is num && v.isFinite
-        ? v.toInt().clamp(0, 8640000000000000)
-        : 0;
+    String text(Object? v, int max) => v is String && v.length <= max ? v : '';
+    int time(Object? v) =>
+        v is num && v.isFinite ? v.toInt().clamp(0, 8640000000000000) : 0;
     l.day = text(raw['day'], 10);
     l.monthlyDay = text(raw['monthlyDay'], 10);
     l.binding = text(raw['binding'], 64);
@@ -290,7 +298,8 @@ mixin ShopSystems on ContentSystems {
         lastLoot = '후원 외형 보유';
       case ShopItem.monthly:
         _pay(monthlyFirstReward);
-        shop.monthlyUntil = math.max(shop.monthlyUntil, at) + _day.inMilliseconds;
+        shop.monthlyUntil =
+            math.max(shop.monthlyUntil, at) + _day.inMilliseconds;
       case ShopItem.adPass:
         shop.adPassUntil = math.max(shop.adPassUntil, at) + _day.inMilliseconds;
         lastLoot = '광고 패스 30일 추가';
@@ -321,8 +330,7 @@ mixin ShopSystems on ContentSystems {
       !shop.fundClaims.contains(world) &&
       worldCleared(world);
 
-  int get fundAttention =>
-      List.generate(10, (w) => w).where(fundReady).length;
+  int get fundAttention => List.generate(10, (w) => w).where(fundReady).length;
 
   /// World 5 and 10 (index 4, 9) add an epic gear piece; a full bag gets
   /// 별가루 10 instead so nothing is lost.

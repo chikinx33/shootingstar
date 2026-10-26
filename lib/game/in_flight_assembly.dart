@@ -9,7 +9,7 @@ part of 'engine.dart';
 /// [assembleInFlight] is set by real sorties; engines built elsewhere
 /// (tests, previews) keep the whole craft attached.
 extension InFlightAssembly on GameEngine {
-  /// Order the shed parts come back in: weapons and gear alternate.
+  /// Every detachable part (v12.17: they come back in a random order).
   static const order = [
     'W1',
     'nose',
@@ -52,7 +52,9 @@ extension InFlightAssembly on GameEngine {
     'engines': 'engine_left',
   };
 
-  static const mergeSeconds = 1.8;
+  /// v12.17 (user 2026-10-27): a quick beat on the real clock — it never
+  /// slows down when the finger lifts or during an ultimate's cut-in.
+  static const mergeSeconds = 1.2;
 
   /// Fraction of the merge when the part locks on.
   static const lockAt = .62;
@@ -104,14 +106,25 @@ extension InFlightAssembly on GameEngine {
   /// again early in the run (the base hull alone only has its main gun).
   double get assemblyXpFactor =>
       assembleInFlight && assemblyParts.any((id) => !attached.contains(id))
-      ? .45
+      ? .7
       : 1;
 
-  /// The next shed part as a level-up card, or null when whole again.
-  UpgradeChoice? get mergeChoice {
+  /// Shed parts not yet back on the craft.
+  List<String> get shedParts => [
+    for (final id in assemblyParts)
+      if (!attached.contains(id) && id != mergingPart) id,
+  ];
+
+  /// A random shed part as a level-up card, or null when whole again.
+  UpgradeChoice? rollMergeChoice() {
     if (!assembleInFlight || mergingPart != null) return null;
-    for (final id in assemblyParts) {
-      if (attached.contains(id)) continue;
+    final shed = shedParts;
+    if (shed.isEmpty) return null;
+    return mergeChoiceFor(shed[random.nextInt(shed.length)]);
+  }
+
+  UpgradeChoice mergeChoiceFor(String id) {
+    {
       final name = names[id]!;
       final icon = gearParts.contains(id)
           ? 'asset:${ShipSpriteArt.battleAssets[layers[id]!.first] ?? 'assets/art/ship_parts/${ShipSpriteArt.shipFor(shipIndex)}/${_gearFiles[id]}.webp'}'
@@ -124,7 +137,6 @@ extension InFlightAssembly on GameEngine {
         growth: 'merge',
       );
     }
-    return null;
   }
 
   void _beginMerge(String id) {

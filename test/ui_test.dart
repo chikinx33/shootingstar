@@ -92,9 +92,7 @@ void main() {
 
     expect(find.text('일시정지'), findsOneWidget);
     expectCentered();
-    await tester.tap(
-      find.byKey(const Key('pause-return')),
-    );
+    await tester.tap(find.byKey(const Key('pause-return')));
     await tester.pump();
     await tester.pump();
     expect(find.text('다음엔 꼭 이긴다냥'), findsOneWidget);
@@ -147,9 +145,7 @@ void main() {
     expect(find.text('일시정지'), findsNothing);
     await tester.tap(find.byTooltip('일시정지'));
     await tester.pump();
-    await tester.tap(
-      find.byKey(const Key('pause-return')),
-    );
+    await tester.tap(find.byKey(const Key('pause-return')));
     await tester.pump();
     await tester.pump();
     expect(find.text('다음엔 꼭 이긴다냥'), findsOneWidget);

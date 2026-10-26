@@ -43,7 +43,7 @@ class CatGearSet {
 const catGearSets = [
   CatGearSet('sunshine', '선샤인', '화력 +4%', '화력 +10%'),
   CatGearSet('night', '나이트 가드', '최대 선체 +6%', '최대 선체 +14% · 피해 감소 +4%'),
-  CatGearSet('bloom', '벚꽃 블룸', '회수 범위 +8%', '회수 범위 +18% · 이동 속도 +6%'),
+  CatGearSet('bloom', '벚꽃 블룸', '회수 범위 +8%', '회수 범위 +18% · 피격 무적 +10%'),
 ];
 
 CatGearSet catGearSet(String id) =>
@@ -86,15 +86,16 @@ class CatGearItem {
       CatGearSlot.nose => .03 * r + .006 * level,
       CatGearSlot.armor => .04 * r + .008 * level,
       CatGearSlot.wings => .05 * r + .008 * level,
-      CatGearSlot.engines => .02 * r + .003 * level,
+      // v12.17: thrusters lengthen the protection after a hit
+      CatGearSlot.engines => .05 * r + .008 * level,
     };
   }
 
   String get statLabel => switch (slot) {
     CatGearSlot.nose => '화력',
     CatGearSlot.armor => '최대 선체',
-    CatGearSlot.wings => '회수 범위',
-    CatGearSlot.engines => '이동 속도',
+    CatGearSlot.wings => '보석 흡수',
+    CatGearSlot.engines => '피격 무적',
   };
 
   String get statText => '$statLabel +${(value * 100).toStringAsFixed(1)}%';
@@ -164,11 +165,13 @@ class CatGearBonuses {
   const CatGearBonuses({
     this.damage = 0,
     this.hull = 0,
-    this.speed = 0,
+    this.guard = 0,
     this.pickup = 0,
     this.reduction = 0,
   });
-  final double damage, hull, speed, pickup, reduction;
+
+  /// [guard]: extra share of the protection time after a hit (thrusters).
+  final double damage, hull, guard, pickup, reduction;
 }
 
 /// Everything the account owns plus what is equipped.
@@ -227,7 +230,7 @@ class CatGearState {
   }
 
   CatGearBonuses get bonuses {
-    double damage = 0, hull = 0, speed = 0, pickup = 0, reduction = 0;
+    double damage = 0, hull = 0, guard = 0, pickup = 0, reduction = 0;
     for (final slot in CatGearSlot.values) {
       final i = equippedIn(slot);
       if (i == null) continue;
@@ -239,7 +242,7 @@ class CatGearState {
         case CatGearSlot.wings:
           pickup += i.value;
         case CatGearSlot.engines:
-          speed += i.value;
+          guard += i.value;
       }
     }
     final counts = setCounts;
@@ -257,14 +260,14 @@ class CatGearState {
     }
     if (n('bloom') >= 4) {
       pickup += .18;
-      speed += .06;
+      guard += .10;
     } else if (n('bloom') >= 2) {
       pickup += .08;
     }
     return CatGearBonuses(
       damage: damage,
       hull: hull,
-      speed: math.min(speed, .4),
+      guard: math.min(guard, .6),
       pickup: pickup,
       reduction: math.min(reduction, .3),
     );

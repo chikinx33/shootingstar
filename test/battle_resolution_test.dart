@@ -93,7 +93,11 @@ void main() {
     },
   );
   test('repeated magnets and a large batch never lose or duplicate XP', () {
-    final g = arena()..xpNeeded = 1e9;
+    // v12.17: kills pay XP at once, so the guns stay silent here and the
+    // total is gem XP alone (the kill count is asserted below).
+    final g = arena()
+      ..xpNeeded = 1e9
+      ..upgrades.clear();
     g.crystals.addAll(
       List.generate(
         2000,
@@ -115,7 +119,9 @@ void main() {
     g.setPaused(false);
     tick(g, 1.8);
     expect(g.absorbingCrystals, isEmpty);
-    expect(g.xp, 4010);
+    expect(g.kills, 0);
+    // 2005 legacy gems at their 2-XP value: nothing lost, nothing doubled.
+    expect(g.xp, (2000 + 5) * ExperienceCrystal.valueOf(Offset.zero));
   });
   test('boss clear freezes threats, breaks up, announces, exits, then finishes once', () {
     final g = arena(stage: 9);

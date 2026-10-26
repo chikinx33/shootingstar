@@ -50,7 +50,6 @@ void main() {
             g.shots.clear();
             g.supplies.clear();
           }
-          g.mainBranch = MainBranch.pulseFocus;
           g.upgrades.addAll({'gun': 1, 'laser': 1, 'guardian': 3});
           g.passives['armor'] = 1;
           final app = ShootingstarApp(

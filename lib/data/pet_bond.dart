@@ -11,17 +11,19 @@ class PetBond {
   static const maxAwakening = 3;
   static const favorRequirements = [50, 120, 200];
   static const levelRequirements = [5, 10, 15];
-  final List<int> favor = List.filled(3, 0);
-  final List<int> awakening = List.filled(3, 0);
-  final List<int> skills = List.filled(3, 0);
-  final List<int> _spentCredits = List.filled(3, 0);
-  final List<int> _spentFood = List.filled(3, 0);
-  final List<int> _spentShards = List.filled(3, 0);
+  // v12.17: one ledger per chick kind
+  static const kinds = 9;
+  final List<int> favor = List.filled(kinds, 0);
+  final List<int> awakening = List.filled(kinds, 0);
+  final List<int> skills = List.filled(kinds, 0);
+  final List<int> _spentCredits = List.filled(kinds, 0);
+  final List<int> _spentFood = List.filled(kinds, 0);
+  final List<int> _spentShards = List.filled(kinds, 0);
   final Set<String> _runs = {};
   String day = '';
   int lastClock = 0, combatFavorToday = 0, giftsToday = 0;
 
-  bool _valid(int pet) => pet >= 0 && pet < 3;
+  bool _valid(int pet) => pet >= 0 && pet < kinds;
 
   /// A monotonic local clock also protects gifts and combat across rollback.
   bool advance(DateTime now) {
@@ -212,7 +214,7 @@ class PetBond {
         raw[field] is List && i < (raw[field] as List).length
         ? raw[field][i]
         : null;
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < kinds; i++) {
       book.favor[i] = read(at('favor', i), favorCap);
       book.awakening[i] = read(at('awakening', i), maxAwakening);
       book.skills[i] = book.awakening[i] == 0 ? 0 : read(at('skills', i), 1);

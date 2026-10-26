@@ -110,7 +110,7 @@ void main() {
       for (var world = 0; world < 10; world++) {
         final a = arena(
           world: world,
-          armament: armaments[world].id,
+          armament: armaments[world % armaments.length].id,
           pilot: pilots[world].id,
         );
         a.hp = a.maxHp = 100000;

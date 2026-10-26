@@ -80,7 +80,6 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 2100));
         expect(g.choices, isEmpty);
-        expect(g.mainBranch, isNotNull);
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox());
         await tester.pump();

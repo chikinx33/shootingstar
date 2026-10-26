@@ -690,8 +690,11 @@ extension ShipModuleCombat on GameEngine {
         if (!c.id.startsWith('part:') || partAttached(c.id.substring(5))) c,
     ];
     final pool = <UpgradeChoice>[...growth];
-    for (final id in ['attack', 'cooldown', 'hull', 'speed', 'magnet']) {
+    // v12.17: no movement-speed skill; the magnet skill only once the
+    // wings (the gem intake) are on the craft
+    for (final id in ['attack', 'cooldown', 'hull', 'magnet']) {
       if ((passives[id] ?? 0) >= 5) continue;
+      if (id == 'magnet' && !partAttached('wings')) continue;
       final skill = survivalSkills.firstWhere((s) => s.id == id);
       pool.add(UpgradeChoice(id, skill.name, skill.description, id));
     }
@@ -725,8 +728,8 @@ extension ShipModuleCombat on GameEngine {
       if (weapons.isNotEmpty)
         picks[0] = weapons[random.nextInt(weapons.length)];
     }
-    // the next shed part always comes back as one of the cards
-    final merge = mergeChoice;
+    // a random shed part always comes back as one of the cards
+    final merge = rollMergeChoice();
     if (merge != null && !exclude.contains(merge.id) && picks.isNotEmpty) {
       picks[0] = merge;
     }

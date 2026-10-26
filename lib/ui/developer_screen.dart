@@ -7,13 +7,11 @@ import 'package:flutter/material.dart';
 import 'game_decor.dart';
 
 import '../art/ship_sprite_art.dart';
-import '../art/menu_art.dart';
 import '../art/toon_assets.dart';
 import '../data/profile.dart';
 import '../data/content.dart';
 import '../data/content_catalog.dart';
 import '../game/developer_battle.dart';
-import '../game/engine.dart';
 import '../game/waves.dart';
 import '../game/survival_skills.dart';
 import 'components.dart';
@@ -143,12 +141,6 @@ class _DeveloperTestScreenState extends State<DeveloperTestScreen> {
   void initState() {
     super.initState();
     config = DeveloperBattleConfig.restore(p.developerSettings['battle']);
-    if (!mainBranches.any(
-      (b) =>
-          b.armament == armaments[p.activeArmamentIndex].id &&
-          b.branch == config.branch,
-    ))
-      config.branch = null;
     final ui = p.developerSettings['ui'];
     if (ui is Map) {
       int n(String k, int fallback, int max) =>
@@ -514,18 +506,6 @@ class _DeveloperTestScreenState extends State<DeveloperTestScreen> {
   List<Widget> combatFields() {
     if (menu == 0) {
       return [
-        select<int>(
-          '발사 특화',
-          config.branch == null ? -1 : config.branch!.index,
-          [
-            (-1, '기본 발사'),
-            for (final b in mainBranches.where(
-              (b) => b.armament == armaments[p.activeArmamentIndex].id,
-            ))
-              (b.branch.index, b.name),
-          ],
-          (i) => config.branch = i < 0 ? null : MainBranch.values[i],
-        ),
         select<int>('파일럿', p.selectedPilot, [
           for (var i = 0; i < pilots.length; i++) (i, pilots[i].name),
         ], p.selectPilot),
@@ -541,13 +521,6 @@ class _DeveloperTestScreenState extends State<DeveloperTestScreen> {
         number('연사 R', config.rate, 0, 5, (i) => config.rate = i),
         number('출력 P', config.power, 0, 5, (i) => config.power = i),
         number('발사 수 N', config.count, 0, 4, (i) => config.count = i),
-        number(
-          '주무기 영구 강화',
-          p.activeArmamentLevel,
-          0,
-          10,
-          (i) => p.developerConfigure(armamentLevel: i),
-        ),
         number(
           '파일럿 레벨',
           p.pilotLevel.clamp(0, 100),
@@ -602,8 +575,8 @@ class _DeveloperTestScreenState extends State<DeveloperTestScreen> {
           (i) {
             preset = i;
             config.preset(i);
-            if (i == 1) p.selectArmament(0);
-            if (i == 2) p.selectArmament(4);
+            if (i == 1) p.selectShip(0);
+            if (i == 2) p.selectShip(2);
           },
         ),
         Text(
@@ -781,19 +754,24 @@ class _DeveloperTestScreenState extends State<DeveloperTestScreen> {
   Widget slotChoices(int category) => GameSlotList(
     listKey: ValueKey('test-selection-$category'),
     children: [
+      // v12.17: each cat flies its own main gun, so this picks the cat
       if (category == 0)
         for (var i = 0; i < armaments.length; i++)
           GameItemSlot(
             key: ValueKey('test-weapon-$i'),
-            title: armaments[i].name,
+            title: '${armaments[i].name} · ${ships[i].name}',
             semanticLabel: '주무기 ${armaments[i].name}',
-            image: weaponPicture(i),
-            selected: p.activeArmamentIndex == i,
-            status: p.activeArmamentIndex == i ? '선택 중' : '',
+            image: Image.asset(
+              'assets/art/ship_parts/${ShipSpriteArt.shipIds[i]}/maingun.webp',
+              width: 56,
+              height: 56,
+              fit: BoxFit.contain,
+            ),
+            selected: p.selectedShip == i,
+            status: p.selectedShip == i ? '선택 중' : '',
             onTap: audible(
               () => choose(() {
-                p.selectArmament(i);
-                config.branch = null;
+                p.selectShip(i);
                 preset = 0;
               }),
             ),
@@ -859,29 +837,6 @@ class _DeveloperTestScreenState extends State<DeveloperTestScreen> {
   );
 
   // Existing weapon/effect PNGs describe the firing family without new assets.
-  Widget weaponPicture(int i) => Stack(
-    alignment: Alignment.center,
-    children: [
-      MenuImage(
-        'game/${const ['pulse', 'missile', 'boomerang', 'impact', 'gear-gun', 'laser', 'boomerang', 'ring', 'boomerang', 'drill'][i]}',
-        size: 56,
-      ),
-      if ([6, 8, 9].contains(i))
-        Positioned(
-          right: 0,
-          bottom: 0,
-          child: MenuImage(
-            'game/${i == 6
-                ? 'lightning'
-                : i == 8
-                ? 'fire'
-                : 'ring'}',
-            size: 28,
-          ),
-        ),
-    ],
-  );
-
   Widget skillRow(SurvivalSkill s) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [

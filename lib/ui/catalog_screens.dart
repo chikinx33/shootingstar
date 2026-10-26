@@ -320,11 +320,11 @@ class _SupplyShopState extends State<SupplyShop> {
                             '보조 파츠 보급',
                             'pet-cargo',
                             () => p.petEggs,
-                            '방어·공격 보조·유틸 7종을 차례로 하나씩',
+                            '방어·공격 보조·유틸 5종을 차례로 하나씩',
                             '보조 파츠 보급 열기',
                             const [
                               'assets/art/ship_parts/orbs/shield.webp',
-                              'assets/art/ship_parts/orbs/magnet.webp',
+                              'assets/art/ship_parts/orbs/capacitor.webp',
                               'assets/art/ship_parts/orbs/repair.webp',
                             ],
                             () =>

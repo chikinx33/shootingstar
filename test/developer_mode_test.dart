@@ -25,7 +25,6 @@ void main() {
       expect(dev.online, isNull);
       expect(dev.developerMode, isTrue);
       expect(dev.unlockedShips.length, ships.length);
-      expect(dev.armamentCollection.ownedCount, armaments.length);
       expect(List.generate(100, dev.canStage).every((v) => v), isTrue);
       expect(
         dev.inventory.map((g) => g.spec).toSet().length,
@@ -37,7 +36,6 @@ void main() {
       for (var i = 0; i < 10; i++) {
         expect(dev.buyMaterial('tech'), isTrue);
         expect(dev.openTechSupply(), isTrue);
-        expect(dev.upgradeArmament('pulse', expectedLevel: i), isTrue);
       }
       expect(dev.credits, cash);
       expect(dev.blueprints, plans);
@@ -46,7 +44,7 @@ void main() {
       expect(dev.equipItem(hull.id), isTrue);
       expect(dev.equipItem(thruster.id), isTrue);
       expect(dev.activeBossSetWorld, 0);
-    expect(dev.claimBossGear(0), isTrue);
+      expect(dev.claimBossGear(0), isTrue);
       await dev.save();
       expect(prefs.getString(Profile.storageKey), stored);
       expect(jsonEncode(normal.exportProgress()), before);
@@ -59,17 +57,16 @@ void main() {
   );
 
   test(
-    'all primary branches and world boss phases use the real engine',
+    'all three cat guns and world boss phases use the real engine',
     () async {
       SharedPreferences.setMockInitialValues({});
       final normal = await Profile.load(),
           p = Profile.developerCopy(await Profile.load());
       final config = DeveloperBattleConfig();
       expect(() => config.build(normal), throwsStateError);
-      for (final b in mainBranches) {
-        p.selectArmament(armaments.indexWhere((a) => a.id == b.armament));
-        config.branch = b.branch;
-        expect(config.build(p).mainBranch, b.branch);
+      for (var i = 0; i < armaments.length; i++) {
+        p.selectShip(i);
+        expect(config.build(p).armament, armaments[i].id);
       }
       for (var w = 0; w < 10; w++) {
         p.selectStage(w * 10);
@@ -101,11 +98,11 @@ void main() {
       config.scene = 6;
       config.enemyCount = 260;
       config.shotCount = 1000;
-    config.sparkCount = 160;
+      config.sparkCount = 160;
       final load = config.build(p);
       expect(load.enemies.length, 260);
       expect(load.shots.length, 1000);
-    expect(load.sparks.length, 160);
+      expect(load.sparks.length, 160);
       for (var i = 0; i < 60; i++) {
         load.update(1 / 60);
       }

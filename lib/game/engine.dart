@@ -12,7 +12,6 @@ export 'world_fields.dart';
 
 import '../data/content.dart' as content;
 import '../data/daily_challenge.dart';
-import '../data/armament_collection.dart';
 import '../data/content_catalog.dart' as boss_catalog;
 import 'survival_skills.dart';
 import 'waves.dart';
@@ -28,12 +27,11 @@ part 'enemy_behaviors.dart';
 part 'expanded_weapons.dart';
 part 'pilot_abilities.dart';
 part 'hostile_ordnance.dart';
-part 'main_specializations.dart';
+part 'main_gun_hits.dart';
 part 'flight_formations.dart';
 part 'armored_assault_formations.dart';
 part 'weapon_synergies.dart';
 part 'common_ultimate.dart';
-part 'expanded_main_branches.dart';
 part 'main_loadout_links.dart';
 part 'world_bosses.dart';
 part 'boss_gear_combat.dart';
@@ -50,6 +48,7 @@ part 'growth_arms.dart';
 part 'gear_combat.dart';
 part 'danmaku.dart';
 part 'in_flight_assembly.dart';
+part 'chick_squad.dart';
 
 class UpgradeChoice {
   final String id, title, description, iconKey;
@@ -210,19 +209,34 @@ class GameEngine {
   final double petAwakePower, petAwakeCooldown;
   final double gearDamage,
       gearHull,
-      bonusSpeed,
+      // v12.17: the thruster gear's share — longer protection after a hit
+      hurtGuard,
       bonusPickup,
       bonusCooldown,
       damageReduction;
   final bool regeneration;
   final Map<String, int> techRanks;
   final int petKind, petLevel, petRank;
-  Offset petPosition = const Offset(860, 1240);
-  double petHp = 100,
-      petRevive = 0,
-      _petAttack = 0,
-      _petHurt = 0,
-      _regenClock = 30;
+
+  /// v12.17 chick tail squad (chick_squad.dart): the deployed cards, rescued
+  /// in turn during the run. [petKind] is kept as the first card's kind.
+  late final ChickSquad squad = ChickSquad(
+    chickRoster.isNotEmpty
+        ? chickRoster
+        : petKind >= 0 && petLevel > 0
+        ? [
+            ChickLoadout(
+              petKind,
+              level: petLevel,
+              rank: petRank,
+              awakePower: petAwakePower.isFinite ? petAwakePower : 0,
+              awakeCooldown: petAwakeCooldown.isFinite ? petAwakeCooldown : 0,
+            ),
+          ]
+        : const [],
+  );
+  final List<ChickLoadout> chickRoster;
+  double _regenClock = 30;
   bool techSpecial(String id) => (techRanks[id] ?? -1) >= 2;
   double techDamage(String id) => 1 + ((techRanks[id] ?? -1) + 1) * .05;
 
@@ -240,10 +254,7 @@ class GameEngine {
   final Map<String, double> _extraTimers = {};
   final List<Shot> _deferredShots = [];
   int _primaryStrikes = 0;
-  int soulStacks = 0;
   int revolverAmmo = 6, pilotStance = 0;
-  MainBranch? mainBranch;
-  bool _revolverCharged = false;
   final Map<String, int> _synergyTriggers = {};
   double _ultimateCharge = 0, _ultimateUntil = 0;
 
@@ -276,9 +287,8 @@ class GameEngine {
   bool pilotMech = false;
   int mainRate = 0, mainPower = 0, mainCount = 0, _mainDrop = 0;
   double magnetPulse = 0, _magnetClock = 45, _mainClock = 24;
-  double get permanentMainFactor =>
-      unifiedModules ? 1 : 1 + ArmamentCollection.damageBonus(armamentLevel);
-  double get mainDamage => (1 + mainPower * .25) * permanentMainFactor;
+  // v12.17: no permanent main-gun collection bonus (the old 주무장 영구 강화)
+  double get mainDamage => 1 + mainPower * .25;
   double get mainInterval => 1 / (1 + mainRate * .22);
   int get mainProjectiles => 1 + mainCount;
   double get mainWidth => 3 + mainPower * 1.25;
@@ -647,7 +657,7 @@ class GameEngine {
     this.gearDamage = 0,
     this.gearHull = 0,
     String startingWeapon = 'gun',
-    this.bonusSpeed = 0,
+    this.hurtGuard = 0,
     this.bonusPickup = 0,
     this.bonusCooldown = 0,
     this.damageReduction = 0,
@@ -656,11 +666,12 @@ class GameEngine {
     this.petKind = -1,
     this.petLevel = 0,
     this.petRank = 0,
+    this.chickRoster = const [],
   }) : aircraft = aircraft?.withHull(shipIndex),
        bossSetWorld = bossSetWorld >= 0 && bossSetWorld < 10
            ? bossSetWorld
            : -1,
-       armamentLevel = armamentLevel.clamp(0, ArmamentCollection.maxLevel),
+       armamentLevel = armamentLevel.clamp(0, 10),
        random = CombatRandom(dailyEntry?.seed ?? seed) {
     experienceDrops = ExperienceDrops(
       CombatRandom((random.state ^ 0x58f361a9) & 0xffffffff),
@@ -708,25 +719,35 @@ class GameEngine {
       (1 + (passives['attack'] ?? 0) * .1) *
       ship.damage *
       (equipmentIndex == 1 ? 1.2 : 1);
-  double get moveSpeed =>
-      ship.speed *
-      (moduleLoadout?.hasSupport('thruster') == true
-          ? 1 +
-                .08 * moduleLoadout!.supportPower('thruster') +
-                (input.distance > 0 && combatTime % 12 < 1 ? .12 : 0)
-          : 1) *
-      (equipmentIndex == 2 ? 1.05 : 1) *
-      (1 + (passives['speed'] ?? 0) * .08 + bonusSpeed * gearShare) *
-      bossSetSpeed *
-      gearThrustFactor;
-  double get collectionRadius => math.min(
-    112,
-    (42 + math.min(magnetLevel, 12) * 3 + (passives['magnet'] ?? 0) * 9) *
-        (equipmentIndex == 2 ? 1.25 : 1) *
-        math.sqrt(1 + bonusPickup * gearShare) *
-        (1 + .2 * (moduleLoadout?.supportPower('magnet') ?? 0)) *
-        (dailyEntry?.pickupMultiplier ?? 1),
-  );
+
+  /// v12.17 (user 2026-10-27): movement speed is not a stat — the craft is
+  /// steered by the finger, so every cat follows it at one fixed pace.
+  static const followSpeed = 210.0;
+
+  /// Experience paid the moment an enemy falls (gems pay more on pickup).
+  static double killExperience(Foe e) => e.kind == 3
+      ? 0
+      : e.elite
+      ? 10
+      : e.kind >= 2
+      ? 3
+      : 1;
+  double get moveSpeed => followSpeed;
+
+  /// Seconds of protection after a hit; the thruster gear lengthens it.
+  double get hurtGuardSeconds => .7 * (1 + hurtGuard * gearShare);
+
+  /// Gem pickup reach. v12.17: without wings gems are only taken by flying
+  /// right into them; the wings are the craft's gem intake.
+  double get collectionRadius => !partAttached('wings')
+      ? hitRadius + 10
+      : math.min(
+          112,
+          (42 + math.min(magnetLevel, 12) * 3 + (passives['magnet'] ?? 0) * 9) *
+              (equipmentIndex == 2 ? 1.25 : 1) *
+              math.sqrt(1 + bonusPickup * gearShare) *
+              (dailyEntry?.pickupMultiplier ?? 1),
+        );
   double get hitRadius => moduleLoadout?.hitRadius ?? 12;
   Foe? get boss {
     for (final e in enemies) {
@@ -857,8 +878,8 @@ class GameEngine {
     noticeTime = math.max(0, noticeTime - dt);
     _updateSupplies(dt);
     if (choices.isNotEmpty) return;
-    // Chick companions fly with every airframe (v11 guardian cats).
-    _updatePet(dt);
+    // v12.17: rescued chicks fly in a tail behind the craft
+    _updateChicks(dt);
     _regenClock -= dt;
     if (regeneration && _regenClock <= 0) {
       hp = math.min(maxHp, hp + maxHp * .02);
@@ -1053,7 +1074,8 @@ class GameEngine {
       _updateBossCycle(dt);
     }
     _updateCommonUltimate(dt);
-    _updateMerge(dt);
+    // v12.17: the merge plays on the real clock (finger up or cut-in alike)
+    _updateMerge(presentation);
     _updateBossGearSet(dt);
     if (aircraft == null) {
       _weapons(dt);
@@ -1315,13 +1337,19 @@ class GameEngine {
     );
     for (final e in enemies.where((e) => e.hp <= 0 && !e.retired).toList()) {
       kills++;
+      // v12.17 (user 2026-10-27): a kill gives a little experience at once;
+      // the gems it drops give more
+      xp +=
+          killExperience(e) *
+          (1 + (passives['xp'] ?? 0) * .08) *
+          squad.xpFactor;
+      _checkLevel();
       visuals.emit(
         e.kind == 3 ? CombatCueKind.bossExplosion : CombatCueKind.explosion,
         e.position,
         radius: e.kind == 3 ? 125 : e.radius * 2,
       );
       _enemyDeath(e);
-      if (armament == 'disorder') soulStacks = (soulStacks + 1).clamp(0, 100);
       _burst(e.position, e.kind == 3 ? 2 : 0, e.kind == 3 ? 30 : 6);
       final wiped = screenMode && e.kind != 3 && waveWiped(e);
       final rewards = e.kind == 3
@@ -1393,7 +1421,8 @@ class GameEngine {
         );
         final value = ExperienceCrystal.valueOf(crystals.removeAt(i));
         _gearCollectedCrystal(value);
-        xp += value * (1 + (passives['xp'] ?? 0) * .08);
+        // v12.17: a starlight chick in the tail adds 15%
+        xp += value * (1 + (passives['xp'] ?? 0) * .08) * squad.xpFactor;
         gemPicked = true;
       }
     }
@@ -1411,73 +1440,6 @@ class GameEngine {
       // The final boss resolution owns the transition into the result screen.
       // Never replace a missing presentation with a same-frame result.
       if (bossResolution == null) _finishVictory();
-    }
-  }
-
-  void _updatePet(double dt) {
-    if (petKind < 0 || petLevel <= 0) return;
-    if (petHp <= 0) {
-      if ((petPosition - position).distance < 80) petRevive += dt;
-      if (petRevive >= 8) {
-        petHp = 100;
-        petRevive = 0;
-      }
-      return;
-    }
-    petPosition = Offset.lerp(
-      petPosition,
-      position + const Offset(-60, 40),
-      math.min(1, dt * 5),
-    )!;
-    _petHurt -= dt;
-    if (_petHurt <= 0 &&
-        enemies.any(
-          (e) => (e.position - petPosition).distance < e.radius + 12,
-        )) {
-      petHp = math.max(0, petHp - 12);
-      _petHurt = 1;
-    }
-    _petAttack -= dt;
-    if (_petAttack > 0) return;
-    final power =
-        ((1 + petLevel * .08 + petRank * .2) *
-                (1 +
-                    (petAwakePower.isFinite ? petAwakePower.clamp(0, .18) : 0)))
-            .toDouble();
-    final interval =
-        (1 - (petAwakeCooldown.isFinite ? petAwakeCooldown.clamp(0, .12) : 0))
-            .toDouble();
-    if (petKind == 0) {
-      _petAttack = .9 * interval;
-      final target = _nearest();
-      if (target != null) {
-        onEvent?.call('pet');
-        for (int i = 0; i < (petLevel >= 5 ? 2 : 1); i++) {
-          shots.add(
-            Shot(
-              petPosition + Offset(i * 8.0, 0),
-              _unit(target.position - petPosition) * 330,
-              12 * power * damageFactor,
-              6,
-              weapon: 'pet',
-            ),
-          );
-        }
-      }
-    } else if (petKind == 1) {
-      _petAttack = 12 * interval;
-      hp = math.min(maxHp, hp + maxHp * .025 * power);
-      onEvent?.call('pet');
-      _burst(petPosition, 1, 6);
-    } else {
-      _petAttack = 3 * interval;
-      final before = shots.length;
-      shots.removeWhere(
-        (s) =>
-            s.interceptable && (s.position - petPosition).distance < 85 * power,
-      );
-      if (shots.length < before) onEvent?.call('pet');
-      _burst(petPosition, 1, 6);
     }
   }
 
@@ -1534,15 +1496,6 @@ class GameEngine {
       pilotShield -= absorbed;
       amount -= absorbed;
     }
-    if (aircraft == null && armament == 'disorder' && soulStacks > 0) {
-      _radialDamage(
-        position,
-        100,
-        (25 + soulStacks * .8) * permanentMainFactor,
-        'soul',
-      );
-      soulStacks = 0;
-    }
     // All callers supply base damage. Apply the shared, capped threat factor
     // exactly once, including boss contact and the world's environmental field.
     hp = math.max(
@@ -1565,7 +1518,7 @@ class GameEngine {
           (damageTakenBySource[source] ?? 0) + beforeHp - hp;
     }
     if (pilot == 'venato' && amount > 0) pilotBuff = 10;
-    _hurt = .7;
+    _hurt = hurtGuardSeconds;
     if (hp < beforeHp) _event('hit');
     if (hp > 0 && hp <= maxHp * .25 && beforeHp > maxHp * .25) {
       onEvent?.call('warning');
@@ -1788,7 +1741,6 @@ class GameEngine {
       if (armament != 'pulse') {
         _fireArmament(gun);
       } else {
-        final firstShot = shots.length;
         const direction = Offset(0, -1);
         shots.add(
           Shot(
@@ -1838,7 +1790,6 @@ class GameEngine {
             ),
           );
         }
-        _applyPulseBranch(firstShot);
       } // pulse armament
       final mainFired = _applyMainLoadout(firstMainShot);
       _mainAttackInProgress = false;
@@ -1858,19 +1809,10 @@ class GameEngine {
       laserOrigin = position + const Offset(0, -17);
       for (final e in enemies) {
         final v = e.position - laserOrigin;
-        final spread = mainBranch == MainBranch.pulseSpread;
         if (v.dy < 0 &&
             v.dy > -520 * mainReachFactor &&
-            v.dx.abs() < e.radius + (spread ? 18 : 8)) {
-          _hit(
-            e,
-            70 *
-                (spread ? .7 : 1) *
-                damageFactor *
-                mainDamage *
-                techDamage('gun'),
-            'gun',
-          );
+            v.dx.abs() < e.radius + 8) {
+          _hit(e, 70 * damageFactor * mainDamage * techDamage('gun'), 'gun');
         }
       }
     }
@@ -2069,6 +2011,7 @@ class GameEngine {
     final pool = <UpgradeChoice>[];
     for (final s in survivalSkills) {
       if (s.id == 'gun' ||
+          s.id == 'speed' || // v12.17: no movement speed
           s.fusionOnly ||
           (s.id == 'pilot' && pilot == 'common')) {
         continue;
@@ -2100,7 +2043,6 @@ class GameEngine {
       }
     }
     _offerFusionChoices(pool);
-    pool.addAll(availableMainBranches);
     if (aircraft != null) {
       pool.removeWhere(
         (c) =>
@@ -2154,15 +2096,6 @@ class GameEngine {
       }
     }
     if (choices.length < 3) choices.add(catalog.last);
-    if (level == 2 && exclude.isEmpty && availableMainBranches.isNotEmpty) {
-      choices = [
-        ...availableMainBranches,
-        choices.firstWhere(
-          (c) => !c.specialization,
-          orElse: () => catalog.last,
-        ),
-      ];
-    }
     input = Offset.zero;
   }
 
@@ -2170,13 +2103,7 @@ class GameEngine {
     if (finished || !choices.any((c) => c.id == id)) return;
     final choice = choices.firstWhere((c) => c.id == id);
     if (choice.specialization) {
-      final matching = mainBranches.where(
-        (s) => s.id == id && s.armament == armament,
-      );
-      if (mainBranch != null || matching.isEmpty) return;
-      mainBranch = matching.single.branch;
-      pickupNotice = '${matching.single.name} · 이번 출격 특화';
-      noticeTime = 3;
+      return; // v12.17: the old main-gun branch cards no longer exist
     } else if (id.startsWith('merge:')) {
       _beginMerge(id.substring(6));
     } else if (id == 'repair') {

@@ -26,7 +26,7 @@ GameEngine combat({
   petRank: 1,
   petAwakePower: power,
   petAwakeCooldown: cooldown,
-);
+)..seatChicks();
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
@@ -95,7 +95,7 @@ void main() {
       expect(p.gearHull, hull);
       expect(p.gearPickup, pickup);
       expect(p.dailyChallenge.tokens, 0);
-      expect(p.petBond.favor, [0, 0, 0]);
+      expect(p.petBond.favor, [0, 0, 0, 0, 0, 0, 0, 0, 0]);
       expect(p.credits, 500);
       expect(p.blueprints, 30);
     },
@@ -238,13 +238,13 @@ void main() {
         );
     finish('training', training: true);
     finish('locked', stage: 99);
-    expect(p.petBond.favor, [0, 0, 0]);
+    expect(p.petBond.favor, [0, 0, 0, 0, 0, 0, 0, 0, 0]);
     finish('real');
     finish('real');
-    expect(p.petBond.favor, [10, 0, 0]);
+    expect(p.petBond.favor, [10, 0, 0, 0, 0, 0, 0, 0, 0]);
     await p.save();
     final q = await Profile.load();
-    expect(q.petBond.favor, [10, 0, 0]);
+    expect(q.petBond.favor, [10, 0, 0, 0, 0, 0, 0, 0, 0]);
   });
 
   test('daily variants affect wave cadence, health, movement and pickup without campaign changes', () {
@@ -304,10 +304,9 @@ void main() {
     );
     final shield = combat(pet: 2), shieldAwake = combat(pet: 2, power: .15);
     for (final g in [shield, shieldAwake]) {
-      g.petPosition = g.position + const Offset(-34, 32);
-      g.shots.add(
-        Shot(g.petPosition + const Offset(146, 0), Offset.zero, 1, 4),
-      );
+      // reach 85 x power: 136 plain, 156 awakened
+      g.squad.tail.single.position = g.position;
+      g.shots.add(Shot(g.position + const Offset(146, 0), Offset.zero, 1, 4));
       g.update(.01);
     }
     expect(shield.shots.where((s) => s.kind == 4), isNotEmpty);

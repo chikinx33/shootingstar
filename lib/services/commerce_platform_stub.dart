@@ -20,7 +20,10 @@ class _Unavailable implements CommercePlatform {
   @override
   Future<void> restore() async {}
   @override
-  Future<void> complete(StorePurchase purchase, {required bool consume}) async {}
+  Future<void> complete(
+    StorePurchase purchase, {
+    required bool consume,
+  }) async {}
   @override
   Future<bool> prepareAds() async => false;
   @override

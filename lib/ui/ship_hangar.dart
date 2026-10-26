@@ -263,7 +263,6 @@ class _ShipHangarState extends State<ShipHangar> {
                   const SizedBox(height: 6),
                   GameFactRow([
                     GameFact('선체', '${ship.health.toInt()}'),
-                    GameFact('기동', '${ship.speed.toInt()}'),
                     GameFact(
                       '화력',
                       '${(ship.damage * 100).round()}%',
@@ -276,12 +275,6 @@ class _ShipHangarState extends State<ShipHangar> {
                     '선체',
                     ship.health / top((s) => s.health),
                     '${ship.health.toInt()}',
-                    i,
-                  ),
-                  _gauge(
-                    '기동',
-                    ship.speed / top((s) => s.speed),
-                    '${ship.speed.toInt()}',
                     i,
                   ),
                   _gauge(

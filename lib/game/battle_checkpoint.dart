@@ -116,7 +116,7 @@ extension BattleCheckpointWriter on GameEngine {
         'petAwakeCooldown': petAwakeCooldown,
         'gearDamage': gearDamage,
         'gearHull': gearHull,
-        'bonusSpeed': bonusSpeed,
+        'hurtGuard': hurtGuard,
         'bonusPickup': bonusPickup,
         'bonusCooldown': bonusCooldown,
         'damageReduction': damageReduction,
@@ -143,10 +143,6 @@ extension BattleCheckpointWriter on GameEngine {
           },
         '_bossSetHealClock': _bossSetHealClock,
         '_mainLinkBlockReadyAt': _mainLinkBlockReadyAt,
-        'petHp': petHp,
-        'petRevive': petRevive,
-        '_petAttack': _petAttack,
-        '_petHurt': _petHurt,
         '_regenClock': _regenClock,
         '_ultimateCharge': _ultimateCharge,
         '_ultimateUntil': _ultimateUntil,
@@ -202,7 +198,6 @@ extension BattleCheckpointWriter on GameEngine {
         '_bossWave': _bossWave,
         'chests': chests,
         '_primaryStrikes': _primaryStrikes,
-        'soulStacks': soulStacks,
         'revolverAmmo': revolverAmmo,
         'pilotStance': pilotStance,
         '_ultimateUses': _ultimateUses,
@@ -222,7 +217,6 @@ extension BattleCheckpointWriter on GameEngine {
         'bossRound': bossRound,
         'bossAttacks': bossAttacks,
         '_hazardCycle': _hazardCycle,
-        '_revolverCharged': _revolverCharged,
         '_shieldCounterArmed': _shieldCounterArmed,
         '_mainAttackDidDamage': _mainAttackDidDamage,
         '_mainAttackInProgress': _mainAttackInProgress,
@@ -233,7 +227,6 @@ extension BattleCheckpointWriter on GameEngine {
         'victory': victory,
         '_bossSpawned': _bossSpawned,
         '_bossDefeated': _bossDefeated,
-        'petPosition': _point(petPosition),
         'position': _point(position),
         'input': _point(input),
         'laserOrigin': _point(laserOrigin),
@@ -245,7 +238,6 @@ extension BattleCheckpointWriter on GameEngine {
         'lastDamageSource': lastDamageSource,
         'firstEvolutionAt': firstEvolutionAt,
       },
-      'branch': mainBranch?.name,
       'passives': Map.of(passives),
       'upgrades': Map.of(upgrades),
       'evolved': evolved.toList(),
@@ -389,7 +381,7 @@ abstract final class BattleCheckpoint {
       petAwakeCooldown: _d(v['petAwakeCooldown']),
       gearDamage: _d(v['gearDamage']),
       gearHull: _d(v['gearHull']),
-      bonusSpeed: _d(v['bonusSpeed']),
+      hurtGuard: _d(v['hurtGuard']),
       bonusPickup: _d(v['bonusPickup']),
       bonusCooldown: _d(v['bonusCooldown']),
       damageReduction: _d(v['damageReduction']),
@@ -463,10 +455,6 @@ abstract final class BattleCheckpoint {
     }
     game._bossSetHealClock = _d(v['_bossSetHealClock']);
     game._mainLinkBlockReadyAt = _d(v['_mainLinkBlockReadyAt']);
-    game.petHp = _d(v['petHp']);
-    game.petRevive = _d(v['petRevive']);
-    game._petAttack = _d(v['_petAttack']);
-    game._petHurt = _d(v['_petHurt']);
     game._regenClock = _d(v['_regenClock']);
     game._ultimateCharge = _d(v['_ultimateCharge']);
     game._ultimateUntil = _d(v['_ultimateUntil']);
@@ -522,7 +510,6 @@ abstract final class BattleCheckpoint {
     game._bossWave = _i(v['_bossWave']);
     game.chests = _i(v['chests']);
     game._primaryStrikes = _i(v['_primaryStrikes']);
-    game.soulStacks = _i(v['soulStacks']);
     game.revolverAmmo = _i(v['revolverAmmo']);
     game.pilotStance = _i(v['pilotStance']);
     game._ultimateUses = _i(v['_ultimateUses']);
@@ -542,7 +529,6 @@ abstract final class BattleCheckpoint {
     game.bossRound = _i(v['bossRound']);
     game.bossAttacks = _i(v['bossAttacks']);
     game._hazardCycle = _i(v['_hazardCycle']);
-    game._revolverCharged = _b(v['_revolverCharged']);
     game._shieldCounterArmed = _b(v['_shieldCounterArmed']);
     game._mainAttackDidDamage = _b(v['_mainAttackDidDamage']);
     game._mainAttackInProgress = _b(v['_mainAttackInProgress']);
@@ -553,7 +539,6 @@ abstract final class BattleCheckpoint {
     game.victory = _b(v['victory']);
     game._bossSpawned = _b(v['_bossSpawned']);
     game._bossDefeated = _b(v['_bossDefeated']);
-    game.petPosition = _o(v['petPosition']);
     game.position = _o(v['position']);
     game.input = _o(v['input']);
     game.laserOrigin = _o(v['laserOrigin']);
@@ -581,9 +566,7 @@ abstract final class BattleCheckpoint {
         game.position.dy > GameEngine.worldHeight) {
       throw const FormatException('Invalid combat state');
     }
-    game.mainBranch = data['branch'] == null
-        ? null
-        : MainBranch.values.byName(_s(data['branch']));
+    // old checkpoints may carry a removed main-gun 'branch': ignored
     game.upgrades
       ..clear()
       ..addAll(_im(data['upgrades']));

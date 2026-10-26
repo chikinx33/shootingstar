@@ -11,7 +11,6 @@ class DeveloperBattleConfig {
   bool invincible = false, showPerformance = true, autoChoose = false;
   bool ultimateReady = false;
   int supplyKind = -1;
-  MainBranch? branch;
   final Map<String, int> skills = {};
   final Set<String> evolutions = {};
 
@@ -34,7 +33,6 @@ class DeveloperBattleConfig {
     'autoChoose': autoChoose,
     'ultimateReady': ultimateReady,
     'supplyKind': supplyKind,
-    'branch': branch?.name,
     'skills': {...skills},
     'evolutions': evolutions.toList(),
   };
@@ -74,9 +72,6 @@ class DeveloperBattleConfig {
     if (!const [0, 100, 200, 500, 1000].contains(c.shotCount))
       c.shotCount = 200;
     if (!const [0, 80, 160].contains(c.sparkCount)) c.sparkCount = 80;
-    for (final b in MainBranch.values) {
-      if (b.name == value['branch']) c.branch = b;
-    }
     if (value['skills'] is Map) {
       for (final s in survivalSkills) {
         final rank = value['skills'][s.id];
@@ -96,15 +91,12 @@ class DeveloperBattleConfig {
   void preset(int id) {
     skills.clear();
     evolutions.clear();
-    branch = null;
     if (id == 1) {
       skills['laser'] = 3;
-      branch = MainBranch.pulseFocus;
     }
     if (id == 2) {
       skills['missile'] = 3;
       skills['area'] = 1;
-      branch = MainBranch.shellSplit;
     }
     if (id == 3) {
       skills['guardian'] = 3;
@@ -130,8 +122,8 @@ class DeveloperBattleConfig {
       equipmentIndex: p.equipment,
       seed: seed,
       campaignLoop: p.campaignLoop,
-      armament: armaments[p.activeArmamentIndex].id,
-      armamentLevel: p.activeArmamentLevel,
+      // the cat's own main gun (v12.17)
+      armament: armaments[p.selectedShip.clamp(0, armaments.length - 1)].id,
       pilot: pilots[p.selectedPilot].id,
       traitLevel: catTraitLevel(p.pilotLevel),
       gearDamage: p.gearDamage + p.pilotDamage,
@@ -140,7 +132,7 @@ class DeveloperBattleConfig {
       mainPrecisionLink: p.mainPrecisionLink,
       mainCycleLink: p.mainCycleLink,
       bossSetWorld: p.activeBossSetWorld,
-      bonusSpeed: p.gearSpeed,
+      hurtGuard: p.catGear.bonuses.guard,
       bonusPickup: p.gearPickup,
       bonusCooldown: p.gearCooldown,
       damageReduction: p.gearReduction,
@@ -162,11 +154,6 @@ class DeveloperBattleConfig {
     game.mainRate = rate.clamp(0, 5);
     game.mainPower = power.clamp(0, 5);
     game.mainCount = count.clamp(0, 4);
-    if (mainBranches.any(
-      (s) => s.armament == game.armament && s.branch == branch,
-    )) {
-      game.mainBranch = branch;
-    }
     for (final entry in skills.entries) {
       if (entry.value <= 0) continue;
       final skill = skillFor(entry.key);

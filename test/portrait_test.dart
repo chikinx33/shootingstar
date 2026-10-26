@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'support/tabs.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shootingstar/main.dart';
 import 'package:shootingstar/data/profile.dart';
@@ -80,10 +82,7 @@ void main() {
         expect(playerOnScreen.dx, closeTo(size.width / 2, .01));
         // v12.4.3 house defense: a fixed screen with the cat low in the field
         // (screenOrigin = spawn - 74% of the viewport, house_waves.dart).
-        expect(
-          playerOnScreen.dy,
-          closeTo(rect.top + rect.height * .74, .5),
-        );
+        expect(playerOnScreen.dy, closeTo(rect.top + rect.height * .74, .5));
         expect(
           painter.game.viewportHeight,
           closeTo(rect.height * 420 / rect.width, .01),

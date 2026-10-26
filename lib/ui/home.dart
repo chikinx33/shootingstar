@@ -2,6 +2,8 @@ import '../l10n/app_language.dart';
 
 import 'audio_feedback.dart';
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'game_decor.dart';
@@ -72,6 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted || p.updateNotices.isEmpty) return;
     final lines = [...p.updateNotices];
     p.updateNotices.clear();
+    // keep the refund and the retired slots, or the next launch repeats them
+    unawaited(p.save());
     await showDialog<void>(
       context: context,
       builder: (dialog) => GameDialog(

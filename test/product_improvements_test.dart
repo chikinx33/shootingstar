@@ -74,27 +74,23 @@ void main() {
 
   // Keep this before the widget tests: an asset load first started inside
   // fake time would never complete here and the test would hang.
-  testWidgets(
-    'boot omits enemy payloads until the battle art loads',
-    (tester) async {
-      await tester.runAsync(() async {
-        await RasterAssets.load();
-        expect(GameArt.ready, true);
-        expect(
-          MenuArt.images.keys.where((k) => k.startsWith('enemy-')),
-          isEmpty,
-        );
-      });
-      await tester.runAsync(() async {
-        await GameArt.loadBattle();
-        expect(GameArt.battleReady, true);
-        expect(
-          MenuArt.images.keys.where((k) => k.startsWith('enemy-')).length,
-          11,
-        );
-      });
-    },
-  );
+  testWidgets('boot omits enemy payloads until the battle art loads', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      await RasterAssets.load();
+      expect(GameArt.ready, true);
+      expect(MenuArt.images.keys.where((k) => k.startsWith('enemy-')), isEmpty);
+    });
+    await tester.runAsync(() async {
+      await GameArt.loadBattle();
+      expect(GameArt.battleReady, true);
+      expect(
+        MenuArt.images.keys.where((k) => k.startsWith('enemy-')).length,
+        11,
+      );
+    });
+  });
   for (final size in const [
     Size(320, 568),
     Size(360, 640),

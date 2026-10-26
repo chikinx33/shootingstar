@@ -355,8 +355,8 @@ class _CatGearScreenState extends State<CatGearScreen>
         ('화력', _percent(b.damage), const Color(0xFFFF8A5C)),
         ('선체', _percent(b.hull), const Color(0xFF7CE08A)),
         ('피해 감소', _percent(b.reduction), const Color(0xFF7CC8FF)),
-        ('이동 속도', _percent(b.speed), const Color(0xFFFFD43D)),
-        ('회수 범위', _percent(b.pickup), const Color(0xFFD9A8FF)),
+        ('피격 무적', _percent(b.guard), const Color(0xFFFFD43D)),
+        ('흡수 범위', _percent(b.pickup), const Color(0xFFD9A8FF)),
       ],
       note: _setLine(),
     );

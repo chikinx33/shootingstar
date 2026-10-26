@@ -64,10 +64,7 @@ void main() {
               reason: button.label,
             );
           }
-          expect(
-            find.bySemanticsLabel('성장 정비 · 귀환'),
-            findsOneWidget,
-          );
+          expect(find.bySemanticsLabel('성장 정비 · 귀환'), findsOneWidget);
           // the details live in a popup
           await tester.tap(find.byKey(const Key('result-rewards')));
           await tester.pump(const Duration(milliseconds: 300));
@@ -113,10 +110,7 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('계속 비행'), findsOneWidget);
       expect(find.byKey(const Key('game-page-next')), findsNothing);
-      expect(
-        find.bySemanticsLabel('귀환 · 현재 보상 정산'),
-        findsOneWidget,
-      );
+      expect(find.bySemanticsLabel('귀환 · 현재 보상 정산'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
       profile.dispose();
     });

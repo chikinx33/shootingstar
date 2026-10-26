@@ -747,13 +747,6 @@ def effects():
         'weapon-revolver': at([(0, glide(.09, 2600, 1200, (1, .2, .1), 30), .75), (0, clink(3200, .07), .3)]),
         'weapon-shotgun': at([(0, pop(380, .07), .8), (0, noise(.06, 400, 3000) * np.exp(-axis(.06) * 60), .4),
                               (.045, pop(320, .07), .6)]),
-        'weapon-kunai': at([(0, glide(.05, 3600, 2200, (1, .2), 50), .6), (0, noise(.05, 4000, 9000) * np.exp(-axis(.05) * 70), .35)]),
-        'weapon-katana': at([(0, sweep_noise(.1, 6500, 2200) * np.exp(-axis(.1) * 18), .7), (.01, clink(2800, .1), .3)]),
-        'weapon-bat': at([(0, partials(m('E5'), .1, [1, 2.7], [1, .35], [40, 60], .0008), .8), (0, thump(.08, 220, 120), .4)]),
-        'weapon-lightchaser': at([(0, bell(m('E7'), .12), .6), (0, glide(.08, 2000, 3000, (1, .2), 30), .5)]),
-        'weapon-void': at([(0, glide(.15, 300, 160, (1, .5, .3), 12) * (1 + .4 * np.sin(2 * math.pi * 40 * axis(.15))), .8)]),
-        'weapon-disorder': at([(0, glide(.09, 2200, 900, (1, .6, .3), 25) * (1 + .5 * np.sin(2 * math.pi * 90 * axis(.09))), .6)]),
-        'weapon-lance': at([(0, glide(.11, 900, 2400, (1, .3, .15), 18), .7), (0, noise(.06, 3000, 9000) * np.exp(-axis(.06) * 60), .2)]),
     }
     # Main-weapon shots share one perceived level (the director normalises by
     # RMS under a peak cap), so give each a dense, gently saturated body.

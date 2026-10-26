@@ -1,18 +1,8 @@
 part of 'engine.dart';
 
 extension BossGearCombat on GameEngine {
-  bool _setMainSource(String source) => const {
-    'gun',
-    'module-main',
-    'primary',
-    'soul',
-    'havoc',
-    'starforge',
-    'lance',
-    'void',
-    'sword-array',
-    'fissure',
-  }.contains(source);
+  bool _setMainSource(String source) =>
+      const {'gun', 'module-main', 'primary'}.contains(source);
   double bossSetHitFactor(Foe target, String source) {
     if (bossSetWorld < 0) return 1;
     final main = _setMainSource(source);

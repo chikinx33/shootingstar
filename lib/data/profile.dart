@@ -18,7 +18,6 @@ import '../services/commerce_controller.dart';
 import 'content_systems.dart';
 import 'hangar_preset.dart';
 import 'daily_challenge.dart';
-import 'armament_collection.dart';
 import 'campaign_rewards.dart';
 import 'fleet_journal.dart';
 import 'shop_ledger.dart';
@@ -487,79 +486,14 @@ class Profile extends ChangeNotifier with ContentSystems, ShopSystems {
   Set<int> unlockedShips = {0}, clearedStages = {};
   int campaignLoop = 0, pilotLevel = 0, pilotXp = 0;
   int selectedArmament = 0, selectedPilot = 0;
-  ArmamentCollection armamentCollection = ArmamentCollection.fresh();
   CampaignRewardBook campaignRewards = CampaignRewardBook();
   CampaignRewardReceipt? lastCampaignReward;
   BossGearBook bossGear = BossGearBook();
-  int get activeArmamentIndex =>
-      selectedArmament >= 0 &&
-          selectedArmament < armaments.length &&
-          armamentCollection.owns(armaments[selectedArmament].id)
-      ? selectedArmament
-      : 0;
-  int get activeArmamentLevel =>
-      armamentCollection.level(armaments[activeArmamentIndex].id);
   Set<int> cycleClears = {};
   Set<int> get activeClears => campaignLoop == 0 ? clearedStages : cycleClears;
   double get pilotDamage => pilotLevel * .015;
   double get pilotHull => pilotLevel * .01;
   int get pilotXpNeeded => 120 + pilotLevel * 40;
-  void selectArmament(int id) {
-    if (id >= 0 &&
-        id < armaments.length &&
-        armamentCollection.owns(armaments[id].id)) {
-      selectedArmament = id;
-      _changed();
-    }
-  }
-
-  bool unlockArmament(String id) {
-    if (!ArmamentCollection.valid(id) ||
-        armamentCollection.owns(id) ||
-        credits < ArmamentCollection.unlockCredits ||
-        blueprints < ArmamentCollection.unlockBlueprints) {
-      return false;
-    }
-    armamentCollection.unlock(id);
-    credits -= ArmamentCollection.unlockCredits;
-    blueprints -= ArmamentCollection.unlockBlueprints;
-    _changed();
-    return true;
-  }
-
-  bool upgradeArmament(String id, {required int expectedLevel}) {
-    final level = armamentCollection.level(id);
-    if (!armamentCollection.owns(id) ||
-        level != expectedLevel ||
-        level >= ArmamentCollection.maxLevel ||
-        credits < ArmamentCollection.upgradeCredits(level) ||
-        blueprints < ArmamentCollection.upgradeBlueprints(level)) {
-      return false;
-    }
-    credits -= ArmamentCollection.upgradeCredits(level);
-    blueprints -= ArmamentCollection.upgradeBlueprints(level);
-    armamentCollection.upgrade(id);
-    _changed();
-    return true;
-  }
-
-  bool resetArmament(String id, {required int expectedLevel}) {
-    final level = armamentCollection.level(id);
-    final refund = armamentCollection.refundCredits(id);
-    final plans = armamentCollection.refundBlueprints(id);
-    if (!armamentCollection.owns(id) ||
-        level <= 0 ||
-        level != expectedLevel ||
-        credits + refund > 9999999 ||
-        blueprints + plans > 999999) {
-      return false;
-    }
-    credits += refund;
-    blueprints += plans;
-    armamentCollection.reset(id);
-    _changed();
-    return true;
-  }
 
   void selectPilot(int id) {
     if (id >= 0 && id < pilots.length) {
@@ -775,11 +709,7 @@ class Profile extends ChangeNotifier with ContentSystems, ShopSystems {
       0,
       armaments.length - 1,
     );
-    armamentCollection = ArmamentCollection.restore(
-      data['armamentCollection'],
-      legacy: data['armamentProgressionVersion'] != 1,
-    );
-    selectedArmament = activeArmamentIndex;
+    // v12.17: the old main-gun collection ('armamentCollection') is ignored
     selectedPilot = _integer(data['selectedPilot'], 0, pilots.length - 1);
     campaignRewards = CampaignRewardBook.restore(data['campaignRewards']);
     bossGear = BossGearBook.restore(data['bossGear']);
@@ -849,9 +779,8 @@ class Profile extends ChangeNotifier with ContentSystems, ShopSystems {
     'cycleClears': cycleClears.toList()..sort(),
     'pilotLevel': pilotLevel,
     'pilotXp': pilotXp,
-    'selectedArmament': activeArmamentIndex,
+    'selectedArmament': selectedArmament,
     'armamentProgressionVersion': 1,
-    'armamentCollection': armamentCollection.toJson(),
     'campaignRewardsVersion': 1,
     'campaignRewards': campaignRewards.toJson(),
     'bossGearVersion': 1,

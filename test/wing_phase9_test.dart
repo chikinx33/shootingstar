@@ -33,7 +33,6 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
   test('all 100 routes pay clear and first rewards once without altering ownership or progression', () async {
     final p = await Profile.load();
-    final weapons = p.armamentCollection.toJson();
     for (var stage = 0; stage < 100; stage++) {
       final before = p.credits;
       final base = RunRewards(
@@ -61,7 +60,6 @@ void main() {
     expect(p.campaignRewards.bossWorlds.length, 10);
     expect(p.campaignLoop, 1);
     expect(p.selectedStage, 0);
-    expect(p.armamentCollection.toJson(), weapons);
     finish(p, 'loop-2');
     expect(p.lastCampaignReward!.entries.any((e) => e.$1.contains('첫')), false);
     await p.save();
@@ -179,13 +177,14 @@ void main() {
     expect(p.campaignRewards.routes, isEmpty);
     finish(p, 'legacy-replay');
     expect(p.campaignRewards.routes, {0});
-    expect(p.activeArmamentIndex, 4);
-    expect(p.activeArmamentLevel, 2);
+    // v12.17: the old weapon collection is ignored; the choice clamps to
+    // the three cat guns.
+    expect(p.selectedArmament, 2);
     final next = p.exportProgress();
     expect(next['campaignRewardsVersion'], 1);
     await p.replaceProgress(next);
     expect(p.campaignRewards.routes, {0});
-    expect(p.armamentCollection.toJson(), {'pulse': 4, 'shotgun': 2});
+    expect(next.containsKey('armamentCollection'), false);
     p.dispose();
   });
   test('resource caps display real positive deltas and never remove existing resources', () async {

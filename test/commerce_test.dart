@@ -109,16 +109,19 @@ void main() {
   StorePurchase bought(ShopItem item, String token, StorePurchaseStatus s) =>
       StorePurchase(shopProducts[item]!.id, token, s);
 
-  test('works without an account: products load and purchases restore', () async {
-    final (p, _, platform, store) = await setup();
-    expect(p.online!.signedIn, isFalse, reason: 'no account needed');
-    expect(store.billingReady, isTrue);
-    expect(platform.restores, 1);
-    expect(p.shop.binding, hasLength(32));
-    expect(store.canBuy(ShopItem.starter), isTrue);
-    await store.buy(ShopItem.starter);
-    expect(platform.buys, 1);
-  });
+  test(
+    'works without an account: products load and purchases restore',
+    () async {
+      final (p, _, platform, store) = await setup();
+      expect(p.online!.signedIn, isFalse, reason: 'no account needed');
+      expect(store.billingReady, isTrue);
+      expect(platform.restores, 1);
+      expect(p.shop.binding, hasLength(32));
+      expect(store.canBuy(ShopItem.starter), isTrue);
+      await store.buy(ShopItem.starter);
+      expect(platform.buys, 1);
+    },
+  );
 
   test('pending, cancelled and failed purchases never pay', () async {
     final (p, api, platform, _) = await setup();
@@ -136,58 +139,72 @@ void main() {
     expect(platform.completed, isEmpty);
   });
 
-  test('a confirmed purchase pays once, then is consumed or acknowledged', () async {
-    final (p, api, platform, _) = await setup();
-    final dust = p.blueprints;
-    platform.events.add(
-      bought(ShopItem.monthly, 'tok-monthly-1', StorePurchaseStatus.purchased),
-    );
-    await flush();
-    expect(p.blueprints, dust + 20);
-    expect(p.shop.monthlyActive(DateTime.now()), isTrue);
-    expect(platform.completed.single, ('purr_monthly_snacks', true));
+  test(
+    'a confirmed purchase pays once, then is consumed or acknowledged',
+    () async {
+      final (p, api, platform, _) = await setup();
+      final dust = p.blueprints;
+      platform.events.add(
+        bought(
+          ShopItem.monthly,
+          'tok-monthly-1',
+          StorePurchaseStatus.purchased,
+        ),
+      );
+      await flush();
+      expect(p.blueprints, dust + 20);
+      expect(p.shop.monthlyActive(DateTime.now()), isTrue);
+      expect(platform.completed.single, ('purr_monthly_snacks', true));
 
-    // the same receipt restored again pays nothing and is not re-checked
-    platform.events.add(
-      bought(ShopItem.monthly, 'tok-monthly-1', StorePurchaseStatus.restored),
-    );
-    await flush();
-    expect(p.blueprints, dust + 20);
-    expect(api.verifies, 1);
+      // the same receipt restored again pays nothing and is not re-checked
+      platform.events.add(
+        bought(ShopItem.monthly, 'tok-monthly-1', StorePurchaseStatus.restored),
+      );
+      await flush();
+      expect(p.blueprints, dust + 20);
+      expect(api.verifies, 1);
 
-    platform.events.add(
-      bought(ShopItem.supporter, 'tok-frame-1', StorePurchaseStatus.purchased),
-    );
-    await flush();
-    expect(p.shop.supporterOwned, isTrue);
-    expect(platform.completed.last, ('purr_supporter_frame', false));
-  });
+      platform.events.add(
+        bought(
+          ShopItem.supporter,
+          'tok-frame-1',
+          StorePurchaseStatus.purchased,
+        ),
+      );
+      await flush();
+      expect(p.shop.supporterOwned, isTrue);
+      expect(platform.completed.last, ('purr_supporter_frame', false));
+    },
+  );
 
-  test('an unconfirmed receipt or a server outage leaves it unfinished', () async {
-    final (p, api, platform, _) = await setup();
-    final credits = p.credits;
-    api.state = 'invalid';
-    platform.events.add(
-      bought(ShopItem.starter, 'tok-fake-1', StorePurchaseStatus.purchased),
-    );
-    await flush();
-    api.state = 'purchased';
-    api.down = true;
-    platform.events.add(
-      bought(ShopItem.starter, 'tok-real-1', StorePurchaseStatus.purchased),
-    );
-    await flush();
-    expect(p.credits, credits);
-    expect(platform.completed, isEmpty, reason: 'Play refunds or retries it');
+  test(
+    'an unconfirmed receipt or a server outage leaves it unfinished',
+    () async {
+      final (p, api, platform, _) = await setup();
+      final credits = p.credits;
+      api.state = 'invalid';
+      platform.events.add(
+        bought(ShopItem.starter, 'tok-fake-1', StorePurchaseStatus.purchased),
+      );
+      await flush();
+      api.state = 'purchased';
+      api.down = true;
+      platform.events.add(
+        bought(ShopItem.starter, 'tok-real-1', StorePurchaseStatus.purchased),
+      );
+      await flush();
+      expect(p.credits, credits);
+      expect(platform.completed, isEmpty, reason: 'Play refunds or retries it');
 
-    api.down = false;
-    platform.events.add(
-      bought(ShopItem.starter, 'tok-real-1', StorePurchaseStatus.restored),
-    );
-    await flush();
-    expect(p.credits, credits + 1000);
-    expect(platform.completed.single, ('purr_starter_pack', false));
-  });
+      api.down = false;
+      platform.events.add(
+        bought(ShopItem.starter, 'tok-real-1', StorePurchaseStatus.restored),
+      );
+      await flush();
+      expect(p.credits, credits + 1000);
+      expect(platform.completed.single, ('purr_starter_pack', false));
+    },
+  );
 
   test('ads pay only a finished view; the ad pass skips the video', () async {
     final (p, _, platform, store) = await setup();
@@ -226,8 +243,8 @@ void main() {
   testWidgets('supporter screen offers restore and equips an owned look', (
     tester,
   ) async {
-    final (p, _, platform, store) = await tester.runAsync(setup) ??
-        (throw StateError('setup'));
+    final (p, _, platform, store) =
+        await tester.runAsync(setup) ?? (throw StateError('setup'));
     p.applyPurchase(ShopItem.supporter, 'frame', DateTime.now());
     await tester.pumpWidget(MaterialApp(home: SupporterScreen(profile: p)));
     await tester.pump();

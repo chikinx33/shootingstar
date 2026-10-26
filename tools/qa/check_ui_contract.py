@@ -112,9 +112,16 @@ item_lists = {
     'guardian_quest_screen.dart': 1, # achievement rows
     'game_pages.dart': 1,        # GameItemList: damage/build/challenge entries
 }
+# v12.17: audited horizontal carousels of repeated item slots (one row).
+item_carousels = {'content_hub.dart': 1}  # the chick collection slots
 for path in (ROOT / 'lib/ui').glob('*.dart'):
     source = path.read_text(encoding='utf-8')
-    if re.search(r'\b(?:SingleChildScrollView|CustomScrollView|GridView|Scrollable|PageView)\s*\(', source):
+    carousels = [b for _, b in calls(source, 'SingleChildScrollView')
+                 if 'Axis.horizontal' in b]
+    if len(carousels) > item_carousels.get(path.name, 0):
+        errors.append(f'{path.name}: generic scroll containers are forbidden; use fixed pages or audited item lists')
+    if re.search(r'\b(?:CustomScrollView|GridView|Scrollable|PageView)\s*\(', source) or len(
+            list(calls(source, 'SingleChildScrollView'))) > len(carousels):
         errors.append(f'{path.name}: generic scroll containers are forbidden; use fixed pages or audited item lists')
     if len(list(calls(source, 'ListView'))) != item_lists.get(path.name, 0):
         errors.append(f'{path.name}: item list inventory changed; verify that only repeated items scroll')

@@ -107,9 +107,9 @@ void main() {
         g.update(1 / 60);
       }
       expect(g.shots.any((s) => s.weapon.startsWith('part:')), isFalse);
-      // the next level-up offers the first part
-      final merge = g.mergeChoice!;
-      expect(merge.id, 'merge:W1');
+      // a level-up offers one shed part, picked at random
+      final merge = g.mergeChoiceFor('W1');
+      expect(g.rollMergeChoice()!.id, startsWith('merge:'));
       g.choices = [merge];
       g.chooseUpgrade(merge.id);
       expect(g.mergingPart, 'W1');
@@ -117,20 +117,41 @@ void main() {
       g.shots.add(Shot(g.position, Offset.zero, 50, 4, life: 1));
       g.update(1 / 60);
       expect(g.hp, hp, reason: 'untouchable while soaring to merge');
-      for (var i = 0; i < 60 * 2; i++) {
-        g.update(1 / 60);
+      // v12.17: the merge runs on the real clock — a lifted finger (5%
+      // combat speed) does not slow it; it ends in 1.2 s
+      for (var i = 0; i < 75; i++) {
+        g.update(.05 / 60, presentationDelta: 1 / 60);
       }
       expect(g.attached, contains('W1'));
       expect(g.mergingPart, isNull);
       expect(g.detachedLayers.contains('gun_l'), isFalse);
-      expect(g.mergeChoice!.id, 'merge:nose');
+      expect(g.shedParts, isNot(contains('W1')));
     },
   );
+
+  test('without wings gems are only taken by touch; magnet skill waits', () {
+    final g = craft(0)..xpNeeded = 1e9;
+    g.startDisassembled();
+    expect(g.collectionRadius, lessThan(30));
+    g.attached.add('wings');
+    expect(g.collectionRadius, greaterThan(40));
+  });
+
+  test('every kill pays a little experience at once', () {
+    final g = craft(0)..xpNeeded = 1e9;
+    g.developerPrepare(scene: 6, enemyCount: 6, shotCount: 0);
+    final before = g.xp;
+    for (final e in g.enemies) {
+      e.hp = 0;
+    }
+    g.update(1 / 60);
+    expect(g.xp, greaterThan(before));
+  });
 
   test('engines built outside a sortie keep the whole craft', () {
     final g = craft(0);
     expect(g.assembleInFlight, isFalse);
     expect(g.detachedLayers, isEmpty);
-    expect(g.mergeChoice, isNull);
+    expect(g.rollMergeChoice(), isNull);
   });
 }

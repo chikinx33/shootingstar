@@ -3,33 +3,23 @@ part of 'engine.dart';
 extension MainLoadoutLinks on GameEngine {
   bool get precisionLinkActive => mainPrecisionLink && techSpecial('gun');
   bool get cycleLinkActive => mainCycleLink && techSpecial('gun');
-  bool get _aimedMain =>
-      const {'kunai', 'revolver', 'void', 'disorder'}.contains(armament);
-  bool get _meleeMain =>
-      const {'katana', 'bat', 'lightchaser', 'lance'}.contains(armament);
-  double get mainReachFactor =>
-      (_meleeMain && techSpecial('gun') ? 1.15 : 1) *
-      (precisionLinkActive && !_aimedMain ? 1.15 : 1);
 
-  String get mainTechEffect => armament == 'void'
-      ? '중력장 지속 +0.4초'
-      : _meleeMain
-      ? '직접 타격 사거리·범위 +15%'
-      : '본탄 관통 +1';
+  /// v12.17: only the three cat guns remain; the 구름 rail aims.
+  bool get _aimedMain => armament == 'revolver';
+  double get mainReachFactor => precisionLinkActive && !_aimedMain ? 1.15 : 1;
+
+  String get mainTechEffect => '본탄 관통 +1';
   String get mainLoadoutDescription => unifiedModules
       ? '${moduleLoadout!.signatureName} · 고유 주포 · 공중 전방 공격\n기체 Lv.${moduleLoadout!.airframeLevel} · ${moduleLoadout!.ultimateName}'
       : modular
       ? [
           '전방 주포 · 공중 전용',
-          if (mainBranchSpec != null) mainBranchSpec!.description,
           '정밀 연계 · 전방 주포 피해 +8%',
           '순환 방호 · 주포 8회마다 최대 선체3% 차폐 · 상한15%',
           bossSetDescription,
         ].join('\n')
       : [
           bossSetDescription,
-          if (mainBranchSpec != null)
-            '발사 분기 · ${mainBranchSpec!.name}\n${mainBranchSpec!.description}',
           '관통 증폭기 · ${techRanks.containsKey('gun') ? '피해 +${((techDamage('gun') - 1) * 100).round()}%' : '미장착'}',
           '${techSpecial('gun') ? '특수 활성' : '희귀 등급부터'} · $mainTechEffect',
           '정밀 연계 · ${precisionLinkActive ? '활성' : '필요: 희귀 관통 증폭기 + 우수 매의 눈 센서 장착'}\n'
@@ -68,12 +58,9 @@ extension MainLoadoutLinks on GameEngine {
       final s = shots[i];
       if ((s.kind == 0 || s.kind == 9) && s.damage > 0) {
         if (techSpecial('gun') && armament != 'pulse') s.pierce++;
+        if (armament == 'pulse' && frontBreakRemaining > 0) s.pierce++;
         if (precisionLinkActive && !_aimedMain) s.life *= 1.15;
       } else if (s.kind == 13 && s.damage > 0) {
-        if (armament == 'void' && techSpecial('gun')) s.life += .4;
-        if (armament != 'void' && _meleeMain && techSpecial('gun')) {
-          s.radius *= 1.15;
-        }
         if (precisionLinkActive && !_aimedMain) s.radius *= 1.15;
       }
     }

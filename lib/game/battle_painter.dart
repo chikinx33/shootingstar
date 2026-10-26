@@ -15,13 +15,13 @@ import 'package:flutter/foundation.dart' show listEquals;
 import '../art/raster_assets.dart';
 import '../art/experience_gem_art.dart';
 import '../art/game_art.dart';
-import '../art/toon_assets.dart';
 import '../data/ship_modules.dart';
 import '../data/aircraft_assembly.dart';
 import '../data/aircraft_geometry.dart';
 import '../data/content.dart' as content;
 import 'engine.dart';
 import 'world_art.dart';
+import 'chick_squad_painter.dart';
 import 'combat_vfx.dart';
 import 'laser_beam.dart';
 import 'resolution_vfx.dart';
@@ -1292,9 +1292,7 @@ class BattlePainter extends CustomPainter {
       return;
     }
     if (shot.kind == 13 || shot.kind == 3 || shot.kind == 5) {
-      final effect = shot.weapon == 'void'
-          ? 9
-          : shot.weapon == 'inferno' || shot.weapon == 'trail'
+      final effect = shot.weapon == 'inferno' || shot.weapon == 'trail'
           ? 10
           : shot.kind == 3
           ? 11
@@ -1768,7 +1766,7 @@ class BattlePainter extends CustomPainter {
         canvas,
         game.laserOrigin,
         game.laserOrigin + const Offset(0, -520),
-        game.mainBranch == MainBranch.pulseSpread ? 40 : 22,
+        22,
         age: .13 - game.laserLife,
         duration: .13,
         reduced: reducedEffects,
@@ -2092,21 +2090,9 @@ class BattlePainter extends CustomPainter {
       if (!reducedEffects) CombatVfx.ring(canvas, at, 16, CombatVfx.cyan, .4);
       RasterAssets.sprite(canvas, 'projectiles', 22, at, 27);
     }
-    if (!game.resolvingBoss && game.petKind >= 0 && game.petLevel > 0) {
-      ToonAssets.sprite(
-        canvas,
-        'ships',
-        3 + game.petKind.clamp(0, 2),
-        game.petPosition,
-        46,
-        opacity: game.petHp <= 0 ? .4 : 1,
-      );
-      _gauge(
-        canvas,
-        game.petPosition + const Offset(0, 23),
-        36,
-        game.petHp <= 0 ? game.petRevive / 8 : game.petHp / 100,
-      );
+    // v12.17: the chick tail squad (rescue, tail, fall-off, skills)
+    if (!game.resolvingBoss) {
+      ChickSquadPainter.paint(canvas, game, reduced: reducedEffects);
     }
     if (game.screenMode) {
       // the cloud veil passes over the field but under the cat

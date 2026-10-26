@@ -85,9 +85,6 @@ extension DeveloperProfile on Profile {
     unlockedShips.addAll(List.generate(ships.length, (i) => i));
     clearedStages.addAll(List.generate(stages.length, (i) => i));
     cycleClears.addAll(List.generate(stages.length, (i) => i));
-    for (final a in armaments) {
-      armamentCollection.unlock(a.id);
-    }
     starterTechUnlocked = true;
     starterTechClaimed = false;
     for (var i = 0; i < petLevels.length; i++) {
@@ -171,11 +168,6 @@ extension DeveloperProfile on Profile {
         0,
         maxUpgradeLevel,
       );
-    }
-    if (armamentLevel != null) {
-      final raw = armamentCollection.toJson();
-      raw[armaments[activeArmamentIndex].id] = armamentLevel.clamp(0, 10);
-      armamentCollection = ArmamentCollection.restore(raw, legacy: false);
     }
     if (techLevel != null) {
       for (var i = 0; i < techStock.length; i++) {

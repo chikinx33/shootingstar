@@ -98,10 +98,10 @@ void main() {
           await tapUi(tester, confirm);
           await tester.pumpAndSettle();
           expect(p.shipModules.owned.containsKey(spare.instanceId), isFalse);
-          expect([p.credits, p.blueprints], [
-            credits + 20 + 3 * 5,
-            dust + 1 + 3 ~/ 3,
-          ]);
+          expect(
+            [p.credits, p.blueprints],
+            [credits + 20 + 3 * 5, dust + 1 + 3 ~/ 3],
+          );
           expect(p.moduleLoadout.parts['W1']!.instanceId, id);
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox());

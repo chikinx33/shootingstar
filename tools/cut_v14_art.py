@@ -38,6 +38,12 @@ SHEETS = [
     # v12.16 ship ultimates: missile storm, clones, invincible, star cannon
     ('v15_ultimates', 4, 1, 'icons_v14', 160,
      ['ult_storm', 'ult_clone', 'ult_shield', 'ult_star']),
+    # v12.17 the field magnet drop: a classic horseshoe, readable at 40px
+    ('v16_magnet', 1, 1, 'icons_v14', 160, ['magnet_drop']),
+    # v12.17 chick squad: six new chick kinds and the rescue props
+    ('v16_chicks', 3, 2, 'pets_v14', 256,
+     [f'pet_{i}' for i in range(3, 9)]),
+    ('v16_props', 3, 1, 'pets_v14', 160, ['chute', 'sos', 'feathers']),
 ]
 
 
@@ -57,7 +63,10 @@ def cut(cell: Image.Image) -> Image.Image:
 
 
 def main() -> None:
+    only = set(sys.argv[1:])
     for sheet_name, cols, rows, folder, side, names in SHEETS:
+        if only and sheet_name not in only:
+            continue
         sheet = Image.open(CONCEPT / sheet_name / 'raw.png')
         out = ART / folder
         out.mkdir(parents=True, exist_ok=True)

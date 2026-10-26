@@ -145,18 +145,8 @@ class AudioDirector {
   final AudioPort port;
   final DateTime Function() now;
   static AudioDirector? current;
-  static const weapons = {
-    'pulse',
-    'kunai',
-    'katana',
-    'bat',
-    'shotgun',
-    'revolver',
-    'lightchaser',
-    'void',
-    'disorder',
-    'lance',
-  };
+  // v12.17: the three cat main guns
+  static const weapons = {'pulse', 'shotgun', 'revolver'};
   // Engine event names that share a clip with another event.
   static const aliases = {
     'lightning': 'skill-electric',
@@ -217,6 +207,7 @@ class AudioDirector {
   final Map<int, _SoundRequest> _pending = {}, _active = {};
   final Map<int, DateTime> _voiceAt = {};
   AudioScene scene = AudioScene.lobby;
+
   /// Sound effects ([enabled], [volume]) and background music
   /// ([musicEnabled], [musicVolume]) are switched and mixed separately.
   bool enabled = true, background = false, musicEnabled = true;
@@ -275,6 +266,7 @@ class AudioDirector {
           AudioScene.boss => 'boss-theme',
           AudioScene.quiet => null,
         };
+
   /// [enabled]/[volume] are the sound effects; music follows them unless
   /// [musicEnabled]/[musicVolume] are given.
   void settings({

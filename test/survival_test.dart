@@ -89,7 +89,9 @@ void main() {
   test(
     'magnet supply collects distant experience, repair respects max hull',
     () {
-      final g = engine();
+      // v12.17: kills pay XP at once, so the guns stay silent and the XP
+      // below is the collected gem's alone.
+      final g = engine()..upgrades.clear();
       // The magnet only reaches gems within 320 (v10.0.62); farther stock
       // stays on the ground.
       g.crystals.add(g.position + const Offset(200, 200));
@@ -103,6 +105,7 @@ void main() {
         g.update(.025);
       }
       expect(g.absorbingCrystals, isEmpty);
+      expect(g.kills, 0);
       expect(g.xp, 2);
       g.hp = g.maxHp - 1;
       g.supplies.add(Supply(g.position, 0));

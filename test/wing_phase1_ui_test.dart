@@ -18,7 +18,7 @@ void main() {
   });
   for (final width in [320.0, 360.0, 390.0, 430.0]) {
     for (final scale in [1.0, 1.3]) {
-      testWidgets('branch decisions and selected HUD fit $width at $scale', (
+      testWidgets('skill decisions and selected HUD fit $width at $scale', (
         tester,
       ) async {
         tester.view.physicalSize = Size(width, width == 320 ? 568 : 844);
@@ -59,19 +59,18 @@ void main() {
         );
         // v12.7 skill cards deal in from the bottom over ~1.15 s.
         await tester.pump(const Duration(milliseconds: 1300));
-        final branch = find.byKey(const Key('upgrade-main-railCharge'));
-        await tester.ensureVisible(branch);
+        final card = find.byKey(Key('upgrade-${g.choices.first.id}'));
+        await tester.ensureVisible(card);
         await tester.pump();
-        expect(tester.getSize(branch).height, greaterThanOrEqualTo(88));
-        await tester.tap(branch);
+        expect(tester.getSize(card).height, greaterThanOrEqualTo(88));
+        await tester.tap(card);
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 2100));
         await tester.tap(find.byTooltip('전투 정보'));
         await tester.pump(const Duration(milliseconds: 300));
-        // v12.15: the main gun and its specialization are tags.
-        expect(find.text('축전 레일'), findsWidgets);
-        await revealUi(tester, find.textContaining('중형 레일건'));
-        expect(find.textContaining('중형 레일건'), findsOneWidget);
+        // v12.17: the cat main gun is a tag (no 주포 특화 any more).
+        await revealUi(tester, find.textContaining('정밀 냥냥포'));
+        expect(find.textContaining('정밀 냥냥포'), findsOneWidget);
         await tapUi(tester, find.byTooltip('전투 정보 닫기').last);
         await tester.pump(const Duration(milliseconds: 300));
         final hud = tester.getRect(find.byKey(const Key('battle-hud-panel')));
@@ -80,7 +79,7 @@ void main() {
         );
         expect(field.top, greaterThanOrEqualTo(hud.bottom));
         expect(field.height, greaterThan(100));
-        expect(g.mainBranch, MainBranch.railCharge);
+        expect(g.choices, isEmpty);
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox());
         p.dispose();

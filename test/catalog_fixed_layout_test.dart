@@ -145,7 +145,10 @@ void main() {
         await tapUi(tester, find.text('우편'));
         final mailHeader = tester.getRect(find.text('보상 우편').first);
         final mailCredits = p.credits;
-        await tapUi(tester, find.byKey(const ValueKey('mail-claim-fixed-ui-mail')));
+        await tapUi(
+          tester,
+          find.byKey(const ValueKey('mail-claim-fixed-ui-mail')),
+        );
         expect(p.credits, mailCredits + 70);
         await tapUi(tester, action('확인'));
         expect(p.claimMail('fixed-ui-mail'), isFalse);

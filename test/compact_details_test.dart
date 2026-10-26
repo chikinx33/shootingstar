@@ -66,7 +66,10 @@ void main() {
           expect(tile('cat-gear-dismantle').onPressed, isNull);
 
           // Pick the spare, equip and upgrade it.
-          await tapUi(tester, find.byKey(ValueKey('cat-gear-item-${spare.id}')));
+          await tapUi(
+            tester,
+            find.byKey(ValueKey('cat-gear-item-${spare.id}')),
+          );
           await tester.pumpAndSettle();
           await tapUi(tester, find.byKey(const Key('cat-gear-equip')));
           await tester.pumpAndSettle();

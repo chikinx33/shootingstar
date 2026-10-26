@@ -198,9 +198,9 @@ void main() {
     expect(p.selectedShip, 0);
     final loadout = jsonEncode(p.moduleLoadout.toJson());
     // A wing gun saved into the missile mount is rejected on restore.
-    final raw =
-        jsonDecode(jsonEncode(HangarPreset.capture(p, '검증').toJson()))
-            as Map<String, dynamic>;
+    final raw = jsonDecode(
+      jsonEncode(HangarPreset.capture(p, '검증').toJson()),
+    ) as Map<String, dynamic>;
     final parts = raw['aircraft']['modules']['parts'] as Map;
     parts['W2'] = parts.remove('W1');
     expect(HangarPreset.restore(raw), isNull);
