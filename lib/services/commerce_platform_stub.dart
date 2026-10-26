@@ -10,24 +10,24 @@ class _Unavailable implements CommercePlatform {
   @override
   Stream<StorePurchase> get purchases => const Stream.empty();
   @override
-  Future<StoreProduct?> product(String id) async => null;
+  Future<Map<String, StoreProduct>> products(Set<String> ids) async => {};
   @override
-  Future<void> buy(StoreProduct product, String accountBinding) async =>
-      throw StateError('Android Google Play에서 제공됩니다.');
+  Future<void> buy(
+    StoreProduct product, {
+    required bool consumable,
+    required String binding,
+  }) async => throw StateError('Android Google Play에서 제공됩니다.');
   @override
-  Future<void> restore(String accountBinding) async {}
+  Future<void> restore() async {}
   @override
-  Future<void> complete(StorePurchase purchase) async {}
+  Future<void> complete(StorePurchase purchase, {required bool consume}) async {}
   @override
-  Future<bool> prepareAds(String appId) async => false;
+  Future<bool> prepareAds() async => false;
   @override
   Future<void> privacyOptions() async {}
   @override
-  Future<RewardAdOutcome> rewardAd({
-    required String unitId,
-    required String nonce,
-    required String userId,
-  }) async => RewardAdOutcome.unavailable;
+  Future<RewardAdOutcome> rewardAd(String unitId) async =>
+      RewardAdOutcome.unavailable;
   @override
   void dispose() {}
 }

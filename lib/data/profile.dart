@@ -21,6 +21,7 @@ import 'daily_challenge.dart';
 import 'armament_collection.dart';
 import 'campaign_rewards.dart';
 import 'fleet_journal.dart';
+import 'shop_ledger.dart';
 import 'boss_gear.dart';
 import 'content_catalog.dart';
 import 'control_preferences.dart';
@@ -30,7 +31,7 @@ import 'ship_modules.dart';
 part 'module_profile.dart';
 part 'developer_profile.dart';
 
-class Profile extends ChangeNotifier with ContentSystems {
+class Profile extends ChangeNotifier with ContentSystems, ShopSystems {
   @override
   void contentChanged() {
     _syncAssemblyPets();

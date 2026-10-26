@@ -10,6 +10,8 @@ import 'game_motion.dart';
 import 'game_decor.dart';
 
 import '../data/profile.dart';
+import '../data/shop_ledger.dart';
+import 'shop_screen.dart';
 import '../art/toon_assets.dart';
 import '../art/menu_art.dart';
 import '../data/content_catalog.dart';
@@ -202,7 +204,7 @@ class _SupplyShopState extends State<SupplyShop> {
   void initState() {
     super.initState();
     if (p.developerMode) {
-      tab = (p.developerSettings['supplyTab'] as int? ?? 0).clamp(0, 1);
+      tab = (p.developerSettings['supplyTab'] as int? ?? 0).clamp(0, 2);
     }
   }
 
@@ -220,7 +222,7 @@ class _SupplyShopState extends State<SupplyShop> {
             icon: Icons.inventory_2,
           ),
           CatalogTabs(
-            labels: const ['보급', '교환'],
+            labels: const ['보급', '교환', '상점'],
             selected: tab,
             onSelected: audibleChange((v) {
               setState(() => tab = v);
@@ -231,7 +233,9 @@ class _SupplyShopState extends State<SupplyShop> {
             }),
           ),
           Expanded(
-            child: tab == 0
+            child: tab == 2
+                ? ShopProductList(profile: p)
+                : tab == 0
                 ? GameItemList(
                     key: const ValueKey('supply-items-0'),
                     padding: const EdgeInsets.fromLTRB(10, 12, 10, 12),
@@ -639,6 +643,7 @@ class _SeasonMailboxState extends State<SeasonMailbox> {
                       context,
                       p,
                       () => p.claimPatrol(DateTime.now()),
+                      adOffer: AdOffer.patrolDouble,
                     )
                   : null,
             ),

@@ -13,9 +13,12 @@ val keyProperties = Properties().apply {
     if (file.exists()) file.inputStream().use { load(it) }
 }
 
-// No sample IDs. Native advertising initialization is manual, after UMP.
+// The real AdMob app ID comes from android/gradle.properties (admobAppId).
+// Release builds never fall back to Google's sample ID; debug builds use it
+// so test ads run. Native initialization stays manual, after UMP.
 val configuredAdmobAppId = providers.gradleProperty("admobAppId")
     .orElse(providers.environmentVariable("ADMOB_APP_ID")).getOrElse("")
+val sampleAdmobAppId = "ca-app-pub-3940256099942544~3347511713"
 
 android {
     namespace = "com.shootingstar.shootingstar"
@@ -57,6 +60,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders["admobAppId"] =
+                configuredAdmobAppId.ifEmpty { sampleAdmobAppId }
+        }
         release {
             signingConfig = signingConfigs.findByName("upload")
         }

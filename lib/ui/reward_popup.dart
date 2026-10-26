@@ -12,6 +12,8 @@ import '../art/toon_assets.dart';
 import '../art/menu_art.dart';
 import '../art/arcade_aircraft.dart';
 import '../data/profile.dart';
+import '../data/shop_ledger.dart';
+import 'ad_offer.dart';
 import '../data/ship_modules.dart';
 import '../data/collection_book.dart';
 import '../data/content_catalog.dart';
@@ -231,6 +233,7 @@ Future<void> claimWithRewardPopup(
   Profile profile,
   bool Function() action, {
   String title = '보상 획득',
+  AdOffer? adOffer,
 }) async {
   final before = RewardSnapshot(profile);
   final ok = action();
@@ -264,6 +267,15 @@ Future<void> claimWithRewardPopup(
       entries: entries,
       title: title,
       message: entries.isEmpty ? message : '보상이 저장되었습니다.',
+      // a doubling offer opens only right after its own claim
+      extraAction: adOffer != null && profile.canOffer(adOffer)
+          ? AdOfferButton(
+              profile: profile,
+              offer: adOffer,
+              reward: '2배',
+              onDone: () => Navigator.of(dialog).pop(),
+            )
+          : null,
     ),
   );
   if (context.mounted) {
@@ -312,9 +324,11 @@ class RewardPopup extends StatelessWidget {
     required this.entries,
     this.title = '보상 획득',
     this.message = '보상이 저장되었습니다.',
+    this.extraAction,
   });
   final List<RewardEntry> entries;
   final String title, message;
+  final Widget? extraAction;
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
@@ -322,6 +336,7 @@ class RewardPopup extends StatelessWidget {
       title: title,
       closeLabel: '보상 닫기',
       actions: [
+        ?extraAction,
         GameActionButton(
           label: '확인',
           primary: true,

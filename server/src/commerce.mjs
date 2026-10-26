@@ -55,12 +55,8 @@ export function checkRtdnJwt(token,keys,audience,email,at){
  }catch{fail(401,'알림 발신자를 확인하지 못했습니다.');}
 }
 
-// Dependencies are injected by unit tests only, never via an HTTP flag or env
-// bypass. Production always uses the fixed Google HTTPS endpoints below.
-export function createCommerce(env,{fetcher=fetch,clock=()=>Math.floor(Date.now()/1000)}={}){
- const db=env.DB,config=commerceConfig(env);
- const accountBinding=id=>hash(`shootingstar.play.account.v1:${id}`);
- async function accessToken(){
+// One cached OAuth token for the Android Publisher API (service account).
+export async function playAccessToken(env,fetcher=fetch,clock=()=>Math.floor(Date.now()/1000)){
   const key=hash(env.PLAY_SERVICE_ACCOUNT),cached=oauthCache.get(key),at=clock();
   if(cached&&cached.until>at)return cached.token;
   let credentials;try{credentials=JSON.parse(env.PLAY_SERVICE_ACCOUNT);}catch{fail(503,'결제 서비스 설정을 확인하고 있습니다.');}
@@ -70,7 +66,14 @@ export function createCommerce(env,{fetcher=fetch,clock=()=>Math.floor(Date.now(
   const result=await fetchJson(fetcher,'https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer',assertion:value+'.'+signature})});
   if(typeof result.access_token!=='string')fail(502,'결제 인증 응답을 확인하지 못했습니다.');
   oauthCache.set(key,{token:result.access_token,until:at+Math.min(3500,Number(result.expires_in)||300)-60});return result.access_token;
- }
+}
+
+// Dependencies are injected by unit tests only, never via an HTTP flag or env
+// bypass. Production always uses the fixed Google HTTPS endpoints below.
+export function createCommerce(env,{fetcher=fetch,clock=()=>Math.floor(Date.now()/1000)}={}){
+ const db=env.DB,config=commerceConfig(env);
+ const accountBinding=id=>hash(`shootingstar.play.account.v1:${id}`);
+ const accessToken=()=>playAccessToken(env,fetcher,clock);
  async function providerPurchase(token,product,ack=false){
   const base=`https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(config.packageName)}/purchases/products/${encodeURIComponent(product)}/tokens/${encodeURIComponent(token)}`;
   return fetchJson(fetcher,base+(ack?':acknowledge':''),{method:ack?'POST':'GET',headers:{Authorization:`Bearer ${await accessToken()}`,...(ack?{'Content-Type':'application/json'}:{})},...(ack?{body:'{}'}:{})});

@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 
 import '../data/content.dart';
 import '../data/profile.dart';
+import '../data/shop_ledger.dart';
+import 'ad_offer.dart';
 import '../data/daily_challenge.dart';
 import '../game/engine.dart';
 import '../game/developer_battle.dart';
@@ -210,6 +212,14 @@ class _BattleScreenState extends State<BattleScreen>
     p.lastLoot = "";
     _clearInput();
   }
+
+  /// The +50% offer fits under the reward of a paying campaign sortie.
+  bool get _adOfferShown =>
+      _recordsRun &&
+      widget.dailyEntry == null &&
+      !widget.training &&
+      reward > 0 &&
+      p.commerce?.offerVisible(AdOffer.runBonus) == true;
 
   void _commerceChanged() {
     if (mounted && game.finished) {
@@ -1249,7 +1259,9 @@ class _BattleScreenState extends State<BattleScreen>
                 final text = MediaQuery.textScalerOf(context).scale(16) / 16;
                 final roomy = box.maxHeight >= 600 * text;
                 // mascot and ribbon share what the fixed rows leave over
-                final mascot = (box.maxHeight - 470 * text).clamp(0.0, 150.0);
+                final offer = _adOfferShown;
+                final mascot = (box.maxHeight - (offer ? 534 : 470) * text)
+                    .clamp(0.0, 150.0);
                 return Semantics(
                   container: true,
                   label: tr(win ? '승리' : '패배'),
@@ -1416,6 +1428,18 @@ class _BattleScreenState extends State<BattleScreen>
                                 ],
                               ),
                       ),
+                      if (offer) ...[
+                        gap(8),
+                        AdOfferButton(
+                          profile: p,
+                          offer: AdOffer.runBonus,
+                          reward: message('+{0} 츄르', [
+                            ShopSystems.runBonus(reward),
+                          ]),
+                          runId: _runId,
+                          runCredits: reward,
+                        ),
+                      ],
                       gap(14),
                       GameActionButton(
                         primary: true,
@@ -1535,31 +1559,6 @@ class _BattleScreenState extends State<BattleScreen>
               icon: Icons.card_giftcard,
               onPressed: audible(
                 () => showCampaignRewardReceipt(context, _campaignReceipt!),
-              ),
-            ),
-          if (_recordsRun &&
-              widget.dailyEntry == null &&
-              game.elapsed >= 30 &&
-              game.kills >= 10 &&
-              p.commerce?.configuredAds == true)
-            GameActionButton(
-              label: p.commerce!.rewardedRun(_runId)
-                  ? '추가 보상 지급 완료'
-                  : '광고 선택 · 추가 20 츄르',
-              icon: Icons.play_arrow,
-              onPressed: audible(
-                p.commerce!.canAdvertise && !p.commerce!.rewardedRun(_runId)
-                    ? () async {
-                        final store = p.commerce!;
-                        setState(() => _adStatus = '추가 보상 확인 중');
-                        await store.watchReward(
-                          runId: _runId,
-                          seconds: game.elapsed.floor(),
-                          kills: game.kills,
-                        );
-                        if (mounted) setState(() => _adStatus = store.status);
-                      }
-                    : null,
               ),
             ),
         ],

@@ -12,6 +12,7 @@ import '../data/content.dart';
 import '../data/content_systems.dart';
 import '../data/fleet_journal.dart';
 import '../data/profile.dart';
+import '../data/shop_ledger.dart';
 import '../main.dart';
 import 'components.dart';
 import 'reward_popup.dart';
@@ -65,8 +66,8 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
     super.dispose();
   }
 
-  void act(bool Function() action) {
-    claimWithRewardPopup(context, p, action);
+  void act(bool Function() action, {AdOffer? adOffer}) {
+    claimWithRewardPopup(context, p, action, adOffer: adOffer);
   }
 
   Widget card(Widget child) => Padding(
@@ -99,13 +100,16 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
     bool Function() action, {
     bool claimed = false,
     String displayLabel = '보상 받기',
+    AdOffer? adOffer,
   }) => Center(
     child: GameActionButton(
       label: name,
       displayLabel: claimed ? '수령 완료' : displayLabel,
       primary: true,
       icon: Icons.card_giftcard,
-      onPressed: audible(enabled ? () => act(action) : null),
+      onPressed: audible(
+        enabled ? () => act(action, adOffer: adOffer) : null,
+      ),
     ),
   );
 
@@ -320,6 +324,7 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
                     p.dailyClaims.length >= i + 1,
                 () => p.claimDailyActivity(i),
                 claimed: p.journal.dailyChests.contains(i),
+                adOffer: AdOffer.chestDouble,
               ),
             ],
           ),
@@ -527,6 +532,7 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
               p.patrolMinutes(DateTime.now()) >= 30,
               () => p.claimPatrol(DateTime.now()),
               displayLabel: '보상 회수',
+              adOffer: AdOffer.patrolDouble,
             ),
           ],
         ),

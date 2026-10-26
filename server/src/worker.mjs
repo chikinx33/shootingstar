@@ -4,6 +4,7 @@
 import {timingSafeEqual} from 'node:crypto';
 import {createCommerce,commerceConfig,CommerceError} from './commerce.mjs';
 import {ensureCommerceSchema} from './commerce_schema.mjs';
+import {verifyShopPurchase,shopEnabled} from './shop.mjs';
 import {validAircraftSnapshot} from './aircraft_config.mjs';
 const enc=new TextEncoder();
 const bytesHex=b=>Array.from(b,x=>x.toString(16).padStart(2,'0')).join('');
@@ -99,7 +100,7 @@ async function guild(action,data,a,db){
 }
 async function api(request,env){
  const db=env.DB,path=new URL(request.url).pathname.slice(5);
- if(path==='health'&&request.method==='GET'){await first(db,'SELECT 1 FROM accounts LIMIT 1');const c=commerceConfig(env);return {body:{ok:true,version:env.APP_VERSION,storage:'D1',commerce:{billing:c.billing,rewardedAds:c.ads}}};}
+ if(path==='health'&&request.method==='GET'){await first(db,'SELECT 1 FROM accounts LIMIT 1');const c=commerceConfig(env);return {body:{ok:true,version:env.APP_VERSION,storage:'D1',commerce:{billing:c.billing,rewardedAds:c.ads,shop:shopEnabled(env)}}};}
  if(path==='commerce/admob-ssv'&&request.method==='GET'){if(commerceConfig(env).ads)await ensureCommerceSchema(db);return {body:await createCommerce(env).ssv(request)};}
  if(path==='commerce/play-rtdn'&&request.method==='POST'){if(commerceConfig(env).billing)await ensureCommerceSchema(db);return {body:await createCommerce(env).rtdn(request)};}
  if(request.method!=='POST')fail(405,'POST 요청만 허용합니다.');
@@ -108,6 +109,7 @@ async function api(request,env){
  const raw=await request.text();if(raw.length>450000)fail(413,'요청이 너무 큽니다.');let data;try{data=JSON.parse(raw);}catch{fail(400,'JSON 형식 오류입니다.');}
  if(!data||typeof data!=='object'||Array.isArray(data))fail(400,'잘못된 요청입니다.');
  const ip=request.headers.get('CF-Connecting-IP')||'local';
+ if(path==='shop/verify'){await rate(db,`shop-ip:${ip}`,30,60);return {body:await verifyShopPurchase(env,data)};}
  if(['auth/challenge','auth/register','auth/login','auth/recover'].includes(path)){
   await rate(db,`auth-ip:${ip}`,80,900);
   if(path==='auth/challenge'){

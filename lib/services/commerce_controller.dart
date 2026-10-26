@@ -1,16 +1,22 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math' as math;
 
+import 'package:cryptography/cryptography.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/cloud_sync.dart';
 import '../data/profile.dart';
+import '../data/shop_ledger.dart';
+import 'commerce_config.dart';
 import 'commerce_platform.dart';
 import 'commerce_platform_stub.dart'
     if (dart.library.io) 'commerce_platform_android.dart';
 
-/// Paid ownership lives only in the authenticated server response, separately
-/// from cloud/importable game progress. Missing configuration fails closed.
+/// Rewarded ads and Google Play products without a game account (v12.13.0).
+/// Ads pay locally after a completed view; purchases pay only after the
+/// server confirms the Play receipt, and each receipt pays once per save.
 class CommerceController extends ChangeNotifier with WidgetsBindingObserver {
   CommerceController(this.profile, this.online, {CommercePlatform? platform})
     : platform = platform ?? createCommercePlatform() {
@@ -21,182 +27,202 @@ class CommerceController extends ChangeNotifier with WidgetsBindingObserver {
   final CommercePlatform platform;
   StreamSubscription<StorePurchase>? _purchases;
   SharedPreferences? _prefs;
-  String _owner = '', _binding = '', _productId = '', _adUnit = '', _adApp = '';
-  bool _disposed = false, _refreshing = false, _billing = false, _ads = false;
-  bool supporter = false, cosmeticSelected = false, busy = false;
-  bool _buying = false;
-  int remaining = 0;
-  StoreProduct? product;
-  String status = '후원 외형과 선택형 광고를 준비하고 있습니다.';
-  List<Map<String, dynamic>> grants = [];
-  bool get cosmeticActive =>
-      supporter && cosmeticSelected && online.accountId == _owner;
-  bool get canBuy =>
-      !_buying &&
-      _billing &&
-      platform.supported &&
-      product != null &&
-      !supporter &&
-      !busy;
-  bool get canAdvertise => _ads && platform.supported && remaining > 0 && !busy;
+  bool _disposed = false, _restoring = false;
+  bool busy = false, cosmeticSelected = false;
+  Map<String, StoreProduct> products = {};
+  String status = '';
+
+  ShopLedger get _shop => profile.shop;
+  bool get billingReady => platform.supported && products.isNotEmpty;
+  bool get adsConfigured =>
+      platform.supported && CommerceConfig.rewardedUnit.isNotEmpty;
   bool get privacyRequired => platform.supported && platform.privacyRequired;
-  bool get configuredBilling => _billing && platform.supported;
-  bool get configuredAds => _ads && platform.supported;
+  bool get adPassActive => _shop.adPassActive(DateTime.now());
+  bool get cosmeticActive => _shop.supporterOwned && cosmeticSelected;
+
+  /// Whether the offer button can be pressed right now.
+  bool canWatch(AdOffer offer, {String? runId, int runCredits = 0}) =>
+      !busy &&
+      !profile.developerMode &&
+      (adPassActive || adsConfigured) &&
+      profile.canOffer(offer, runId: runId, runCredits: runCredits);
+
+  /// Whether the offer is worth showing at all (greyed out when not ready).
+  bool offerVisible(AdOffer offer) =>
+      !profile.developerMode && (adPassActive || platform.supported);
+
+  StoreProduct? product(ShopItem item) => products[shopProducts[item]!.id];
+  bool canBuy(ShopItem item) =>
+      !busy &&
+      !profile.developerMode &&
+      product(item) != null &&
+      !_shop.owns(item);
 
   Future<void> initialize() async {
     if (profile.developerMode) return;
     _prefs = await SharedPreferences.getInstance();
+    cosmeticSelected = _prefs?.getBool('commerce.cosmetic') ?? false;
+    if (_shop.binding.isEmpty) {
+      final r = math.Random.secure();
+      _shop.binding = List.generate(
+        16,
+        (_) => r.nextInt(256).toRadixString(16).padLeft(2, '0'),
+      ).join();
+      profile.contentChanged();
+    }
     _purchases = platform.purchases.listen(_purchase);
-    online.addListener(_accountChanged);
     WidgetsBinding.instance.addObserver(this);
-    _accountChanged();
+    unawaited(refresh());
   }
 
   void _notify() {
     if (!_disposed) notifyListeners();
   }
 
-  void _accountChanged() {
-    if (_owner == online.accountId) return;
-    _owner = online.accountId;
-    _buying = false;
-    supporter = false;
-    cosmeticSelected = false;
-    product = null;
-    _billing = false;
-    _ads = false;
-    remaining = 0;
-    grants = [];
-    _notify();
-    if (_owner.isNotEmpty) unawaited(refresh(restore: true));
-  }
-
-  void _accept(Map<String, dynamic> value) {
-    _billing = value['billingAvailable'] == true;
-    _ads = value['adsAvailable'] == true;
-    _binding = value['accountBinding'] as String? ?? '';
-    _productId = value['productId'] as String? ?? '';
-    _adUnit = value['adUnitId'] as String? ?? '';
-    _adApp = value['adAppId'] as String? ?? '';
-    supporter = value['supporter'] == true;
-    remaining = (value['remaining'] as int? ?? 0).clamp(0, 2);
-    grants = (value['grants'] as List? ?? [])
-        .whereType<Map>()
-        .map((v) => Map<String, dynamic>.from(v))
-        .toList();
-  }
-
-  Future<void> refresh({bool restore = false}) async {
-    if (_refreshing || _owner.isEmpty || profile.developerMode || _disposed) {
-      return;
-    }
-    _refreshing = true;
-    final owner = _owner;
+  Future<void> refresh() async {
+    if (_disposed || !platform.supported) return;
     try {
-      final value = await online.api.post('commerce/refresh');
-      if (owner != _owner || _disposed) return;
-      _accept(value);
-      cosmeticSelected = _prefs?.getBool('commerce.cosmetic.$owner') ?? false;
-      if (_billing && platform.supported) {
-        product = await platform.product(_productId);
-        if (restore) await platform.restore(_binding);
-      }
-      if (_ads && platform.supported && !online.inBattle) {
-        try {
-          await platform.prepareAds(_adApp);
-        } catch (_) {
-          /* fail closed; billing remains independent */
+      products = await platform.products({
+        for (final p in shopProducts.values) p.id,
+      });
+      await restore(quiet: true);
+      // The consent form (EEA/UK) appears once at start, not mid-offer.
+      if (adsConfigured && !online.inBattle) unawaited(platform.prepareAds());
+    } catch (_) {
+      products = {};
+    }
+    _notify();
+  }
+
+  Future<void> restore({bool quiet = false}) async {
+    if (_restoring || !platform.supported) return;
+    _restoring = true;
+    try {
+      await platform.restore();
+      if (!quiet) status = '구매 내역을 확인했습니다.';
+    } catch (_) {
+      if (!quiet) status = '구매 내역을 확인하지 못했습니다. 잠시 후 다시 시도하세요.';
+    } finally {
+      _restoring = false;
+      _notify();
+    }
+  }
+
+  /// Shows a rewarded ad (or skips it with the ad pass) and pays [offer].
+  Future<bool> watch(AdOffer offer, {String? runId, int runCredits = 0}) async {
+    if (!canWatch(offer, runId: runId, runCredits: runCredits)) return false;
+    busy = true;
+    _notify();
+    try {
+      if (!adPassActive) {
+        if (!await platform.prepareAds()) {
+          status = '지금은 광고를 볼 수 없습니다. 기본 보상은 그대로입니다.';
+          return false;
+        }
+        final result = await platform.rewardAd(CommerceConfig.rewardedUnit);
+        if (result != RewardAdOutcome.completed) {
+          status = result == RewardAdOutcome.closed
+              ? '광고를 끝까지 보지 않아 추가 보상이 없습니다.'
+              : '지금 볼 수 있는 광고가 없습니다. 기본 보상은 그대로입니다.';
+          return false;
         }
       }
-      if (owner != _owner || _disposed) return;
-      status = !platform.supported
-          ? '웹에서는 외형을 미리 볼 수 있습니다. 구매·광고는 Android에서 제공됩니다.'
-          : !_billing && !_ads
-          ? '상품과 광고를 준비하고 있습니다. 기본 게임은 모두 이용할 수 있습니다.'
-          : supporter
-          ? '후원 외형 보유 중'
-          : '무료 게임을 유지하는 선택형 후원입니다.';
+      final ok = profile.grantAdOffer(
+        offer,
+        runId: runId,
+        runCredits: runCredits,
+      );
+      status = ok ? '추가 보상 지급 · ${profile.lastLoot}' : '이미 받은 보상입니다.';
+      return ok;
     } catch (_) {
-      if (owner == _owner) {
-        supporter = false;
-        _billing = false;
-        _ads = false;
-        product = null;
-        status = '상품 연결을 확인하지 못했습니다. 잠시 후 다시 확인하세요.';
-      }
-    } finally {
-      _refreshing = false;
-      _notify();
-      if (owner != _owner && _owner.isNotEmpty) unawaited(refresh());
-    }
-  }
-
-  Future<void> buy() async {
-    if (!canBuy || online.inBattle || online.accountId != _owner) return;
-    busy = true;
-    _buying = true;
-    status = 'Google Play 구매 확인 중';
-    _notify();
-    try {
-      await platform.buy(product!, _binding);
-    } catch (_) {
-      _buying = false;
-      status = '구매를 시작하지 못했습니다. 결제 내역은 복원으로 다시 확인할 수 있습니다.';
+      status = '광고를 마치지 못했습니다. 기본 보상은 그대로입니다.';
+      return false;
     } finally {
       busy = false;
       _notify();
     }
+  }
+
+  Future<void> buy(ShopItem item) async {
+    if (!canBuy(item) || online.inBattle) return;
+    busy = true;
+    status = 'Google Play 결제 화면을 여는 중';
+    _notify();
+    try {
+      await platform.buy(
+        product(item)!,
+        consumable: shopProducts[item]!.consumable,
+        binding: _shop.binding,
+      );
+    } catch (_) {
+      busy = false;
+      status = '구매를 시작하지 못했습니다. 잠시 후 다시 시도하세요.';
+    }
+    _notify();
+  }
+
+  static Future<String> _hash(String token) async {
+    final digest = await Sha256().hash(utf8.encode(token));
+    return digest.bytes
+        .map((b) => b.toRadixString(16).padLeft(2, '0'))
+        .join()
+        .substring(0, 40);
   }
 
   Future<void> _purchase(StorePurchase purchase) async {
-    if (_disposed || _owner.isEmpty || profile.developerMode) return;
-    if (purchase.status == StorePurchaseStatus.pending) {
-      status = '결제 승인 대기 · 승인 전에는 외형이 지급되지 않습니다.';
-      _notify();
-      return;
+    if (_disposed || profile.developerMode) return;
+    switch (purchase.status) {
+      case StorePurchaseStatus.pending:
+        status = '결제 승인 대기 · 승인되면 자동으로 지급됩니다.';
+        _notify();
+        return;
+      case StorePurchaseStatus.cancelled:
+      case StorePurchaseStatus.failed:
+        busy = false;
+        status = purchase.status == StorePurchaseStatus.cancelled
+            ? '구매를 취소했습니다.'
+            : '구매를 마치지 못했습니다. 결제되었다면 다음 실행 때 자동으로 지급됩니다.';
+        _notify();
+        return;
+      case StorePurchaseStatus.purchased:
+      case StorePurchaseStatus.restored:
+        break;
     }
-    if (purchase.status == StorePurchaseStatus.cancelled ||
-        purchase.status == StorePurchaseStatus.failed) {
-      status = purchase.status == StorePurchaseStatus.cancelled
-          ? '구매를 취소했습니다.'
-          : '구매 확인에 실패했습니다. 복원으로 다시 확인하세요.';
-      busy = false;
-      _buying = false;
-      _notify();
-      return;
-    }
-    if (purchase.productId != _productId ||
-        purchase.token.isEmpty ||
-        !_billing) {
-      return;
-    }
-    final owner = _owner;
-    _buying = false;
+    final item = shopItemOf(purchase.productId);
+    if (item == null || purchase.token.isEmpty) return;
+    final consumable = shopProducts[item]!.consumable;
     try {
-      final value = await online.api.post('commerce/purchase', {
-        'productId': purchase.productId,
-        'token': purchase.token,
-      });
-      if (owner != _owner || _disposed) return;
-      _accept(value);
-      if (value['purchaseState'] == 'purchased' &&
-          value['acknowledged'] == true) {
-        await platform.complete(purchase);
+      final hash = await _hash(purchase.token);
+      final applied = profile.shop.tokens.contains(hash);
+      if (!applied) {
+        final value = await online.api.post('shop/verify', {
+          'productId': purchase.productId,
+          'token': purchase.token,
+        });
+        if (value['state'] != 'purchased') {
+          status = value['state'] == 'pending'
+              ? '결제 승인 대기 · 승인되면 자동으로 지급됩니다.'
+              : '확인되지 않은 구매입니다. 지급하지 않았습니다.';
+          return;
+        }
+        profile.applyPurchase(item, hash, DateTime.now());
+        await profile.save();
+        status = '${shopProducts[item]!.title} 지급 완료';
       }
-      if (owner != _owner || _disposed) return;
-      status = supporter
-          ? '후원 감사합니다. 외형을 장착할 수 있습니다.'
-          : '구매 승인 대기 · 복원으로 다시 확인할 수 있습니다.';
+      // Finish only after the save holds the reward.
+      await platform.complete(purchase, consume: consumable);
     } catch (_) {
-      if (owner == _owner) status = '구매 확인을 마치지 못했습니다. 계정을 유지하고 복원해 주세요.';
+      status = '구매 확인을 마치지 못했습니다. 다음 실행 때 다시 확인합니다.';
+    } finally {
+      busy = false;
+      _notify();
     }
-    _notify();
   }
 
   Future<void> selectCosmetic(bool value) async {
-    if (!supporter || _owner.isEmpty || profile.developerMode) return;
+    if (!_shop.supporterOwned || profile.developerMode) return;
     cosmeticSelected = value;
-    await _prefs?.setBool('commerce.cosmetic.$_owner', value);
+    await _prefs?.setBool('commerce.cosmetic', value);
     _notify();
   }
 
@@ -209,104 +235,14 @@ class CommerceController extends ChangeNotifier with WidgetsBindingObserver {
     _notify();
   }
 
-  bool rewardedRun(String runId) =>
-      grants.any((grant) => grant['run'] == runId);
-  Future<void> watchReward({
-    required String runId,
-    required int seconds,
-    required int kills,
-  }) async {
-    if (!canAdvertise ||
-        rewardedRun(runId) ||
-        online.inBattle ||
-        seconds < 30 ||
-        kills < 10) {
-      return;
-    }
-    final owner = _owner;
-    String? nonce;
-    busy = true;
-    status = '기본 보상 저장 확인 중';
-    _notify();
-    try {
-      await online.sync();
-      if (owner != _owner ||
-          online.busy ||
-          online.dirty ||
-          online.conflict != null) {
-        throw StateError('sync');
-      }
-      if (!await platform.prepareAds(_adApp)) throw StateError('consent');
-      if (owner != _owner) return;
-      final attempt = await online.api.post('commerce/ad-begin', {
-        'runId': runId,
-        'seconds': seconds,
-        'kills': kills,
-      });
-      if (owner != _owner) return;
-      nonce = attempt['nonce'] as String;
-      status = '선택형 광고 · 기본 보상은 이미 지급됐습니다.';
-      _notify();
-      final result = await platform.rewardAd(
-        unitId: _adUnit,
-        nonce: nonce,
-        userId: attempt['userId'] as String,
-      );
-      if (owner != _owner) return;
-      if (result != RewardAdOutcome.completed) {
-        await online.api.post('commerce/ad-close', {'nonce': nonce});
-        status = result == RewardAdOutcome.closed
-            ? '광고를 닫았습니다. 기본 보상은 그대로입니다.'
-            : '지금 볼 수 있는 광고가 없습니다. 기본 보상은 그대로입니다.';
-        return;
-      }
-      status = '광고 완료 · 서버 보상 확인 중';
-      _notify();
-      // Bounded polling for delayed SSV. Re-entry and ordinary cloud sync also
-      // recover grants after process termination; no local callback grants.
-      for (var i = 0; i < 4; i++) {
-        if (i > 0) await Future<void>.delayed(const Duration(seconds: 2));
-        if (owner != _owner || _disposed) return;
-        final value = await online.api.post('commerce/state');
-        if (owner != _owner) return;
-        _accept(value);
-        if (rewardedRun(runId)) {
-          await online.sync();
-          status = '추가 보상 20 츄르 지급 · 기기 저장과 동기화됩니다.';
-          return;
-        }
-      }
-      status = '서버 확인 대기 · 지급이 확인되면 저장에 자동 반영됩니다.';
-    } catch (error) {
-      if (owner == _owner) {
-        status = error is StateError && error.message == 'sync'
-            ? '계정 저장과 충돌 해결이 끝난 뒤 다시 선택하세요. 기본 보상은 그대로입니다.'
-            : '광고 연결을 마치지 못했습니다. 기본 보상은 그대로입니다.';
-      }
-    } finally {
-      // Closing is never a success signal. A late valid SSV can still grant.
-      if (nonce != null && owner == _owner) {
-        try {
-          await online.api.post('commerce/ad-close', {'nonce': nonce});
-        } catch (_) {
-          /* expires automatically */
-        }
-      }
-      busy = false;
-      _notify();
-    }
-  }
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && !busy)
-      unawaited(refresh(restore: true));
+    if (state == AppLifecycleState.resumed && !busy) unawaited(refresh());
   }
 
   @override
   void dispose() {
     _disposed = true;
-    online.removeListener(_accountChanged);
     WidgetsBinding.instance.removeObserver(this);
     _purchases?.cancel();
     platform.dispose();

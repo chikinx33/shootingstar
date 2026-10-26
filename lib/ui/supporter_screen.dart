@@ -8,7 +8,7 @@ import 'game_decor.dart';
 
 import '../art/arcade_aircraft.dart';
 import '../data/profile.dart';
-import 'account_screen.dart';
+import '../data/shop_ledger.dart';
 import 'components.dart';
 import 'info_dialog.dart';
 import 'supporter_cosmetic.dart';
@@ -26,6 +26,7 @@ class _SupporterScreenState extends State<SupporterScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     final p = widget.profile, store = p.commerce;
+    final price = store?.product(ShopItem.supporter)?.price;
     return Scaffold(
       appBar: GameAppBar(title: Text(tr('잔광 후원 외형'), textAlign: TextAlign.center)),
       body: SafeArea(
@@ -63,9 +64,9 @@ class _SupporterScreenState extends State<SupporterScreen> {
                 tr(store?.status ?? '외형을 미리 볼 수 있습니다. 상품을 준비하고 있습니다.'),
                 textAlign: TextAlign.center,
               ),
-              if (store?.supporter == true) ...[
+              if (p.shop.supporterOwned) ...[
                 Text(
-                  tr('보유 중 · 계정에 연결된 비소모성 외형입니다.'),
+                  tr('보유 중 · Google Play 구매 내역으로 복원됩니다.'),
                   textAlign: TextAlign.center,
                 ),
                 gap8,
@@ -78,44 +79,27 @@ class _SupporterScreenState extends State<SupporterScreen> {
                         : () => store.selectCosmetic(!store.cosmeticSelected),
                   ),
                 ),
-              ] else if (store?.configuredBilling == true) ...[
+              ] else if (store?.platform.supported == true) ...[
                 gap8,
                 GameActionButton(
-                  label: store!.product == null
+                  label: price == null
                       ? '상품 가격 확인 중'
-                      : '${store.product!.price} · 후원 외형 구매',
-                  displayLabel: store.product == null
-                      ? '상품 확인 중'
-                      : '${store.product!.price} 구매',
+                      : '$price · 후원 외형 구매',
+                  displayLabel: price == null ? '상품 확인 중' : '$price 구매',
                   primary: true,
                   onPressed: audible(
-                    store.canBuy ? () => _confirmPurchase(context) : null,
+                    store!.canBuy(ShopItem.supporter)
+                        ? () => _confirmPurchase(context)
+                        : null,
                   ),
                 ),
               ],
-              if (p.online != null && p.online!.signedIn && store != null) ...[
+              if (store?.platform.supported == true) ...[
                 gap12,
                 GameActionButton(
-                  label: '구매 복원·소유권 확인',
+                  label: '구매 복원',
                   icon: Icons.restore,
-                  onPressed: audible(
-                    store.busy ? null : () => store.refresh(restore: true),
-                  ),
-                ),
-              ],
-              if (p.online != null && !p.online!.signedIn) ...[
-                gap12,
-                GameActionButton(
-                  label: '계정 연결',
-                  icon: Icons.person,
-                  onPressed: audible(
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (_) => AccountScreen(profile: p),
-                      ),
-                    ),
-                  ),
+                  onPressed: audible(store!.busy ? null : store.restore),
                 ),
               ],
               if (store != null && store.privacyRequired) ...[
@@ -152,7 +136,7 @@ class _SupporterScreenState extends State<SupporterScreen> {
         const InfoText('유효한 출격 정산 뒤 원할 때만 광고를 선택할 수 있습니다. 기본 보상은 먼저 지급됩니다.'),
         gap8,
         const InfoText(
-          '광고 완료·서버 확인 후 20 츄르, 출격당 1회·UTC 하루 2회입니다. 광고를 닫거나 볼 광고가 없어도 기본 보상은 유지됩니다.',
+          '출격 보상 +50% 하루 3회, 순찰 보상 2배 2회, 일일 상자 2배 1회, 광고 보급 상자 1회입니다. 광고를 닫거나 볼 광고가 없어도 기본 보상은 유지됩니다.',
         ),
         gap16,
         const GameSectionTitle('상품 가격'),
@@ -168,7 +152,7 @@ class _SupporterScreenState extends State<SupporterScreen> {
 
   Future<void> _confirmPurchase(BuildContext context) async {
     final store = widget.profile.commerce;
-    if (store == null || !store.canBuy) return;
+    if (store == null || !store.canBuy(ShopItem.supporter)) return;
     final yes = await showDialog<bool>(
       context: context,
       builder: (dialog) => GameDialog(
@@ -179,7 +163,7 @@ class _SupporterScreenState extends State<SupporterScreen> {
             onPressed: audible(() => Navigator.pop(dialog, false)),
           ),
           GameActionButton(
-            label: '${store.product!.price} · Play에서 확인',
+            label: '${store.product(ShopItem.supporter)!.price} · Play에서 확인',
             displayLabel: 'Play에서 확인',
             primary: true,
             onPressed: audible(() => Navigator.pop(dialog, true)),
@@ -187,13 +171,13 @@ class _SupporterScreenState extends State<SupporterScreen> {
         ],
         child: Text(
           tr(
-            '격납고 프레임과 후원 배지를 계정에 연결합니다. 비소모성 외형이며 게임 능력치는 바뀌지 않습니다. Google Play에서 결제를 확인합니다.',
+            '로비 기체에 잔광 프레임과 후원 배지를 더합니다. 한 번 사면 계속 보유하며 게임 능력치는 바뀌지 않습니다. Google Play에서 결제를 확인합니다.',
           ),
 
           textAlign: TextAlign.center,
         ),
       ),
     );
-    if (yes == true && mounted) await store.buy();
+    if (yes == true && mounted) await store.buy(ShopItem.supporter);
   }
 }

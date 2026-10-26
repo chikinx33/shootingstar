@@ -67,7 +67,7 @@ if re.search(r'\b(?:FilledButton|OutlinedButton)\s*[.(]', decisions):
     errors.append('battle decisions must use GameActionButton')
 # v12.4.3 user rule: pause/result are one fixed page (no pager, no scroll);
 # secondary facts live in the result's reward popup.
-if 'GamePages(' in decisions or 'return _scrim(' not in decisions or 'Widget _result()' not in decisions or decisions.count('GameActionButton(') < 10 or "label: '조작·음향 설정'" not in decisions or "label: '보상 내역'" not in decisions or 'store.watchReward(' not in decisions or 'configuredAds == true' not in decisions:
+if 'GamePages(' in decisions or 'return _scrim(' not in decisions or 'Widget _result()' not in decisions or decisions.count('GameActionButton(') + decisions.count('AdOfferButton(') < 10 or "label: '조작·음향 설정'" not in decisions or "label: '보상 내역'" not in decisions or 'AdOfferButton(' not in decisions or 'AdOffer.runBonus' not in decisions:
     errors.append('pause/result must retain bounded decisions, shared actions, battle save/receipt and the configured optional reward action')
 for filename, marker in [('fixed_lobby.dart', "key: const Key('launch')"),
                          ('daily_challenge_screen.dart', "key: ValueKey('daily-launch-$tier')")]:

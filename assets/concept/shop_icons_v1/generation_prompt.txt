@@ -1,0 +1,20 @@
+Tool: built-in image_gen
+Input: assets/concept/action_icons_v1/action_icons_raw.png
+
+Initial prompt:
+Use case: style-transfer
+Asset type: mobile game shop icon sheet.
+Input image 1: style reference and edit target. Preserve its chunky cute shape language, thick even dark navy outlines, bold colors, small white highlights and isolated-icon presentation on pure magenta. The request explicitly replaces all original subjects and changes the layout to THREE COLUMNS by TWO ROWS, six icons total.
+Primary request: A 3 by 2 grid of six chunky cute mobile game shop icons, flat cartoon style with thick even dark navy outlines, bold simple shapes, flat colors with one cel-shade step and a small white highlight, like a casual cat-themed shooter game kit.
+Each icon sits alone in its own equal cell, centered, filling about 70 percent of the cell, on a solid pure magenta (#FF00FF) background with generous magenta space between icons. Landscape sheet with consistent sizing and spacing.
+Row 1 left: an open red and gold gift box spilling out fish-shaped cat treats and small glowing blue star dust crystals (starter pack).
+Row 1 center: a plump golden piggy bank shaped like a round cat with a small star on its side and a few gold coins (growth fund). Cat ears and cat face, not a pig face.
+Row 1 right: a small paper calendar page with a cat paw print beside a little bag of fish-shaped snacks (monthly snacks).
+Row 2 left: a shiny golden ticket with a big white play triangle in the middle and a cat ear notch on top (ad pass).
+Row 2 center: an ornate glowing golden picture frame with a bright yellow star badge in its corner (supporter frame). Keep sparkle shapes crisp and contained within its cell.
+Row 2 right: a small retro blue TV screen with a white play triangle and two little cat ears on top (watch a video ad).
+Constraints: no magenta or pink pigment inside any icon; background visible through actual open holes is permitted. No text, letters, numbers, labels, grid lines, watermarks or shadows on the background. No diffuse glow bleeding onto magenta. All six complete and uncropped. Match reference style while replacing subjects and grid exactly as requested.
+
+Correction prompt (final image):
+Use case: precise-object-edit. Correct the supplied six-icon sheet. REQUIRED EDIT: replace ALL dark background and diffuse background glow with a completely uniform solid pure vivid magenta RGB(255,0,255), hexadecimal #FF00FF. The whole canvas outside the six outlined icon groups MUST be flat bright magenta, including the hole inside the gold picture frame and gaps between objects. Absolutely no black backdrop, gradients, haze, shadows or diffuse glow outside outlines. Preserve the six icon identities, shapes, colors, outlines, white highlights, 3 columns by 2 rows arrangement. Change the pink inner ears on the blue TV to light cyan so no icon contains pink or magenta pigment. Slightly reduce each icon group to about 70% of its cell so there is generous even magenta spacing around all groups, keeping centers unchanged. No text, letters, numbers or grid lines. This is a chroma-key sprite sheet with a pure #FF00FF background, not a presentation scene.
+
