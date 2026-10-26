@@ -111,6 +111,9 @@ int skillCardTier(GameEngine game, UpgradeChoice choice) {
   switch (choice.growth) {
     case 'ult':
       return 6;
+    case 'merge':
+      // v12.16: a shed part coming back is an orange hero card
+      return 4;
     case 'evo':
       return game.evo(id) + 1 >= 3 ? 5 : 4;
     case 'enh':

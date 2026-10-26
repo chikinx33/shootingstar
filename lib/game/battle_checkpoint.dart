@@ -150,7 +150,6 @@ extension BattleCheckpointWriter on GameEngine {
         '_regenClock': _regenClock,
         '_ultimateCharge': _ultimateCharge,
         '_ultimateUntil': _ultimateUntil,
-        '_ultimateNextPulse': _ultimateNextPulse,
         '_shieldCounterUntil': _shieldCounterUntil,
         '_shieldCounterReadyAt': _shieldCounterReadyAt,
         '_mainAttackMultiplier': _mainAttackMultiplier,
@@ -471,7 +470,6 @@ abstract final class BattleCheckpoint {
     game._regenClock = _d(v['_regenClock']);
     game._ultimateCharge = _d(v['_ultimateCharge']);
     game._ultimateUntil = _d(v['_ultimateUntil']);
-    game._ultimateNextPulse = _d(v['_ultimateNextPulse']);
     game._shieldCounterUntil = _d(v['_shieldCounterUntil']);
     game._shieldCounterReadyAt = _d(v['_shieldCounterReadyAt']);
     game._mainAttackMultiplier = _d(v['_mainAttackMultiplier']);

@@ -20,7 +20,7 @@ extension GearCombat on GameEngine {
   }
 
   void _gearCharge(double energy, double pilotSeconds) {
-    if (hasCommonUltimate)
+    if (hasCommonUltimate && ultimateRemaining == 0)
       _ultimateCharge = math.min(100, _ultimateCharge + energy);
     pilotAbilityCooldown = math.max(0, pilotAbilityCooldown - pilotSeconds);
     visuals.emit(

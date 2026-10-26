@@ -144,7 +144,8 @@ extension ShipModuleCombat on GameEngine {
     if (_moduleReady('main', _moduleMainInterval)) _fireModularMain();
     for (final mount in moduleProfiles.where((m) => m.weapon)) {
       final part = moduleLoadout!.parts[mount.id];
-      if (part == null) continue;
+      // v12.16: a shed part fires only once it has merged back
+      if (part == null || !partAttached(mount.id)) continue;
       final stats = partStats(mount.id), definition = part.definition;
       final growthId = 'part:${mount.id}';
       // v12 growth: the vulcan's ultimate turns into free-aiming turrets
@@ -656,6 +657,7 @@ extension ShipModuleCombat on GameEngine {
   }
 
   void _shipSupport() {
+    if (!partAttached('S1')) return;
     final snap = moduleLoadout!;
     final shield = snap.supportLevel('shield');
     if (shield > 0 && _moduleReady('support-shield', 2))
@@ -682,7 +684,11 @@ extension ShipModuleCombat on GameEngine {
   void _offerModuleChoices({Set<String> exclude = const {}}) {
     // v12: weapon cards are enhance / evolve / ultimate steps
     // (weapon_growth.dart); passives stay as they were.
-    final growth = growthChoices();
+    // weapons still shed in flight cannot grow yet (v12.16)
+    final growth = [
+      for (final c in growthChoices())
+        if (!c.id.startsWith('part:') || partAttached(c.id.substring(5))) c,
+    ];
     final pool = <UpgradeChoice>[...growth];
     for (final id in ['attack', 'cooldown', 'hull', 'speed', 'magnet']) {
       if ((passives[id] ?? 0) >= 5) continue;
@@ -718,6 +724,11 @@ extension ShipModuleCombat on GameEngine {
           .toList();
       if (weapons.isNotEmpty)
         picks[0] = weapons[random.nextInt(weapons.length)];
+    }
+    // the next shed part always comes back as one of the cards
+    final merge = mergeChoice;
+    if (merge != null && !exclude.contains(merge.id) && picks.isNotEmpty) {
+      picks[0] = merge;
     }
     choices = picks;
     input = Offset.zero;

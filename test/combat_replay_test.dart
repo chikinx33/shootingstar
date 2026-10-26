@@ -39,6 +39,7 @@ class Seen {
   bool hit = false,
       evolution = false,
       ultimate = false,
+      stormHit = false,
       block = false,
       armed = false,
       counterVolley = false;
@@ -49,9 +50,13 @@ class Seen {
         g.visuals.active.any(
           (c) => c.kind == CombatCueKind.evolution && c.source == 'missile',
         );
+    // v12.16: the demo craft (ship kind 0) fires the fish missile storm
+    // under the slow-motion cut-in; homing missiles carry their own source.
     ultimate |=
         g.ultimateRemaining > 0 &&
-        (g.damageByWeapon['common-ultimate'] ?? 0) > 0;
+        g.ultimateBanner == CommonUltimate.ultimateNames[g.ultimateKind] &&
+        g.shots.any((s) => s.weapon == 'ult-missile' && s.kind == 1);
+    stormHit |= (g.damageByWeapon['ult-missile'] ?? 0) > 0;
     block |= g.visuals.active.any((c) => c.kind == CombatCueKind.shield);
     armed |= g.shieldCounterPending;
     // The replay flies the modular demo aircraft, whose main gun fires
@@ -74,6 +79,7 @@ class Seen {
         expect(g.choices, isEmpty);
       case PresentationReplay.ultimate:
         expect(ultimate, true);
+        expect(stormHit, true);
       case PresentationReplay.shieldCounter:
         expect(block && armed && counterVolley, true);
         expect(g.synergyTriggers('shield-counter'), 1);
@@ -218,8 +224,11 @@ void main() {
             g.maxHp,
           ); // no short effect hidden during route transition
           expect(g.evolved, isEmpty);
+          // v12.16: the ultimate opens with a 1.6 s cut-in at 30% speed, so
+          // its replay is watched longer for the missiles to land.
+          final span = kind == PresentationReplay.ultimate ? 150 : 80;
           final seen = Seen();
-          for (var i = 0; i < 80; i++) {
+          for (var i = 0; i < span; i++) {
             await frames(t, 1);
             seen.sample(g);
           }
@@ -232,7 +241,7 @@ void main() {
           expect(identical(fresh, g), false);
           expect(fresh.evolved, isEmpty);
           final again = Seen();
-          for (var i = 0; i < 80; i++) {
+          for (var i = 0; i < span; i++) {
             await frames(t, 1);
             again.sample(fresh);
           }

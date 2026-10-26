@@ -35,6 +35,9 @@ SHEETS = [
         'explore_ticket', 'token', 'collect_crate', 'heal',
         'magnet', 'bomb', 'hourglass', 'speed',
     ]),
+    # v12.16 ship ultimates: missile storm, clones, invincible, star cannon
+    ('v15_ultimates', 4, 1, 'icons_v14', 160,
+     ['ult_storm', 'ult_clone', 'ult_shield', 'ult_star']),
 ]
 
 

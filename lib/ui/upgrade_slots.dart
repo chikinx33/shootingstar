@@ -618,6 +618,7 @@ class _UpgradeSlotsState extends State<UpgradeSlots>
       'enh' => '${tr('강화')} ${game.enh(id) + 1}',
       'evo' => '${tr('진화')} ${game.evo(id) + 1}',
       'ult' => tr('궁극'),
+      'merge' => tr('합체'),
       _ =>
         choice.id == 'repair'
             ? tr('회복')
@@ -657,13 +658,18 @@ class _UpgradeSlotsState extends State<UpgradeSlots>
     final id = choice.id.contains('|')
         ? choice.id.substring(choice.id.indexOf('|') + 1)
         : null;
-    if (id == null || choice.growth == 'new' || choice.growth == 'ult') {
+    if (id == null ||
+        choice.growth == 'new' ||
+        choice.growth == 'ult' ||
+        choice.growth == 'merge') {
       return Text(
         tr(
           choice.growth == 'ult'
               ? '변신!'
               : choice.growth == 'new'
               ? '새 무기'
+              : choice.growth == 'merge'
+              ? '파츠 복귀!'
               : style.name,
         ),
         textAlign: TextAlign.center,

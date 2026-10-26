@@ -13,18 +13,20 @@ import '../art/ui_kit.dart';
 import 'game_decor.dart';
 import 'lobby_cat_hero.dart';
 
-/// The sortie's opening (v12.9.3, user 2026-10-25). The cat's base craft
-/// sits on the roof of its own home (top view) and takes off; clouds stream
-/// in like the boss transition and hide the town; above the clouds the craft
-/// assembles in three beats — base + pilot, wings + engines, then the
-/// weapons and gear — every part slamming in with a white flash and impact
-/// sparks; finally it shrinks to its combat size and spot while the clouds
-/// clear, and [onDone] starts the run. The battle is held until then.
+/// The sortie's opening (v12.9.3, v12.16). The cat's craft sits complete on
+/// the roof of its home (top view) and takes off; clouds stream in and hide
+/// the town; above the clouds the craft breaks apart (user 2026-10-27): with
+/// a flash every shed part — wings, engines, gear and weapons — flies off in
+/// all directions, leaving the base hull and its pilot; then it shrinks to
+/// its combat size and spot while the clouds clear, and [onDone] starts the
+/// run. The parts come back one by one on level-ups. The battle is held
+/// until then.
 class SortieIntro extends StatefulWidget {
   const SortieIntro({
     super.key,
     required this.hull,
     required this.hidden,
+    this.shed = const {},
     required this.assets,
     required this.target,
     required this.onDone,
@@ -34,6 +36,9 @@ class SortieIntro extends StatefulWidget {
 
   final int hull;
   final Set<String> hidden;
+
+  /// Layers that break away above the clouds (empty: the whole craft stays).
+  final Set<String> shed;
   final Map<String, String> assets;
 
   /// The craft's battle spot in 420-wide view units (cat position minus
@@ -50,9 +55,12 @@ class SortieIntro extends StatefulWidget {
   /// Total length in seconds.
   static const seconds = 4.8;
 
-  /// Beat times (seconds): take-off, clouds full, wings, weapons, shrink.
+  /// Beat times (seconds): take-off, clouds full, break-apart, shrink.
   static const takeOff = .5, cloudsFull = 1.9, wingsAt = 2.45;
   static const weaponsAt = 3.2, shrinkAt = 3.8;
+
+  /// When the shed parts burst away and how long they fly.
+  static const breakAt = 2.6, breakFor = .7;
 
   /// Which beat a layer joins: 1 base + pilot, 2 wings + engines, 3 the rest.
   static int beatOf(String id) {
@@ -112,8 +120,12 @@ class _SortieIntroState extends State<SortieIntro>
     }
 
     cue('launch', SortieIntro.takeOff, 'launch');
-    cue('wings', SortieIntro.wingsAt, 'equip');
-    cue('weapons', SortieIntro.weaponsAt, 'equip');
+    if (widget.shed.isNotEmpty) {
+      cue('break', SortieIntro.breakAt, 'equip');
+    } else {
+      cue('wings', SortieIntro.wingsAt, 'equip');
+      cue('weapons', SortieIntro.weaponsAt, 'equip');
+    }
   }
 
   @override
@@ -141,6 +153,7 @@ class _SortieIntroState extends State<SortieIntro>
                   s: s,
                   hull: widget.hull,
                   hidden: widget.hidden,
+                  shed: widget.shed,
                   assets: widget.assets,
                   target: widget.target,
                   roof: _roof,
@@ -207,13 +220,14 @@ class _SortiePainter extends CustomPainter {
     required this.s,
     required this.hull,
     required this.hidden,
+    required this.shed,
     required this.assets,
     required this.target,
     required this.roof,
   });
   final double s;
   final int hull;
-  final Set<String> hidden;
+  final Set<String> hidden, shed;
   final Map<String, String> assets;
   final Offset target;
   final ui.Image? roof;
@@ -278,8 +292,11 @@ class _SortiePainter extends CustomPainter {
         ? hover + Offset(0, bob)
         : Offset.lerp(hover, target * k, shrink)!;
 
-    // a hit-stop shake right after each attach
-    for (final at in [SortieIntro.wingsAt, SortieIntro.weaponsAt]) {
+    // a hit-stop shake right after each attach (or the break-apart)
+    for (final at
+        in shed.isNotEmpty
+            ? [SortieIntro.breakAt]
+            : [SortieIntro.wingsAt, SortieIntro.weaponsAt]) {
       final d = s - at;
       if (d >= 0 && d < .18) {
         final amp = (1 - d / .18) * size.shortestSide * .012;
@@ -287,20 +304,30 @@ class _SortiePainter extends CustomPainter {
       }
     }
 
-    double attach(String id) => switch (SortieIntro.beatOf(id)) {
-      1 => 1,
-      2 => (s - (SortieIntro.wingsAt - .22)) / .22,
-      _ => (s - (SortieIntro.weaponsAt - .22)) / .22,
-    };
+    final breaking = shed.isNotEmpty;
+    // v12.16: complete until the break, then the shed parts fly off
+    // outward (attach progress runs back from 1 to 0); without a shed set
+    // the classic three-beat assembly plays.
+    double attach(String id) => breaking
+        ? (shed.contains(id)
+              ? 1 - (s - SortieIntro.breakAt) / SortieIntro.breakFor
+              : 1)
+        : switch (SortieIntro.beatOf(id)) {
+            1 => 1,
+            2 => (s - (SortieIntro.wingsAt - .22)) / .22,
+            _ => (s - (SortieIntro.weaponsAt - .22)) / .22,
+          };
     double flashOf(double at) {
       final d = s - at;
       return d < 0 || d > .3 ? 0 : 1 - d / .3;
     }
 
-    final flash = math.max(
-      flashOf(SortieIntro.wingsAt),
-      flashOf(SortieIntro.weaponsAt),
-    );
+    final flash = breaking
+        ? flashOf(SortieIntro.breakAt)
+        : math.max(
+            flashOf(SortieIntro.wingsAt),
+            flashOf(SortieIntro.weaponsAt),
+          );
     final fade = s > SortieIntro.seconds - .15
         ? ((SortieIntro.seconds - s) / .15).clamp(0.0, 1.0)
         : 1.0;
@@ -340,17 +367,17 @@ class _SortiePainter extends CustomPainter {
       flash: flash,
     );
 
-    // impact sparks where the parts locked on
-    for (final (at, beat) in [
-      (SortieIntro.wingsAt, 2),
-      (SortieIntro.weaponsAt, 3),
-    ]) {
+    // impact sparks where the parts locked on (or broke away)
+    for (final (at, beat)
+        in breaking
+            ? [(SortieIntro.breakAt, 0)]
+            : [(SortieIntro.wingsAt, 2), (SortieIntro.weaponsAt, 3)]) {
       final d = s - at;
       if (d < 0 || d > .35) continue;
       final grow = Curves.easeOutCubic.transform(d / .35);
       for (final point in ShipSpriteArt.layerPoints(
         shipId,
-        (id) => SortieIntro.beatOf(id) == beat,
+        (id) => beat == 0 ? shed.contains(id) : SortieIntro.beatOf(id) == beat,
         hidden: hidden,
       )) {
         ShipSpriteArt.paintFx(

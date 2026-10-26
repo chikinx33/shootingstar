@@ -176,7 +176,11 @@ void main() {
       ),
       false,
     );
-    expect(g.ultimateCharge, greaterThan(60));
+    // v12.16: the base charge fills in ~90 s of flight; the capacitor pod
+    // must still add its pulses (about 4% every 6 s) on top, capped at 100.
+    final base = g.combatTime * 100 / CommonUltimate.chargeSeconds;
+    expect(g.ultimateCharge, greaterThan(base + 6));
+    expect(g.ultimateCharge, lessThanOrEqualTo(100));
   });
   test('ground units spawn with warning and do not collide as aircraft', () {
     final g = arena(

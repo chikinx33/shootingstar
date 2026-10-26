@@ -204,6 +204,10 @@ class _BattleScreenState extends State<BattleScreen>
           petAwakePower: p.petBond.powerBonus(p.activePet),
           petAwakeCooldown: p.petBond.cooldownReduction(p.activePet),
         );
+    // v12.16 real sorties shed their parts in the intro and earn them back
+    if (widget.engineFactory == null && !widget.presentationAutoplay) {
+      game.startDisassembled();
+    }
     game.onEvent = (event) => sound.play(event, armament: game.armament);
     game.visuals.onSound = sound.cue;
     sound.beginFlight(paused: game.paused);
@@ -712,6 +716,9 @@ class _BattleScreenState extends State<BattleScreen>
                                         hidden: ShipSpriteArt.hiddenFor(
                                           game.moduleLoadout,
                                         ),
+                                        shed: game.assembleInFlight
+                                            ? InFlightAssembly.allLayers
+                                            : const {},
                                         assets: ShipSpriteArt.battleAssets,
                                         target: game.position - game.camera,
                                         stage: widget.dailyEntry == null
@@ -817,17 +824,35 @@ class _BattleScreenState extends State<BattleScreen>
                                     if (!widget.presentationAutoplay &&
                                         !controlsLocked &&
                                         game.hasCommonUltimate)
+                                      // v12.16: small, beside the craft;
+                                      // faint while charging, vivid when full
                                       Positioned(
-                                        right: p.controls.leftActions
-                                            ? null
-                                            : 10,
-                                        left: p.controls.leftActions
-                                            ? 10
-                                            : null,
-                                        // side edge, just below the middle
-                                        top: bounds.maxHeight * .58 - 32,
+                                        left:
+                                            ((game.position - game.camera).dx *
+                                                        bounds.maxWidth /
+                                                        420 +
+                                                    (p.controls.leftActions
+                                                        ? -90
+                                                        : 44))
+                                                .clamp(
+                                                  4.0,
+                                                  bounds.maxWidth - 50,
+                                                ),
+                                        top:
+                                            ((game.position - game.camera).dy *
+                                                        bounds.maxWidth /
+                                                        420 -
+                                                    23)
+                                                .clamp(
+                                                  4.0,
+                                                  bounds.maxHeight - 50,
+                                                ),
                                         child: StarCannonButton(
                                           key: const Key('common-ultimate'),
+                                          size: 46,
+                                          emblem:
+                                              CommonUltimate.ultimateAssets[game
+                                                  .ultimateKind],
                                           charge: game.ultimateCharge,
                                           ready: game.ultimateReady,
                                           firing: game.ultimateRemaining > 0,

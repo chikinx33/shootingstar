@@ -405,6 +405,16 @@ class RasterSkillIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
+    if (id.startsWith('asset:')) {
+      // v12.16 a shed gear part's own sprite (in-flight assembly cards)
+      return Image.asset(
+        id.substring(6),
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.medium,
+      );
+    }
     if (id.startsWith('icon:')) {
       // v12 weapon growth art (mortar, ultimate forms)
       return Image.asset(

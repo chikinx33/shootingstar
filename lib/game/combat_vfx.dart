@@ -106,19 +106,6 @@ abstract final class CombatVfx {
         );
       }
     }
-    if (g.ultimateRemaining > 0) {
-      final origin = g.position + const Offset(0, -25);
-      ring(c, origin, 30 + 5 * math.sin(t * 22), gold, .9, width: 4);
-      if (!reduced)
-        for (var i = 0; i < 8; i++) {
-          final y = (t * 390 + i * 65) % 520;
-          c.drawLine(
-            origin + Offset(-55, -y),
-            origin + Offset(55, -y - 18),
-            ink(cyan, .4, 2),
-          );
-        }
-    }
     if (g.shieldCounterPending)
       ring(c, g.position, 40 + 4 * math.sin(t * 12), gold, .95, width: 3);
     if (g.pilotBuff > 0) ring(c, g.position, 34, color(g.pilot), .5);

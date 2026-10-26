@@ -214,6 +214,7 @@ String damageSourceLabel(
   if (source == 'primary') return '$armament · 추적탄';
   const extras = {
     'gear-seeker': '유성 추적 로켓',
+    'ult-missile': '생선 미사일 폭풍',
     'module-auxiliary': '회전 포탑',
     'module-wings': '날개 포드',
     'module-rear': '후방 방어포',
@@ -231,7 +232,7 @@ String damageSourceLabel(
     'inferno': '태양 기뢰 · 화염',
     'spike': '가시 위성 · 파편',
     'synergy-explosive': '폭발 확산 · 유도 파편',
-    'common-ultimate': '공용 궁극기 · 항성포',
+    'common-ultimate': '항성포 · 필살기',
   };
   if (extras.containsKey(source)) return extras[source]!;
   const pilotSources = {

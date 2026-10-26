@@ -863,7 +863,94 @@ class BattlePainter extends CustomPainter {
     );
   }
 
+  static final _shadowInk = Paint()
+    ..filterQuality = FilterQuality.low
+    ..colorFilter = const ColorFilter.mode(Color(0x4D000814), BlendMode.srcIn);
+
+  /// v12.16 (user 2026-10-27): every enemy casts its silhouette on the
+  /// ground, offset down-right as if lit from the top-left and a little
+  /// smaller (it flies above the street). One tinted image draw each.
+  void _shadow(
+    Canvas canvas,
+    Offset at,
+    double side,
+    double turn, {
+    String? name,
+    ui.Image? image,
+  }) {
+    if (side <= 0) return;
+    final ground = at + Offset(side * .16, side * .26);
+    canvas.save();
+    canvas.translate(ground.dx, ground.dy);
+    if (turn != 0) canvas.rotate(turn);
+    final box = Rect.fromCenter(
+      center: Offset.zero,
+      width: side * .86,
+      height: side * .86,
+    );
+    if (image != null) {
+      canvas.drawImageRect(
+        image,
+        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+        box,
+        _shadowInk,
+      );
+    } else if (name != null) {
+      MenuArt.paint(canvas, name, box, opacity: .3, tint: Colors.black);
+    }
+    canvas.restore();
+  }
+
+  /// v12.16 까미's invincible charge: a golden paw shield around the craft
+  /// (drawn at combat scale; turning dashes, a pulsing rim).
+  void _invincibleBubble(Canvas canvas) {
+    final t = game.combatTime;
+    final left = game.invincibleUntil - t;
+    final blink = left < 1.5 && !reducedEffects
+        ? (math.sin(t * 24) > 0 ? 1.0 : .45)
+        : 1.0;
+    final r = 118.0 + (reducedEffects ? 0 : math.sin(t * 6) * 5);
+    canvas.drawCircle(
+      Offset.zero,
+      r,
+      Paint()..color = const Color(0xFFFFD447).withValues(alpha: .16 * blink),
+    );
+    canvas.drawCircle(
+      Offset.zero,
+      r,
+      Paint()
+        ..color = const Color(0xFFFFE07A).withValues(alpha: .9 * blink)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 7,
+    );
+    final dash = Paint()
+      ..color = Colors.white.withValues(alpha: .85 * blink)
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 6;
+    final spin = reducedEffects ? 0.0 : t * 2.2;
+    for (var i = 0; i < 6; i++) {
+      canvas.drawArc(
+        Rect.fromCircle(center: Offset.zero, radius: r + 14),
+        spin + i * math.pi / 3,
+        .45,
+        false,
+        dash,
+      );
+    }
+  }
+
   bool _glowShot(Canvas canvas, Shot shot) {
+    if (shot.weapon == 'ult-missile' && shot.velocity.distance > 1) {
+      // v12.16 치즈's storm: fish missiles with their own exhaust
+      return _missile(
+        canvas,
+        shot.position,
+        math.atan2(shot.velocity.dx, -shot.velocity.dy),
+        5,
+        26,
+      );
+    }
     if (shot.kind == 17) {
       _mine(canvas, shot);
       return true;
@@ -1674,24 +1761,8 @@ class BattlePainter extends CustomPainter {
         opacity: .24,
       );
     }
-    if (game.ultimateRemaining > 0 &&
-        game.moduleLoadout != null &&
-        game.shipIndex != 0) {
-      final radius = game.shipIndex == 1 ? 100.0 : 220.0;
-      CombatVfx.ring(canvas, game.position, radius, CombatVfx.cyan, .6);
-    }
-    if (game.ultimateRemaining > 0 &&
-        (game.moduleLoadout == null || game.shipIndex == 0)) {
-      LaserBeam.paint(
-        canvas,
-        game.modular ? game.moduleMuzzle(AircraftMount.main) : game.position,
-        game.position + const Offset(0, -520),
-        140,
-        age: 2 - game.ultimateRemaining,
-        duration: 2,
-        reduced: reducedEffects,
-      );
-    }
+    // v12.16: each airframe ultimate draws itself (storm missiles, clones,
+    // the invincible shield); the old forward beam is gone.
     if (game.laserLife > 0) {
       LaserBeam.paint(
         canvas,
@@ -1890,17 +1961,19 @@ class BattlePainter extends CustomPainter {
                 : houseBody == 4
                 ? 3.0
                 : 2.7);
+        final to = game.position - e.position;
+        final turn = e.partKind == 1
+            ? math.atan2(e.aim.dy, e.aim.dx) - math.pi / 2
+            // the sprinkler wheel turns with its spiral
+            : houseBody == 3
+            ? game.houseBossSpin
+            : houseBody == 4
+            ? math.atan2(to.dy, to.dx) + math.pi / 2
+            : 0.0;
+        _shadow(canvas, e.position, side, turn, image: partArt);
         canvas.save();
         canvas.translate(e.position.dx, e.position.dy);
-        if (e.partKind == 1) {
-          canvas.rotate(math.atan2(e.aim.dy, e.aim.dx) - math.pi / 2);
-        } else if (houseBody == 3) {
-          // the sprinkler wheel turns with its spiral
-          canvas.rotate(game.houseBossSpin);
-        } else if (houseBody == 4) {
-          final to = game.position - e.position;
-          canvas.rotate(math.atan2(to.dy, to.dx) + math.pi / 2);
-        }
+        if (turn != 0) canvas.rotate(turn);
         canvas.drawImageRect(
           partArt,
           Rect.fromLTWH(
@@ -1926,21 +1999,37 @@ class BattlePainter extends CustomPainter {
         }
         continue;
       }
+      final turn =
+          e.kind == 3 &&
+              game.screenMode &&
+              game.houseBossKind == HouseBossKind.fortress
+          ? math.pi
+          : e.kind == 3
+          ? math.atan2(
+                  game.position.dy - e.position.dy,
+                  game.position.dx - e.position.dx,
+                ) +
+                math.pi / 2
+          : e.heading + math.pi / 2;
+      _shadow(
+        canvas,
+        e.position,
+        e.radius *
+            (e.kind == 3
+                ? 2.7
+                : !game.screenMode || e.elite
+                ? 2.7
+                : e.kind >= 2
+                ? 3.0
+                : 3.6),
+        turn,
+        name: e.kind == 3
+            ? 'boss-${game.worldIndex.clamp(0, 9)}'
+            : 'enemy-${e.role.index.clamp(0, 10)}',
+      );
       canvas.save();
       canvas.translate(e.position.dx, e.position.dy);
-      canvas.rotate(
-        e.kind == 3 &&
-                game.screenMode &&
-                game.houseBossKind == HouseBossKind.fortress
-            ? math.pi
-            : e.kind == 3
-            ? math.atan2(
-                    game.position.dy - e.position.dy,
-                    game.position.dx - e.position.dx,
-                  ) +
-                  math.pi / 2
-            : e.heading + math.pi / 2,
-      );
+      canvas.rotate(turn);
       if (e.kind == 3) {
         WorldArt.boss(canvas, e, game.worldIndex, game.combatTime);
       } else {
@@ -2031,10 +2120,37 @@ class BattlePainter extends CustomPainter {
       );
       canvas.restore();
     }
+    // v12.16 구름's shadow clones fly beside the cat
+    if (!hideHero && game.moduleLoadout != null && ShipSpriteArt.ready) {
+      for (final clone in game.clonePositions) {
+        if (!reducedEffects) {
+          GlowShots.disc(canvas, clone, 30, GlowShots.cyan, opacity: .35);
+        }
+        canvas.save();
+        canvas.translate(clone.dx, clone.dy);
+        canvas.scale(AircraftGeometry.combatScale);
+        ShipSpriteArt.paint(
+          canvas,
+          ShipSpriteArt.shipFor(game.shipIndex),
+          Offset.zero,
+          shipCombatSide / AircraftGeometry.combatScale,
+          time: game.combatTime,
+          hidden: {
+            ...ShipSpriteArt.hiddenFor(game.moduleLoadout),
+            ...game.detachedLayers,
+          },
+          assets: ShipSpriteArt.battleAssets,
+          opacity: .55,
+        );
+        canvas.restore();
+      }
+    }
     canvas.save();
     final hero = ResolutionVfx.heroPosition(game);
     canvas.translate(hero.dx, hero.dy);
     canvas.scale(AircraftGeometry.combatScale);
+    // v12.16 a part merging back: the craft soars (grows) while it locks on
+    if (game.mergingPart != null) canvas.scale(game.mergeScale);
     if (game.resolvingBoss) {
       final thrust = 18 + (game.bossResolution?.departure ?? 0) * 80;
       for (final x in [-17.0, 17.0]) {
@@ -2052,8 +2168,21 @@ class BattlePainter extends CustomPainter {
         Offset.zero,
         shipCombatSide / AircraftGeometry.combatScale,
         time: game.combatTime,
-        hidden: ShipSpriteArt.hiddenFor(game.moduleLoadout),
+        // v12.16: shed parts are missing until they merge back
+        hidden: {
+          ...ShipSpriteArt.hiddenFor(game.moduleLoadout),
+          ...game.detachedLayers,
+        },
         assets: ShipSpriteArt.battleAssets,
+        attach: game.mergingPart == null
+            ? null
+            : (id) => InFlightAssembly.layers[game.mergingPart]!.contains(id)
+                  ? game.mergeAttach
+                  : 1,
+        flash: game.mergingPart == null
+            ? 0
+            : (1 - (game.mergeProgress - InFlightAssembly.lockAt).abs() / .1)
+                  .clamp(0.0, 1.0),
         // v12.9.4: the craft rolls into turns; flames stretch going forward
         bank: reducedEffects ? 0 : game.bank,
         flameScale: reducedEffects
@@ -2064,6 +2193,7 @@ class BattlePainter extends CustomPainter {
       );
     }
     if (game.moduleShield > 0) _fx(canvas, 8, Offset.zero, 70, opacity: .3);
+    if (game.invincibleActive) _invincibleBubble(canvas);
     if (game.hurtFlash > 0) {
       _fx(canvas, 15, Offset.zero, 48, opacity: game.hurtFlash * .65);
     }

@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shootingstar/data/aircraft_assembly.dart';
 import 'package:shootingstar/data/combat_loadout.dart';
+import 'package:shootingstar/data/ship_modules.dart';
 import 'package:shootingstar/game/engine.dart';
 import 'package:shootingstar/ui/battle_statistics.dart';
 
@@ -38,7 +40,20 @@ void advance(GameEngine g, double seconds, {bool quiet = false}) {
   }
 }
 
-void charge(GameEngine g) => advance(g, 20.1, quiet: true);
+// v12.16: a full star cannon takes about ninety seconds of flight.
+void charge(GameEngine g) =>
+    advance(g, CommonUltimate.chargeSeconds + .1, quiet: true);
+
+/// Runs until the active ultimate ends, checking it never recharges meanwhile.
+void finishUltimate(GameEngine g) {
+  for (var i = 0; i < 2000 && g.ultimateRemaining > 0; i++) {
+    expect(g.ultimateCharge, 0, reason: 'no charge while the ultimate is active');
+    g.update(.02);
+    g.enemies.clear();
+    g.shots.clear();
+  }
+  expect(g.ultimateRemaining, 0);
+}
 void arm(GameEngine g) {
   g.upgrades['guardian'] = 3;
   g.passives['armor'] = 1;
@@ -51,18 +66,23 @@ void main() {
   test('common charges one capped resource in combat; other pilot abilities remain separate', () {
     final g = arena();
     expect(g.activateCommonUltimate(), false);
-    charge(g);
+    // about 1.11% per second of flight: 20 s is far from full
+    advance(g, 20.1, quiet: true);
+    expect(g.ultimateCharge, closeTo(20.1 * 100 / 90, .05));
+    expect(g.ultimateReady, false);
+    expect(g.activateCommonUltimate(), false);
+    advance(g, 70, quiet: true);
     expect(g.ultimateCharge, 100);
     expect(g.ultimateReady, true);
     advance(g, 2, quiet: true);
     expect(g.ultimateCharge, 100);
     expect(g.activateCommonUltimate(), true);
     expect(g.ultimateCharge, 0);
+    expect(g.ultimateRemaining, greaterThan(0));
     expect(g.activateCommonUltimate(), false);
-    advance(g, 1.9, quiet: true);
-    expect(g.ultimateCharge, 0);
+    finishUltimate(g);
     advance(g, .2, quiet: true);
-    expect(g.ultimateCharge, lessThan(1));
+    expect(g.ultimateCharge, closeTo(.2 * 100 / 90, .03));
     final other = arena(pilot: 'yang');
     charge(other);
     expect(other.hasCommonUltimate, false);
@@ -81,27 +101,48 @@ void main() {
     charge(g);
     expect(g.ultimateCharge, 0);
     g.choices.clear();
+    advance(g, 45, quiet: true);
+    expect(g.ultimateCharge, closeTo(50, .1));
     charge(g);
+    expect(g.ultimateCharge, 100);
     g.setPaused(true);
+    expect(g.ultimateReady, false);
     expect(g.activateCommonUltimate(), false);
     g.setPaused(false);
     g.choices = [mainBranches.first.choice];
+    expect(g.ultimateReady, false);
     expect(g.activateCommonUltimate(), false);
     g.choices.clear();
     g.finished = true;
+    expect(g.ultimateReady, false);
     expect(g.activateCommonUltimate(), false);
     expect(g.ultimateCharge, 100);
   });
-  test('four bounded forward pulses have distinct damage attribution and active time freezes', () {
+  test('fish missile storm hunts enemies in every direction, plays the cut-in and freezes with combat', () {
     final g = arena();
     charge(g);
-    final front = Foe(g.position + const Offset(0, -120), 10000, 0, 12, 0);
-    final side = Foe(g.position + const Offset(150, -120), 10000, 0, 12, 0);
-    final back = Foe(g.position + const Offset(0, 120), 10000, 0, 12, 0);
+    expect(g.ultimateKind, 0);
+    final front = Foe(g.position + const Offset(0, -160), 1e6, 0, 12, 0);
+    final side = Foe(g.position + const Offset(200, -60), 1e6, 0, 12, 0);
+    final back = Foe(g.position + const Offset(-160, 120), 1e6, 0, 12, 0);
     g.enemies.addAll([front, side, back]);
-    g.activateCommonUltimate();
-    expect(front.maxHp - front.hp, closeTo(45 * g.damageFactor, .001));
+    expect(g.activateCommonUltimate(), true);
+    expect(g.ultimateBanner, CommonUltimate.ultimateNames[0]);
+    expect(g.ultimateShow, closeTo(1.6, 1e-9));
+    expect(g.pickupNotice, g.ultimateName);
+    expect(g.invincibleActive, false);
+    expect(g.clonesActive, false);
+    g.update(.02);
+    final missiles = <Shot>{
+      ...g.shots.where((s) => s.weapon == 'ult-missile'),
+    };
+    expect(missiles, isNotEmpty);
+    expect(
+      missiles.every((s) => s.kind == 1 && !s.hostile && s.target != null),
+      true,
+    );
     final remaining = g.ultimateRemaining;
+    final launched = missiles.length;
     g.setPaused(true);
     advance(g, 2);
     g.setPaused(false);
@@ -110,17 +151,22 @@ void main() {
     advance(g, 2);
     g.choices.clear();
     expect(g.ultimateRemaining, remaining);
-    advance(g, 2.1);
-    expect(front.maxHp - front.hp, closeTo(180 * g.damageFactor, .001));
-    expect(
-      g.damageByWeapon['common-ultimate'],
-      greaterThanOrEqualTo(front.maxHp - front.hp - .001),
-    );
-    expect(side.hp, side.maxHp);
-    expect(back.hp, back.maxHp);
+    expect(g.shots.where((s) => s.weapon == 'ult-missile').length, launched);
+    for (var i = 0; i < 400; i++) {
+      g.update(.02);
+      missiles.addAll(g.shots.where((s) => s.weapon == 'ult-missile'));
+    }
+    // 18..48 missiles, every foe around the cat taken down to size
+    expect(missiles.length, inInclusiveRange(18, 48));
+    for (final foe in [front, side, back]) {
+      expect(foe.hp, lessThan(foe.maxHp));
+    }
+    expect(g.damageByWeapon['ult-missile'], greaterThan(0));
+    expect(g.ultimateRemaining, 0);
+    expect(g.ultimateCharge, greaterThan(0));
     expect(g.ultimateDescription, contains('사용 1회'));
   });
-  test('ultimate clears only interceptable forward bullets, without invulnerability or guard procs', () {
+  test('ultimate clears interceptable bullets around the cat, without invulnerability or guard procs', () {
     final g = arena();
     charge(g);
     g.upgrades['guardian'] = 3;
@@ -132,19 +178,67 @@ void main() {
     }
     final back = Shot(g.position + const Offset(0, 30), Offset.zero, 9, 4);
     final side = Shot(g.position + const Offset(150, -40), Offset.zero, 9, 4);
-    g.shots.addAll([back, side]);
+    final far = Shot(g.position + const Offset(0, -300), Offset.zero, 9, 4);
+    g.shots.addAll([back, side, far]);
     g.activateCommonUltimate();
-    expect(g.shots.where((s) => [4, 19, 20, 21].contains(s.kind)).length, 2);
+    // everything interceptable inside 260 is gone, in any direction
+    expect(g.shots.where((s) => s.interceptable).toList(), [far]);
     for (final kind in [22, 23, 24, 17, 0])
       expect(g.shots.any((s) => s.kind == kind), true);
     expect(g.shieldCounterPending, false);
     expect(g.synergyTriggers('shield-counter'), 0);
+    // the missile storm (ship 0) grants no invulnerability
+    expect(g.invincibleActive, false);
     g.upgrades.clear();
     g.shots.clear();
     g.shots.add(Shot(g.position + const Offset(0, 1), Offset.zero, 9, 4));
     final before = g.hp;
     g.update(.001);
     expect(g.hp, lessThan(before));
+  });
+  test('each unified craft fires its own signature; only ship 2 is invincible and rams', () {
+    for (var ship = 0; ship < 3; ship++) {
+      final g = GameEngine(
+        stageIndex: 0,
+        shipIndex: ship,
+        aircraft: AircraftAssembly(
+          hull: ship,
+          modules: ModuleSnapshot(ship, 1, {
+            'W1': OwnedModulePart('w1', 'gun_vulcan', 1),
+          }),
+        ),
+        attackLevel: 0,
+        hullLevel: 0,
+        magnetLevel: 0,
+        equipmentIndex: -1,
+        seed: 7,
+      )..xpNeeded = 1e9;
+      expect(g.unifiedModules, true);
+      expect(g.ultimateKind, ship);
+      g.developerPrepare(scene: 0, ultimateReady: true);
+      g.enemies.clear();
+      g.shots.clear();
+      final rammed = Foe(g.position + const Offset(0, -20), 1e6, 0, 12, 0);
+      g.enemies.add(rammed);
+      g.shots.add(Shot(g.position + const Offset(80, 0), Offset.zero, 9, 4));
+      expect(g.activateCommonUltimate(), true, reason: 'ship $ship');
+      expect(g.ultimateBanner, CommonUltimate.ultimateNames[ship]);
+      expect(g.pickupNotice, CommonUltimate.ultimateNames[ship]);
+      expect(g.shots.where((s) => s.interceptable), isEmpty);
+      expect(g.clonesActive, ship == 1, reason: 'ship $ship');
+      expect(g.invincibleActive, ship == 2, reason: 'ship $ship');
+      expect(
+        g.ultimateRemaining,
+        closeTo(const [2.4, 10.0, 8.0][ship], 1e-9),
+      );
+      g.update(.02);
+      expect(
+        (g.damageByWeapon['common-ultimate'] ?? 0) > 0,
+        ship == 2,
+        reason: 'only 까미 rams (ship $ship)',
+      );
+      expect(g.clonePositions.length, ship == 1 ? 2 : 0);
+    }
   });
   test('ultimate respects closed boss gates and does not grant evolution, slots or persistent resources', () {
     final g = arena();
@@ -299,7 +393,8 @@ void main() {
     expect(g.shieldCounterPending, true);
     final snap = BattleStatisticsSnapshot.fromGame(g);
     expect(snap.synergies.any((s) => s.contains('방패 역습 · 활성')), true);
-    expect(snap.ultimate, contains('항성포'));
+    expect(snap.ultimate, contains(g.ultimateName));
+    expect(snap.ultimate, contains('생선 미사일 폭풍'));
     g.upgrades.clear();
     expect(snap.synergies.any((s) => s.contains('활성')), true);
   });

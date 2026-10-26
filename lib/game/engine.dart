@@ -49,6 +49,7 @@ part 'weapon_growth.dart';
 part 'growth_arms.dart';
 part 'gear_combat.dart';
 part 'danmaku.dart';
+part 'in_flight_assembly.dart';
 
 class UpgradeChoice {
   final String id, title, description, iconKey;
@@ -244,7 +245,21 @@ class GameEngine {
   MainBranch? mainBranch;
   bool _revolverCharged = false;
   final Map<String, int> _synergyTriggers = {};
-  double _ultimateCharge = 0, _ultimateUntil = 0, _ultimateNextPulse = 0;
+  double _ultimateCharge = 0, _ultimateUntil = 0;
+
+  /// v12.16 in-flight assembly (in_flight_assembly.dart): parts shed in
+  /// the intro come back one per level-up; gear stats apply by share.
+  bool assembleInFlight = false;
+  final Set<String> attached = {};
+  String? mergingPart;
+  double mergeTime = 0, gearShare = 1;
+  bool _mergeLocked = false;
+
+  /// v12.16 airframe ultimates (common_ultimate.dart).
+  double cloneUntil = 0, invincibleUntil = 0;
+  double _stormNext = 0, _ramNext = 0;
+  int _stormLeft = 0;
+  final List<Offset> _clonePos = [Offset.zero, Offset.zero];
   int _ultimateUses = 0, _shieldCounterAttacks = 0;
   bool _shieldCounterArmed = false, _mainAttackDidDamage = false;
   bool _mainAttackInProgress = false;
@@ -687,7 +702,7 @@ class GameEngine {
             .toDouble();
   double get damageFactor =>
       (1 + ((moduleLoadout?.airframeLevel ?? 1) - 1) * .04) *
-      (1 + attackLevel * .08 + gearDamage) *
+      (1 + attackLevel * .08 + gearDamage * gearShare) *
       (pilot == 'common' ? 1 + pilotSkillLevel * .03 : 1) *
       (pilotBuff > 0 && pilot == 'venato' ? 1 + pilotSkillLevel * .06 : 1) *
       (1 + (passives['attack'] ?? 0) * .1) *
@@ -701,14 +716,14 @@ class GameEngine {
                 (input.distance > 0 && combatTime % 12 < 1 ? .12 : 0)
           : 1) *
       (equipmentIndex == 2 ? 1.05 : 1) *
-      (1 + (passives['speed'] ?? 0) * .08 + bonusSpeed) *
+      (1 + (passives['speed'] ?? 0) * .08 + bonusSpeed * gearShare) *
       bossSetSpeed *
       gearThrustFactor;
   double get collectionRadius => math.min(
     112,
     (42 + math.min(magnetLevel, 12) * 3 + (passives['magnet'] ?? 0) * 9) *
         (equipmentIndex == 2 ? 1.25 : 1) *
-        math.sqrt(1 + bonusPickup) *
+        math.sqrt(1 + bonusPickup * gearShare) *
         (1 + .2 * (moduleLoadout?.supportPower('magnet') ?? 0)) *
         (dailyEntry?.pickupMultiplier ?? 1),
   );
@@ -1038,6 +1053,7 @@ class GameEngine {
       _updateBossCycle(dt);
     }
     _updateCommonUltimate(dt);
+    _updateMerge(dt);
     _updateBossGearSet(dt);
     if (aircraft == null) {
       _weapons(dt);
@@ -1489,14 +1505,15 @@ class GameEngine {
         !resolvingBoss) {
       xp -= xpNeeded;
       level++;
-      xpNeeded = growthCost(level);
+      xpNeeded = growthCost(level) * assemblyXpFactor;
       _offerChoices();
       _event('level');
     }
   }
 
   void _damage(double amount, {String source = '교전 피해'}) {
-    if (developerInvincible) return;
+    // v12.16: 까미's ultimate and an in-flight part merge are untouchable
+    if (developerInvincible || invincibleActive || mergeTime > 0) return;
     if (unifiedModules && amount > 0) {
       // Absorbed hits interrupt recharge too; evading earns a recovery window.
       _moduleTimers['support-shield'] = math.max(
@@ -1535,7 +1552,7 @@ class GameEngine {
               math.sqrt(threat).clamp(1, 3) *
               (1 -
                   (moduleArmorReduction +
-                          damageReduction +
+                          damageReduction * gearShare +
                           (passives['armor'] ?? 0) * .08 +
                           bossSetReduction)
                       .clamp(0, .7)),
@@ -2160,6 +2177,8 @@ class GameEngine {
       mainBranch = matching.single.branch;
       pickupNotice = '${matching.single.name} · 이번 출격 특화';
       noticeTime = 3;
+    } else if (id.startsWith('merge:')) {
+      _beginMerge(id.substring(6));
     } else if (id == 'repair') {
       hp = math.min(maxHp, hp + maxHp * .3);
     } else if (applyGrowthChoice(id)) {

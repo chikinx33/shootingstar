@@ -43,7 +43,8 @@ void main() {
           g.upgrades.clear();
           g.xpNeeded = 1e9;
           g.hp = g.maxHp = 100000;
-          for (int i = 0; i < 1005; i++) {
+          // v12.16: a full star cannon takes about ninety seconds of flight
+          for (int i = 0; i < 4505; i++) {
             g.update(.02);
             g.enemies.clear();
             g.shots.clear();
@@ -68,9 +69,15 @@ void main() {
           );
           await tester.pump(const Duration(milliseconds: 32));
           final button = find.byKey(const Key('common-ultimate'));
-          // v12.4: round, text-free side button
+          // v12.16: small round button riding beside the craft
+          expect(g.ultimateReady, isTrue);
+          expect(tester.widget<StarCannonButton>(button).ready, isTrue);
           expect(tester.widget<StarCannonButton>(button).onPressed, isNotNull);
-          expect(tester.getSize(button).height, greaterThanOrEqualTo(56));
+          expect(tester.getSize(button), const Size(46, 46));
+          final ignore = tester.widget<IgnorePointer>(
+            find.descendant(of: button, matching: find.byType(IgnorePointer)),
+          );
+          expect(ignore.ignoring, isFalse);
           final field = tester.getRect(
             find.byKey(const Key('battle-playing-viewport')),
           );
@@ -91,6 +98,18 @@ void main() {
           expect(g.ultimateRemaining, greaterThan(0));
           expect(tester.widget<StarCannonButton>(button).onPressed, isNull);
           expect(tester.widget<StarCannonButton>(button).firing, isTrue);
+          // while firing (not ready) it lets drags pass through to steering
+          expect(
+            tester
+                .widget<IgnorePointer>(
+                  find.descendant(
+                    of: button,
+                    matching: find.byType(IgnorePointer),
+                  ),
+                )
+                .ignoring,
+            isTrue,
+          );
           await tester.sendKeyEvent(LogicalKeyboardKey.keyP);
           await tester.pump();
           expect(button, findsNothing);

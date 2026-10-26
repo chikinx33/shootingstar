@@ -548,6 +548,22 @@ extension ModularCombat on GameEngine {
         life: life * mainReachFactor,
       );
     }
+    // v12.16 구름's shadow clones fire the same volley beside the cat
+    for (final clone in clonePositions) {
+      for (var i = 0; i < n; i++) {
+        final angle = (i - (n - 1) / 2) * spacing;
+        _moduleBullet(
+          AircraftMount.main,
+          at - position + clone + Offset((i - (n - 1) / 2) * 3, 0),
+          Offset(math.sin(angle), -math.cos(angle)) * 420 * skillSpeed,
+          (13 + gun * 4) * damageFactor * mainDamage * multiplier * .7,
+          kind: armament == 'void' ? 27 : 6,
+          radius: armament == 'void' ? 9 : radius,
+          pierce: pierce,
+          life: life * mainReachFactor,
+        );
+      }
+    }
     _gearPrimaryFired(
       (13 + gun * 4) * damageFactor * mainDamage * techDamage('gun'),
     );
@@ -689,7 +705,10 @@ extension ModularCombat on GameEngine {
         );
       }
       if (id == 'capacitor') {
-        _ultimateCharge = math.min(100, _ultimateCharge + 3 * power);
+        // v12.16: no charge while the ultimate is still playing out
+        if (ultimateRemaining == 0) {
+          _ultimateCharge = math.min(100, _ultimateCharge + 3 * power);
+        }
         pilotAbilityCooldown = math.max(0, pilotAbilityCooldown - 1.2 * power);
         visuals.emit(
           CombatCueKind.pickup,
