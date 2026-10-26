@@ -12,6 +12,7 @@ import '../art/toon_assets.dart';
 export '../art/raster_assets.dart';
 export 'game_ui.dart';
 export 'game_dialog.dart';
+export 'game_info.dart';
 export 'game_pages.dart';
 
 class Eyebrow extends StatelessWidget {

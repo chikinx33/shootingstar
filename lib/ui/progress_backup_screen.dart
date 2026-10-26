@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'game_decor.dart';
+
 import 'package:flutter/services.dart';
 
 import '../data/profile.dart';
@@ -138,13 +139,19 @@ class _ProgressBackupScreenState extends State<ProgressBackupScreen> {
             onPressed: audible(() => Navigator.pop(dialog, true)),
           ),
         ],
-        child: Text(
-          message(
-            "현재 {0} 츄르 · 출격 {1}회\n백업 {2} 츄르 · 출격 {3}회\n\n현재 게스트 진행을 백업 값으로 교체합니다. 복원 전 진행은 이 기기에 보관해 되돌릴 수 있습니다. 계정 진행은 바뀌지 않습니다.",
-            [p.credits, p.runs, progress['credits'], progress['runs']],
-          ),
-
-          textAlign: TextAlign.center,
+        // v12.14: current vs backup side by side in a small table; what
+        // happens is a warning, what stays safe a quiet hint.
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _CompareTable(
+              current: [p.credits, p.runs],
+              backup: [progress['credits'], progress['runs']],
+            ),
+            gap12,
+            const GameHint('현재 게스트 진행을 백업 값으로 교체합니다.', tone: GameTone.danger),
+            const GameHint('복원 전 진행은 이 기기에 보관해 되돌릴 수 있습니다. 계정 진행은 바뀌지 않습니다.'),
+          ],
         ),
       ),
     );
@@ -175,9 +182,7 @@ class _ProgressBackupScreenState extends State<ProgressBackupScreen> {
       gap8,
       InfoText('게스트에서만 복원합니다. 선택·내용 검증·현재 진행 비교 후 직접 승인해야 적용됩니다.'),
       gap8,
-      InfoText(
-        '후원 외형은 계정의 구매 복원으로 확인합니다. 앱 데이터를 지우면 기기에 보관한 복원 전 진행도 지워집니다.',
-      ),
+      InfoText('후원 외형은 계정의 구매 복원으로 확인합니다. 앱 데이터를 지우면 기기에 보관한 복원 전 진행도 지워집니다.'),
     ],
   );
 
@@ -227,20 +232,35 @@ class _ProgressBackupScreenState extends State<ProgressBackupScreen> {
               ),
               if (pending != null) ...[
                 gap16,
-                Text(
-                  message("백업 {0} · {1}", [
-                    pending!.version,
-                    pending!.createdAt.toLocal(),
-                  ]),
-                  textAlign: TextAlign.center,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const GameTag('읽은 백업'),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: GameHint(
+                        '${pending!.version} · ${pending!.createdAt.toLocal().toString().substring(0, 16)}',
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  message("{0} 츄르 · 출격 {1}회 · 항로 {2}", [
-                    pending!.progress['credits'],
-                    pending!.progress['runs'],
-                    (pending!.progress['selectedStage'] as int) + 1,
-                  ]),
-                  textAlign: TextAlign.center,
+                gap8,
+                // Align keeps the pairs together; the pager would stack
+                // each child of a bare Wrap.
+                Align(
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 12,
+                    runSpacing: 4,
+                    children: [
+                      _Pair('츄르', '${pending!.progress['credits']}'),
+                      _Pair('출격', '${pending!.progress['runs']}'),
+                      _Pair(
+                        '항로',
+                        '${(pending!.progress['selectedStage'] as int) + 1}',
+                      ),
+                    ],
+                  ),
                 ),
                 gap8,
                 GameActionButton(
@@ -272,6 +292,81 @@ class _ProgressBackupScreenState extends State<ProgressBackupScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// "label value" inline: a coloured tag and its bold value.
+class _Pair extends StatelessWidget {
+  const _Pair(this.label, this.value);
+  final String label, value;
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GameTag(label, tone: GameTone.sky),
+        const SizedBox(width: 4),
+        Text(
+          value,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: GameUi.body,
+            height: 1.3,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Current guest progress against the backup: 츄르 and 출격 per row.
+class _CompareTable extends StatelessWidget {
+  const _CompareTable({required this.current, required this.backup});
+  final List<Object?> current, backup;
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    Widget cell(String text, {Color? color, bool bold = true}) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Text(
+        tr(text),
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: color ?? Colors.white,
+          fontSize: bold ? 18 : GameUi.caption,
+          height: 1.3,
+          fontWeight: bold ? FontWeight.w900 : FontWeight.w800,
+        ),
+      ),
+    );
+    return GameInset(
+      child: Table(
+        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+        children: [
+          TableRow(
+            children: [
+              const SizedBox(),
+              cell('츄르', color: GameTone.sky.color, bold: false),
+              cell('출격', color: GameTone.sky.color, bold: false),
+            ],
+          ),
+          TableRow(
+            children: [
+              Center(child: GameTag('현재', tone: GameTone.muted)),
+              for (final v in current) cell('$v'),
+            ],
+          ),
+          TableRow(
+            children: [
+              Center(child: GameTag('백업', tone: GameTone.gold)),
+              for (final v in backup) cell('$v', color: GameTone.gold.color),
+            ],
+          ),
+        ],
       ),
     );
   }

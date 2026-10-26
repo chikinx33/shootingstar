@@ -5,6 +5,7 @@ import '../data/shop_ledger.dart';
 import '../l10n/app_language.dart';
 import 'ad_offer.dart';
 import 'audio_feedback.dart';
+import 'catalog_screens.dart' show RewardChips, RewardGroup;
 import 'components.dart';
 import 'item_slots.dart';
 import 'reward_popup.dart';
@@ -79,9 +80,7 @@ class ShopProductList extends StatelessWidget {
               key: const ValueKey('shop-ad-box'),
               title: adOfferNames[AdOffer.supplyBox]!,
               image: Image.asset(ShopArt.ad, width: 72, height: 72),
-              status: message('장비권 1 · 오늘 {0}회', [
-                p.shop.left(AdOffer.supplyBox),
-              ]),
+              status: message('오늘 {0}회 남음', [p.shop.left(AdOffer.supplyBox)]),
               semanticLabel: '광고 보급 상자 상세',
               onTap: audible(() => _adBox(context)),
             ),
@@ -104,13 +103,18 @@ class ShopProductList extends StatelessWidget {
       ],
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Image.asset(ShopArt.ad, width: 96, height: 96),
+          Center(child: Image.asset(ShopArt.ad, width: 96, height: 96)),
           gap(8),
-          Text(
-            tr('광고 한 편을 보면 장비 보급권 1장을 받습니다. 하루 1회입니다.'),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: GameUi.body),
+          RewardGroup(
+            label: '광고 한 편 보면',
+            chips: RewardChips.of(supplyBoxReward),
+          ),
+          gap(6),
+          GameHint(
+            message('오늘 {0}회 남음', [profile.shop.left(AdOffer.supplyBox)]),
+            tone: GameTone.sky,
           ),
         ],
       ),
@@ -140,6 +144,57 @@ class _ProductDialog extends StatelessWidget {
   const _ProductDialog({required this.profile, required this.item});
   final Profile profile;
   final ShopItem item;
+
+  List<Widget> _contents() => switch (item) {
+    ShopItem.starter => [
+      RewardGroup(
+        label: '구성품',
+        tone: GameTone.gold,
+        chips: RewardChips.of(starterReward),
+      ),
+      gap(6),
+      const Center(child: GameTag('1회 한정', tone: GameTone.danger)),
+    ],
+    ShopItem.growthFund => [
+      RewardGroup(label: '동네를 지킬 때마다', chips: RewardChips.of(fundReward)),
+      gap(6),
+      const GameInfoBlock(
+        label: '특별 보상',
+        tone: GameTone.gold,
+        lead: '동네 5·10을 지키면 영웅 장비',
+      ),
+    ],
+    ShopItem.monthly => [
+      RewardGroup(
+        label: '구매 즉시',
+        tone: GameTone.gold,
+        chips: RewardChips.of(monthlyFirstReward),
+      ),
+      gap(8),
+      RewardGroup(
+        label: '30일 동안 매일',
+        chips: RewardChips.of(monthlyDailyReward),
+      ),
+    ],
+    ShopItem.adPass => const [
+      GameInfoBlock(
+        label: '혜택',
+        tone: GameTone.good,
+        lead: '광고 보상을 영상 없이 바로 받기',
+        detail: '하루 받을 수 있는 횟수는 그대로입니다',
+      ),
+      SizedBox(height: 6),
+      Center(child: GameTag('30일', tone: GameTone.sky)),
+    ],
+    ShopItem.supporter => const [
+      GameInfoBlock(
+        label: '혜택',
+        tone: GameTone.gold,
+        lead: '로비 기체에 잔광 프레임과 별 배지',
+        detail: '능력치는 바뀌지 않습니다',
+      ),
+    ],
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -193,40 +248,32 @@ class _ProductDialog extends StatelessWidget {
             ),
           ),
       ],
+      // v12.14: what the product gives as labelled reward chips; limits
+      // and store notes are tags and quiet hints, never reward lines.
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Image.asset(ShopArt.of(item), width: 96, height: 96),
+          Center(child: Image.asset(ShopArt.of(item), width: 96, height: 96)),
           gap(8),
-          for (final line in info.summary.split(' · '))
-            Text(
-              tr(line),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: GameUi.body),
-            ),
+          ..._contents(),
           if (item == ShopItem.growthFund && p.shop.fundOwned) ...[
             gap(8),
-            Text(
-              message('지킨 월드 보상 {0}/10 수령', [p.shop.fundClaims.length]),
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xFFFFE27A)),
-            ),
+            GameFactRow([
+              GameFact(
+                '받은 동네 보상',
+                '${p.shop.fundClaims.length}/10',
+                tone: GameTone.gold,
+              ),
+            ]),
           ],
           if (store != null && store.status.isNotEmpty) ...[
             gap(8),
-            Text(
-              tr(store.status),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14),
-            ),
+            GameHint(store.status),
           ],
           if (store?.platform.supported != true) ...[
             gap(8),
-            Text(
-              tr('구매는 Android Google Play 앱에서 할 수 있습니다.'),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14),
-            ),
+            const GameHint('구매는 Android Google Play 앱에서 할 수 있습니다.'),
           ],
         ],
       ),

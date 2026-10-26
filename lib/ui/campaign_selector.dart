@@ -25,11 +25,23 @@ class CampaignSelector extends StatelessWidget {
         height: MediaQuery.sizeOf(context).height * .86,
         child: Column(
           children: [
-            CatalogHeader(
-              title: '동네 지도',
-              icon: Icons.map,
-              status:
-                  '${profile.campaignLoop + 1}순환 · 조종사 Lv.${profile.pilotLevel + 1}\nXP ${profile.pilotXp} / ${profile.pilotXpNeeded}',
+            const CatalogHeader(title: '동네 지도', icon: Icons.map, status: ''),
+            // v12.14: the pilot's progress as labelled tiles, not one line.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+              child: GameFactRow([
+                GameFact(
+                  '순환',
+                  message('{0}회차', [profile.campaignLoop + 1]),
+                  tone: GameTone.gold,
+                ),
+                GameFact('조종사', 'Lv.${profile.pilotLevel + 1}'),
+                GameFact(
+                  '경험치',
+                  '${profile.pilotXp} / ${profile.pilotXpNeeded}',
+                  tone: GameTone.good,
+                ),
+              ]),
             ),
             Expanded(
               child: ListView(
@@ -65,19 +77,37 @@ class CampaignSelector extends StatelessWidget {
                               fontWeight: FontWeight.w900,
                             ),
                           ),
-                          subtitle: Text(
-                            message("{0}/10 완주 · {1}", [
-                              profile.activeClears
-                                  .where((id) => id ~/ 10 == world)
-                                  .length,
-                              profile.selectedStage ~/ 10 == world
-                                  ? '선택 중'
-                                  : profile.canStage(world * 10)
-                                  ? '진입 가능'
-                                  : '잠김',
-                            ]),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 14, height: 1.3),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Wrap(
+                              alignment: WrapAlignment.center,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8,
+                              runSpacing: 4,
+                              children: [
+                                Text(
+                                  message('{0}/10 지킴', [
+                                    profile.activeClears
+                                        .where((id) => id ~/ 10 == world)
+                                        .length,
+                                  ]),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    height: 1.3,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                profile.selectedStage ~/ 10 == world
+                                    ? const GameTag('선택 중')
+                                    : profile.canStage(world * 10)
+                                    ? const GameTag(
+                                        '진입 가능',
+                                        tone: GameTone.good,
+                                      )
+                                    : const GameTag('잠김', tone: GameTone.muted),
+                              ],
+                            ),
                           ),
                           children: [
                             Padding(
@@ -123,15 +153,15 @@ class CampaignSelector extends StatelessWidget {
       actions: [
         GameActionButton(
           label: '보상 안내',
-          icon: Icons.card_giftcard,
+          image: 'assets/art/menu_v13/supply.webp',
           onPressed: audible(
             () => showCampaignRewardGuide(dialog, profile, id),
           ),
         ),
         GameActionButton(
-          label: '이 집 지키기',
+          label: '수호묘 출동!',
           primary: true,
-          icon: Icons.shield,
+          image: 'assets/art/menu_v13/launch.webp',
           onPressed: audible(
             profile.canStage(id)
                 ? () {
@@ -142,11 +172,14 @@ class CampaignSelector extends StatelessWidget {
           ),
         ),
       ],
+      // v12.14: labelled groups instead of a stack of same-white lines —
+      // who lives here (name plate on the map), the cat's vow (bubble), the
+      // bosses (red), and the run's facts in their own tiles.
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SizedBox(
-            height: 150,
+            height: 132,
             child: Stack(
               children: [
                 Positioned.fill(
@@ -165,30 +198,100 @@ class CampaignSelector extends StatelessWidget {
                   bottom: 0,
                   child: Image.asset(houseOwner(id), width: 72, height: 72),
                 ),
+                Positioned(
+                  left: 76,
+                  right: 6,
+                  bottom: 6,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: _OwnerPlate(stages[id].house.owner),
+                  ),
+                ),
               ],
             ),
           ),
-          GameSectionTitle(stages[id].house.owner),
-          Text(
-            '“${tr(stages[id].house.line)}”',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
-            textAlign: TextAlign.center,
-          ),
-          const GameSectionTitle('이 집을 노리는 보스'),
-          for (final style in houseBosses(id, stages[id].bossCount))
-            Text(
-              tr(style),
-              style: const TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
+          const SizedBox(height: 8),
+          GameQuote(stages[id].house.line, speaker: '수호묘의 다짐'),
+          const SizedBox(height: 8),
+          GameInset(
+            tone: GameTone.danger,
+            child: Column(
+              children: [
+                for (final boss in houseBosses(id, stages[id].bossCount)) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const GameTag('노리는 보스', tone: GameTone.danger),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          tr(boss.name),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            height: 1.3,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  GameHint(message('공략: {0}', [boss.tip])),
+                ],
+              ],
             ),
-          GameCostLine(
-            '${stages[id].duration ~/ 60}분 · 보스 ${stages[id].bossCount}회 · 위험도 ${id + 1}',
-            icon: Icons.shield,
           ),
-          Text(
-            tr('집을 지키면 다음 집이 열립니다'),
-            style: TextStyle(fontSize: 16),
-            textAlign: TextAlign.center,
+          const SizedBox(height: 8),
+          GameFactRow([
+            GameFact('시간', message('{0}분', [stages[id].duration ~/ 60])),
+            GameFact(
+              '보스',
+              message('{0}회', [stages[id].bossCount]),
+              tone: GameTone.danger,
+            ),
+            GameFact('위험도', '${id + 1}', tone: GameTone.gold),
+          ]),
+          const SizedBox(height: 6),
+          const GameHint('집을 지키면 다음 집이 열립니다', tone: GameTone.good),
+        ],
+      ),
+    ),
+  );
+}
+
+/// The house owner's name plate on the map picture.
+class _OwnerPlate extends StatelessWidget {
+  const _OwnerPlate(this.owner);
+  final String owner;
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: const Color(0xE60B1830),
+      borderRadius: BorderRadius.circular(999),
+      border: Border.all(color: GameTone.gold.color, width: 2),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(6, 4, 12, 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const GameTag('지킬 집사'),
+          const SizedBox(width: 6),
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                tr(owner),
+                maxLines: 1,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: GameTone.gold.color,
+                  fontSize: 17,
+                  height: 1.25,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
           ),
         ],
       ),

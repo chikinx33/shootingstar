@@ -17,7 +17,7 @@ import '../main.dart';
 import 'components.dart';
 import 'reward_popup.dart';
 import 'collection_screen.dart';
-import 'catalog_screens.dart' show CatalogTabs;
+import 'catalog_screens.dart' show CatalogTabs, RewardChips, RewardGroup;
 import '../art/lobby_art.dart';
 
 class FleetActivityScreen extends StatefulWidget {
@@ -107,9 +107,7 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
       displayLabel: claimed ? '수령 완료' : displayLabel,
       primary: true,
       icon: Icons.card_giftcard,
-      onPressed: audible(
-        enabled ? () => act(action, adOffer: adOffer) : null,
-      ),
+      onPressed: audible(enabled ? () => act(action, adOffer: adOffer) : null),
     ),
   );
 
@@ -180,16 +178,15 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
           children: [
             const RasterIcon(Icons.calendar_month, size: 64, color: cyan),
             gap(10),
-            Text(
-              message("오늘 보급\n{0}", [
-                FleetJournal
-                    .signInRewards[p.journal.signedInToday
-                        ? (p.journal.signIns - 1) % 7
-                        : p.journal.signInNext]
-                    .summary,
-              ]),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.w800),
+            RewardGroup(
+              label: '오늘 보급',
+              tone: GameTone.gold,
+              claimed: p.journal.signedInToday,
+              chips: RewardChips.of(
+                FleetJournal.signInRewards[p.journal.signedInToday
+                    ? (p.journal.signIns - 1) % 7
+                    : p.journal.signInNext],
+              ),
             ),
             gap(10),
             claim(
@@ -253,14 +250,13 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                message("{0}일 출석\n{1}", [
-                  FleetJournal.signInTargets[i],
-                  FleetJournal.signInChestRewards[i].summary,
-                ]),
-
-                textAlign: TextAlign.center,
+              RewardGroup(
+                label: message('{0}일 출석', [FleetJournal.signInTargets[i]]),
+                tone: GameTone.gold,
+                claimed: p.journal.signInChests.contains(i),
+                chips: RewardChips.of(FleetJournal.signInChestRewards[i]),
               ),
+              gap(8),
               claim(
                 p.journal.signInChests.contains(i)
                     ? '누적 상자 수령 완료'
@@ -297,7 +293,14 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
           p.dailyClaims.contains(i),
           '일일 임무 ${i + 1} 보상 받기',
           () => p.claimDaily(i),
-          '50 츄르 · 시즌 XP 50\n보급·육성 재료',
+          RewardChips(
+            credits: 50,
+            food: 10,
+            seasonXp: 50,
+            gearKeys: i == 0 ? 1 : 0,
+            techKeys: i == 1 ? 1 : 0,
+            eggs: i == 2 ? 1 : 0,
+          ),
         ),
     ],
     if (missionCategory == 2 && chestPeriod == 0) ...[
@@ -307,15 +310,12 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                message("임무 보상 {0}개 수령\n{1}", [
-                  i + 1,
-                  FleetJournal.dailyChestRewards[i].summary,
-                ]),
-                style: const TextStyle(fontWeight: FontWeight.w800),
-
-                textAlign: TextAlign.center,
+              RewardGroup(
+                label: message('임무 보상 {0}개 받으면', [i + 1]),
+                claimed: p.journal.dailyChests.contains(i),
+                chips: RewardChips.of(FleetJournal.dailyChestRewards[i]),
               ),
+              gap(8),
               claim(
                 p.journal.dailyChests.contains(i)
                     ? '일일 상자 수령 완료'
@@ -340,7 +340,7 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
           p.journal.weeklyClaims.contains(i),
           '주간 임무 ${i + 1} 보상 받기',
           () => p.claimWeeklyMission(i),
-          FleetJournal.weeklyReward.summary,
+          RewardChips.of(FleetJournal.weeklyReward),
         ),
     ],
     if (missionCategory == 2 && chestPeriod == 1) ...[
@@ -350,14 +350,12 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                message("임무 보상 {0}개 수령\n{1}", [
-                  (i + 1) * 2,
-                  FleetJournal.weeklyChestRewards[i].summary,
-                ]),
-
-                textAlign: TextAlign.center,
+              RewardGroup(
+                label: message('임무 보상 {0}개 받으면', [(i + 1) * 2]),
+                claimed: p.journal.weeklyChests.contains(i),
+                chips: RewardChips.of(FleetJournal.weeklyChestRewards[i]),
               ),
+              gap(8),
               claim(
                 p.journal.weeklyChests.contains(i)
                     ? '주간 상자 수령 완료'
@@ -380,7 +378,7 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
     bool claimed,
     String label,
     bool Function() action,
-    String reward,
+    Widget reward,
   ) => card(
     Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -397,17 +395,13 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
           color: const Color(0xFFA7E6B3),
         ),
         gap(5),
-        Text(
-          message("{0} / {1}", [progress.clamp(0, target), target]),
-          style: const TextStyle(color: muted, fontSize: 14),
-
-          textAlign: TextAlign.center,
+        GameHint(
+          message('진행 {0} / {1}', [progress.clamp(0, target), target]),
+          tone: GameTone.sky,
         ),
-        Text(
-          tr(reward),
-          style: const TextStyle(fontSize: 14),
-          textAlign: TextAlign.center,
-        ),
+        gap(6),
+        RewardGroup(label: '보상', claimed: claimed, chips: reward),
+        gap(6),
         claim(
           claimed ? '보상 수령 완료' : label,
           !claimed && progress >= target,
@@ -450,15 +444,14 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
         }),
       ),
       gap(14),
-      Text(
-        message("최고 진행 {0}분 {1}초 · {2}", [
-          seconds ~/ 60,
-          seconds % 60,
-          cleared ? "클리어" : "진행 중",
-        ]),
-
-        textAlign: TextAlign.center,
-      ),
+      GameFactRow([
+        GameFact('최고 진행', message('{0}분 {1}초', [seconds ~/ 60, seconds % 60])),
+        GameFact(
+          '상태',
+          cleared ? '클리어' : '진행 중',
+          tone: cleared ? GameTone.good : GameTone.gold,
+        ),
+      ]),
       gap(8),
       RasterGauge(value: seconds / duration, minHeight: 10),
       gap(16),
@@ -479,11 +472,8 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
                 style: const TextStyle(fontWeight: FontWeight.w900),
               ),
               gap(5),
-              Text(
-                tr(FleetJournal.chapterReward(i).summary),
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14),
-              ),
+              RewardChips.of(FleetJournal.chapterReward(i)),
+              gap(6),
               claim(
                 p.journal.chapterClaims.contains(chapter * 3 + i)
                     ? '항로 상자 수령 완료'
@@ -512,21 +502,28 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
           children: [
             const RasterIcon(Icons.explore, size: 64, color: Color(0xFFA7E6B3)),
             gap(8),
-            Text(
-              message("{0}분 / 480분", [p.patrolMinutes(DateTime.now())]),
-              textAlign: TextAlign.center,
-            ),
-            gap(8),
             RasterGauge(
               value: p.patrolMinutes(DateTime.now()) / 480,
               minHeight: 10,
             ),
-            gap(10),
-            Text(
-              tr('30분마다 20 츄르\n60분마다 별가루 1 · 먹이 5'),
-              textAlign: TextAlign.center,
-              style: TextStyle(color: muted, fontSize: 14),
+            gap(4),
+            GameHint(
+              message('누적 {0}분 / 최대 480분', [p.patrolMinutes(DateTime.now())]),
+              tone: GameTone.sky,
             ),
+            gap(8),
+            RewardGroup(
+              label: '지금 회수하면',
+              chips: p.patrolMinutes(DateTime.now()) < 30
+                  ? const GameHint('30분부터 회수할 수 있습니다')
+                  : RewardChips(
+                      credits: p.patrolMinutes(DateTime.now()) ~/ 30 * 20,
+                      plans: p.patrolMinutes(DateTime.now()) ~/ 60,
+                      food: p.patrolMinutes(DateTime.now()) ~/ 60 * 5,
+                    ),
+            ),
+            gap(4),
+            const GameHint('30분마다 츄르 20\n1시간마다 별가루 1과 먹이 5'),
             claim(
               '순찰 보상 회수',
               p.patrolMinutes(DateTime.now()) >= 30,
@@ -546,16 +543,20 @@ class _FleetActivityScreenState extends State<FleetActivityScreen> {
           children: [
             const RasterIcon(Icons.fast_forward, color: cyan, size: 42),
             gap(10),
-            Text(
-              tr(FleetJournal.quickPatrolReward.summary),
-              textAlign: TextAlign.center,
+            RewardGroup(
+              label: '하루 한 번',
+              claimed: p.journal.quickPatrolClaimed,
+              chips: RewardChips.of(FleetJournal.quickPatrolReward),
             ),
             gap(8),
-            Text(
-              message("오늘 유효 출격 {0}회", [p.dailyRuns]),
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: muted, fontSize: 14),
-            ),
+            GameFactRow([
+              GameFact(
+                '오늘 유효 출격',
+                message('{0}회', [p.dailyRuns]),
+                tone: p.dailyRuns > 0 ? GameTone.good : GameTone.muted,
+              ),
+            ]),
+            gap(6),
             claim(
               p.journal.quickPatrolClaimed ? '빠른 순찰 수령 완료' : '빠른 순찰 보상 받기',
               !p.journal.quickPatrolClaimed && p.dailyRuns > 0,

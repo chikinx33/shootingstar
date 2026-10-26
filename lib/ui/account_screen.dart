@@ -300,24 +300,36 @@ class _AccountScreenState extends State<AccountScreen> {
       style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
       textAlign: TextAlign.center,
     ),
-    Text(
-      message("@{0} · 저장 버전 {1}", [
-        online.account?['username'],
-        online.revision,
-      ]),
-      style: const TextStyle(fontSize: 16),
+    // v12.14: each account fact carries its own coloured label; the two
+    // lines stay two page items like before.
+    Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(text: '@${online.account?['username']}  '),
+          TextSpan(
+            text: '${tr('저장 버전')} ',
+            style: TextStyle(
+              color: GameTone.gold.color,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          TextSpan(
+            text: '${online.revision}',
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
+        ],
+      ),
       textAlign: TextAlign.center,
+      style: const TextStyle(fontSize: GameUi.body),
     ),
     if (online.updatedAt > 0)
-      Text(
-        message("서버 저장: {0}", [
-          DateTime.fromMillisecondsSinceEpoch(online.updatedAt * 1000)
-              .toLocal()
-              .toString()
-              .substring(5, 16),
-        ]),
-        style: const TextStyle(fontSize: 16),
-        textAlign: TextAlign.center,
+      _Pair(
+        '서버 저장',
+        DateTime.fromMillisecondsSinceEpoch(online.updatedAt * 1000)
+            .toLocal()
+            .toString()
+            .substring(5, 16),
+        tone: GameTone.good,
       ),
     if (online.recoveryCode.isNotEmpty) ...[
       gap12,
@@ -525,4 +537,32 @@ class _AccountScreenState extends State<AccountScreen> {
       ),
     ],
   );
+}
+
+/// "label value" inline: the label in its tone colour, the value in bold,
+/// one text line high.
+class _Pair extends StatelessWidget {
+  const _Pair(this.label, this.value, {this.tone = GameTone.sky});
+  final String label, value;
+  final GameTone tone;
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: '${tr(label)} ',
+            style: TextStyle(color: tone.color, fontWeight: FontWeight.w800),
+          ),
+          TextSpan(
+            text: value,
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
+        ],
+      ),
+      textAlign: TextAlign.center,
+      style: const TextStyle(fontSize: GameUi.body),
+    );
+  }
 }

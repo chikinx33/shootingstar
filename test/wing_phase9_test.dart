@@ -54,7 +54,7 @@ void main() {
       expect(p.credits - before, earned);
       expect(
         p.lastCampaignReward!.entries.map((e) => e.$1),
-        containsAll(['항로 완주', '항로 첫 보너스']),
+        containsAll(['집 지킴', '처음 지킨 보너스']),
       );
     }
     expect(p.campaignRewards.routes.length, 100);
@@ -113,8 +113,8 @@ void main() {
       final second = finish(p, 'repeat');
       expect(second, 232);
       expect(p.lastCampaignReward!.entries.map((e) => e.$1).toList(), [
-        '세계 보스 회수 ×1',
-        '항로 완주',
+        '보스 처치 ×1',
+        '집 지킴',
       ]);
       await p.save();
       p.dispose();
@@ -227,7 +227,7 @@ void main() {
       expect(p.campaignRewards.routes, isEmpty);
       finish(p, 'whole-gate', stage: 9, bosses: 999);
       expect(p.campaignRewards.routes, {9});
-      expect(p.lastCampaignReward!.entries.first.$1, '세계 보스 회수 ×3');
+      expect(p.lastCampaignReward!.entries.first.$1, '보스 처치 ×3');
       await p.save();
       p.dispose();
     },

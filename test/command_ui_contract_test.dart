@@ -177,7 +177,7 @@ void main() {
             ),
             findsNothing,
           );
-          await tapUi(tester, action('이 집 지키기'));
+          await tapUi(tester, action('수호묘 출동!'));
           expect(p.selectedStage, 1);
           final locked = tester.widget<HouseNode>(
             find.byKey(const ValueKey('house-node-2')),

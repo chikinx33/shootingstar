@@ -44,7 +44,7 @@ void main() {
         expect(tester.takeException(), isNull);
         // v12.9.0: house lines are the guardian cat's own vow, not a human ask.
         expect(find.text('“${houseOf(1).line}”'), findsOneWidget);
-        await tapUi(tester, find.text('이 집 지키기'));
+        await tapUi(tester, find.text('수호묘 출동!'));
         expect(p.selectedStage, 1);
         p.dispose();
       });

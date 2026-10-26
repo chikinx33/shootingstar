@@ -136,12 +136,9 @@ class BattlePainter extends CustomPainter {
       edge,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(2, r * .09)
-        ..color = color.withValues(alpha: .4 * a)
-        ..maskFilter = MaskFilter.blur(
-          BlurStyle.normal,
-          math.max(1.5, r * .05),
-        ),
+        // v12.14: a wider faint stroke instead of a per-frame blur
+        ..strokeWidth = math.max(3, r * .14)
+        ..color = color.withValues(alpha: .26 * a),
     );
     canvas.drawCircle(
       at,
@@ -185,8 +182,7 @@ class BattlePainter extends CustomPainter {
           Paint()
             ..color = const Color(0xFFFF4D6A).withValues(alpha: .18 + .22 * t)
             ..strokeWidth = 6 + 10 * t
-            ..strokeCap = StrokeCap.round
-            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+            ..strokeCap = StrokeCap.round,
         );
       }
       canvas.drawLine(

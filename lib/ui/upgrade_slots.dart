@@ -432,11 +432,7 @@ class _UpgradeSlotsState extends State<UpgradeSlots>
               context: context,
               builder: (_) => GameDialog(
                 title: choice.title,
-                child: Text(
-                  tr(game.choiceDetail(choice)),
-                  style: const TextStyle(fontSize: 16),
-                  textAlign: TextAlign.center,
-                ),
+                child: _ChoiceDetail(game, choice),
               ),
             ),
           ),
@@ -1018,6 +1014,60 @@ class _UpgradeSlotsState extends State<UpgradeSlots>
             ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+/// v12.14: a card's long-press detail as labelled groups — the effect, then
+/// its role (or growth effect) and any synergy, instead of one text block.
+class _ChoiceDetail extends StatelessWidget {
+  const _ChoiceDetail(this.game, this.choice);
+  final GameEngine game;
+  final UpgradeChoice choice;
+  static const _synergy = '연계: ';
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    final lines = game
+        .choiceDetail(choice)
+        .split('\n')
+        .where((l) => l.isNotEmpty)
+        .toList();
+    if (lines.isEmpty) return const SizedBox.shrink();
+    final rest = [
+      for (final l in lines.skip(1))
+        if (!l.startsWith(_synergy)) l,
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          tr(lines.first),
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 17,
+            height: 1.4,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        if (rest.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          GameInfoBlock(
+            label: game.modular ? '효과' : '역할',
+            tone: GameTone.sky,
+            detail: rest.join('\n'),
+          ),
+        ],
+        for (final l in lines.skip(1))
+          if (l.startsWith(_synergy)) ...[
+            const SizedBox(height: 8),
+            GameInfoBlock(
+              label: '연계',
+              tone: GameTone.good,
+              lead: l.substring(_synergy.length),
+            ),
+          ],
       ],
     );
   }

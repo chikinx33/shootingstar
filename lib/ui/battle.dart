@@ -952,72 +952,77 @@ class _BattleScreenState extends State<BattleScreen>
                     : widget.dailyEntry?.name ?? stages[game.stageIndex].name,
               ),
               BattleLoadoutDetails(game: game),
-              const SizedBox(height: 12),
-              Text(tr(game.worldTactic), textAlign: TextAlign.center),
-              Text(
-                '${_clock(game.elapsed)} / ${_clock(game.duration)}',
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                message("체력 {0}/{1} · Lv.{2}\n경험치 {3}/{4}", [
-                  game.hp.ceil(),
-                  game.maxHp.ceil(),
-                  game.level,
-                  game.xp.toStringAsFixed(1),
-                  game.xpNeeded.toStringAsFixed(1),
-                ]),
-
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                message("주포 연사 {0}/5 · 출력 {1}/5 · 발사 {2}{3}", [
-                  game.mainRate,
-                  game.mainPower,
-                  game.mainProjectiles,
-                  game.evolved.contains('gun') ? ' · EVO' : '',
-                ]),
-
-                textAlign: TextAlign.center,
-              ),
-              if (game.mainBranchSpec != null)
-                Text(
-                  message("주포 특화 · {0}", [game.mainBranchSpec!.name]),
-                  textAlign: TextAlign.center,
+              // v12.14: labelled fact tiles and groups, not a stack of
+              // "체력 … · Lv … / 주포 연사 … · 출력 …" lines.
+              const SizedBox(height: 10),
+              GameFactRow([
+                GameFact(
+                  '시간',
+                  '${_clock(game.elapsed)} / ${_clock(game.duration)}',
                 ),
-              if (game.synergyHudText.isNotEmpty)
-                Text(tr(game.synergyHudText), textAlign: TextAlign.center),
-              if (game.pilotStateText.isNotEmpty)
-                Text(tr(game.pilotStateText), textAlign: TextAlign.center),
+                GameFact(
+                  '체력',
+                  '${game.hp.ceil()}/${game.maxHp.ceil()}',
+                  tone: GameTone.danger,
+                ),
+                GameFact('레벨', 'Lv.${game.level}', tone: GameTone.gold),
+              ]),
+              const SizedBox(height: 8),
+              GameFactRow([
+                GameFact('주포 연사', '${game.mainRate}/5', tone: GameTone.gold),
+                GameFact('주포 출력', '${game.mainPower}/5', tone: GameTone.gold),
+                GameFact(
+                  '발사 수',
+                  game.evolved.contains('gun')
+                      ? '${game.mainProjectiles} EVO'
+                      : '${game.mainProjectiles}',
+                  tone: GameTone.gold,
+                ),
+              ]),
+              if (game.mainBranchSpec != null) ...[
+                const SizedBox(height: 8),
+                GameInfoBlock(label: '주포 특화', lead: game.mainBranchSpec!.name),
+              ],
+              const SizedBox(height: 8),
+              GameInfoBlock(
+                label: '이 동네 전술',
+                tone: GameTone.sky,
+                detail: game.worldTactic,
+              ),
+              if (game.synergyHudText.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                GameInfoBlock(
+                  label: '연계',
+                  tone: GameTone.good,
+                  detail: game.synergyHudText,
+                ),
+              ],
+              if (game.pilotStateText.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                GameInfoBlock(
+                  label: '조종사',
+                  tone: GameTone.sky,
+                  detail: game.pilotStateText,
+                ),
+              ],
               for (final passive in [false, true]) ...[
                 const SizedBox(height: 12),
                 GameSectionTitle(passive ? '보조 스킬' : '무기'),
+                const SizedBox(height: 4),
                 for (final e
                     in (passive ? game.passives : game.upgrades).entries) ...[
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      RasterSkillIcon(e.key, size: 28),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          message("{0} · {1}단계{2}\n{3}", [
-                            e.key == 'gun'
-                                ? armaments
-                                      .firstWhere((a) => a.id == game.armament)
-                                      .name
-                                : game.combatSkill(e.key).name,
-                            e.value,
-                            game.evolved.contains(e.key) ? ' · EVO' : '',
-                            game.weaponRoleLabel(e.key),
-                          ]),
-
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
+                  _SkillLine(
+                    id: e.key,
+                    name: e.key == 'gun'
+                        ? armaments
+                              .firstWhere((a) => a.id == game.armament)
+                              .name
+                        : game.combatSkill(e.key).name,
+                    rank: e.value,
+                    evolved: game.evolved.contains(e.key),
+                    role: game.weaponRoleLabel(e.key),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                 ],
               ],
             ],
@@ -1532,22 +1537,9 @@ class _BattleScreenState extends State<BattleScreen>
 
   /// The run's secondary facts, on demand.
   Future<void> _showResultDetails() async {
-    final loot = p.saveError ?? p.lastLoot;
-    final lines = <String>[
-      message("보스 {0}/{1} · 진행 {2}", [
-        game.bossesDefeated,
-        game.requiredBosses,
-        _clock(game.elapsed),
-      ]),
-      if (loot.isNotEmpty) loot,
-      if (widget.dailyEntry == null && p.lastLoot.isNotEmpty)
-        message("시즌 {0} XP", [p.seasonXp]),
-      if (p.starterTechUnlocked && !p.starterTechClaimed)
-        '희귀 테크 선택 해금 · 성장 → 테크',
-      if (!game.victory && game.lastDamageSource.isNotEmpty) game.damageAdvice,
-      if (loot.isEmpty) '보상과 진행이 자동 저장됩니다.',
-      ?_adStatus,
-    ];
+    final saveError = p.saveError;
+    final loot = saveError ?? p.lastLoot;
+    final season = widget.dailyEntry == null && p.lastLoot.isNotEmpty;
     await showDialog<void>(
       context: context,
       builder: (dialog) => GameDialog(
@@ -1562,14 +1554,119 @@ class _BattleScreenState extends State<BattleScreen>
               ),
             ),
         ],
-        child: Text(
-          lines.map(tr).join('\n'),
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 16, height: 1.45),
+        // v12.14: labelled facts and groups instead of one block of lines.
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            GameFactRow([
+              GameFact(
+                '보스',
+                '${game.bossesDefeated}/${game.requiredBosses}',
+                tone: GameTone.danger,
+              ),
+              GameFact('진행', _clock(game.elapsed)),
+              if (season)
+                GameFact('시즌 XP', '${p.seasonXp}', tone: GameTone.gold),
+            ]),
+            if (loot.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              GameInfoBlock(
+                label: saveError != null ? '저장 오류' : '획득',
+                tone: saveError != null ? GameTone.danger : GameTone.good,
+                children: [
+                  for (final part in loot.split(' · '))
+                    Text(
+                      tr(part),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        height: 1.35,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+            if (p.starterTechUnlocked && !p.starterTechClaimed) ...[
+              const SizedBox(height: 8),
+              const GameInfoBlock(
+                label: '해금',
+                tone: GameTone.good,
+                lead: '희귀 테크 선택',
+                detail: '성장 → 테크',
+              ),
+            ],
+            if (!game.victory && game.lastDamageSource.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              GameInfoBlock(
+                label: '공략 팁',
+                tone: GameTone.sky,
+                detail: game.damageAdvice,
+              ),
+            ],
+            if (loot.isEmpty) ...[
+              const SizedBox(height: 6),
+              const GameHint('보상과 진행이 자동 저장됩니다.'),
+            ],
+            if (_adStatus != null) ...[
+              const SizedBox(height: 6),
+              GameHint(_adStatus!),
+            ],
+          ],
         ),
       ),
     );
   }
+}
+
+/// One owned skill in the battle info popup: icon, name, step tag and role.
+class _SkillLine extends StatelessWidget {
+  const _SkillLine({
+    required this.id,
+    required this.name,
+    required this.rank,
+    required this.evolved,
+    required this.role,
+  });
+  final String id, name, role;
+  final int rank;
+  final bool evolved;
+  @override
+  Widget build(BuildContext context) => GameInset(
+    padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+    child: Row(
+      children: [
+        RasterSkillIcon(id, size: 36),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            children: [
+              Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 6,
+                runSpacing: 2,
+                children: [
+                  Text(
+                    tr(name),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      height: 1.3,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  GameTag(message('{0}단계', [rank])),
+                  if (evolved) const GameTag('EVO', tone: GameTone.good),
+                ],
+              ),
+              if (role.isNotEmpty) GameHint(role),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 String _clock(double seconds) {

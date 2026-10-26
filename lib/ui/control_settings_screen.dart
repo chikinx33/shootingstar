@@ -64,20 +64,41 @@ class _ControlSettingsScreenState extends State<ControlSettingsScreen> {
     context: context,
     builder: (_) => GameDialog(
       title: '조작 안내',
+      // v12.14: each setting's name leads its line in gold instead of
+      // "용어: 설명" plain text; the general rule and the note are hints.
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final line in const [
+          const GameHint(
             '기체 최고 속도·공격·보상은 같습니다. 손을 떼면 기존처럼 전투 시간이 5%로 느려집니다.',
-            '손가락 따라가기: 누른 곳 바로 위로 고양이가 날아갑니다',
-            '드래그 이동: 민 만큼만 움직이고 손을 멈추면 바로 멈춥니다',
-            '드래그 속도: 손가락 이동의 0.9배 · 1.15배 · 1.4배',
-            '능력 버튼 왼쪽: 항성포·파일럿 능력을 왼쪽에 표시',
-            '시험 영역은 실제 전투나 보상을 변경하지 않습니다.',
+            tone: GameTone.sky,
+          ),
+          const SizedBox(height: 10),
+          for (final (term, note) in const [
+            ('손가락 따라가기', '누른 곳 바로 위로 고양이가 날아갑니다'),
+            ('드래그 이동', '민 만큼만 움직이고 손을 멈추면 바로 멈춥니다'),
+            ('드래그 속도', '손가락 이동의 0.9배 · 1.15배 · 1.4배'),
+            ('능력 버튼 왼쪽', '항성포·파일럿 능력을 왼쪽에 표시'),
           ]) ...[
-            Text(tr(line), textAlign: TextAlign.center),
-            const SizedBox(height: 10),
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: '${tr(term)}  ',
+                    style: TextStyle(
+                      color: GameTone.gold.color,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  TextSpan(text: tr(note)),
+                ],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
           ],
+          const GameHint('시험 영역은 실제 전투나 보상을 변경하지 않습니다.'),
         ],
       ),
     ),
@@ -140,6 +161,8 @@ class _ControlSettingsScreenState extends State<ControlSettingsScreen> {
             gap(10),
             Listener(
               key: const Key('steering-test-pad'),
+              // The whole pad takes the drag, not only its labels.
+              behavior: HitTestBehavior.opaque,
               onPointerDown: (e) => move(e.localPosition),
               onPointerMove: (e) => move(e.localPosition),
               onPointerUp: (_) => release(),
@@ -148,12 +171,34 @@ class _ControlSettingsScreenState extends State<ControlSettingsScreen> {
                 child: SizedBox(
                   height: 72,
                   child: Center(
-                    child: Text(
-                      message("조작 시험: 누르고 움직여 보세요\n가로 {0} · 세로 {1}", [
-                        sample.dx.toStringAsFixed(0),
-                        sample.dy.toStringAsFixed(0),
-                      ]),
-                      textAlign: TextAlign.center,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '${tr('조작 시험')}  ',
+                              style: TextStyle(
+                                color: GameTone.sky.color,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            TextSpan(text: tr('누르고 움직여 보세요')),
+                            const TextSpan(text: '\n'),
+                            TextSpan(
+                              text: message('가로 {0} · 세로 {1}', [
+                                sample.dx.toStringAsFixed(0),
+                                sample.dy.toStringAsFixed(0),
+                              ]),
+                              style: TextStyle(
+                                color: GameTone.gold.color,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                 ),

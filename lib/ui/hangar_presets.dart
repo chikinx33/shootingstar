@@ -31,10 +31,12 @@ class HangarPresets extends StatelessWidget {
           children: [
             CatalogHeader(
               title: '출격 구성',
-              status:
-                  '${profile.hangarPresets.where((p) => p != null).length} / 6 저장 · 장비의 현재 성능 적용',
+              status: message('저장 {0} / 6', [
+                profile.hangarPresets.where((p) => p != null).length,
+              ]),
               icon: Icons.flight,
             ),
+            const GameHint('적용하면 장비의 지금 성능으로 출격합니다'),
             Expanded(
               child: GameSlotList(
                 listKey: const Key('preset-items'),
@@ -97,19 +99,14 @@ class HangarPresets extends StatelessWidget {
           ],
         ),
         gap(8),
-        Text(
-          preset == null ? tr('지금 배치를 이 칸에 저장합니다.') : tr(_brief(preset)),
-          style: const TextStyle(fontSize: GameUi.body),
-          textAlign: TextAlign.center,
-        ),
+        if (preset == null)
+          const GameHint('지금 배치를 이 칸에 저장합니다.')
+        else
+          ..._brief(preset),
         if (issue != null)
           Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              tr(issue),
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-              textAlign: TextAlign.center,
-            ),
+            child: GameHint(issue, tone: GameTone.danger),
           ),
         gap(20),
         if (preset == null)
@@ -161,32 +158,53 @@ class HangarPresets extends StatelessWidget {
   }
 
   /// The two facts a player checks first; the full list opens from '자세히'.
-  String _brief(HangarPreset p) => [
-    '${ships[p.ship].name} · ${catTraitFor(p.ship).name}',
-    '${armaments[p.armament].name} · ${equipmentOptions[p.equipment].name}',
-  ].join('\n');
+  /// v12.14: each value carries its label instead of "a · b" lines.
+  List<Widget> _brief(HangarPreset p) => [
+    _PresetRow('기체', ships[p.ship].name, tone: GameTone.gold),
+    _PresetRow('주무기', armaments[p.armament].name),
+  ];
 
   Future<void> _details(BuildContext context, HangarPreset preset) =>
       showDialog<void>(
         context: context,
         builder: (_) => GameDialog(
           title: '편성 정보',
-          child: Text(
-            message("{0}\n{1}", [preset.name, _summary(preset)]),
-            textAlign: TextAlign.center,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              GameSectionTitle(preset.name),
+              gap(8),
+              ..._summary(preset),
+            ],
           ),
         ),
       );
 
-  String _summary(HangarPreset p) => [
-    '${ships[p.ship].name} · ${catTraitFor(p.ship).name}',
-    '${armaments[p.armament].name} · ${equipmentOptions[p.equipment].name}',
-    '장비: ${p.gearIds.map((id) => profile.item(id)?.definition.name ?? '소실된 장비').join(' / ')}',
-    '테크: ${p.techIds.isEmpty ? '미장착' : p.techIds.map((id) => techNames[id]).join(' / ')}',
-    '출격 펫: ${p.pet < 0 ? '없음' : petNames[p.pet]}',
+  List<Widget> _summary(HangarPreset p) => [
+    _PresetRow('기체', ships[p.ship].name, tone: GameTone.gold),
+    _PresetRow('특기', catTraitFor(p.ship).name, tone: GameTone.gold),
+    _PresetRow('주무기', armaments[p.armament].name),
+    _PresetRow('모듈', equipmentOptions[p.equipment].name),
+    _PresetRow(
+      '장비',
+      p.gearIds
+          .map((id) => profile.item(id)?.definition.name ?? '소실된 장비')
+          .join(' / '),
+    ),
+    _PresetRow(
+      '테크',
+      p.techIds.isEmpty
+          ? '미장착'
+          : p.techIds.map((id) => techNames[id]).join(' / '),
+    ),
+    _PresetRow('출격 펫', p.pet < 0 ? '없음' : petNames[p.pet], tone: GameTone.good),
     if (p.assistPets.isNotEmpty)
-      '보조 펫: ${p.assistPets.map((id) => petNames[id]).join(' / ')}',
-  ].join('\n');
+      _PresetRow(
+        '보조 펫',
+        p.assistPets.map((id) => petNames[id]).join(' / '),
+        tone: GameTone.good,
+      ),
+  ];
 
   Future<String?> _name(
     BuildContext context,
@@ -250,9 +268,13 @@ class HangarPresets extends StatelessWidget {
             label: '삭제',
           ),
         ],
-        child: Text(
-          message("{0}\n저장한 구성만 삭제됩니다. 보유 장비와 현재 배치는 유지됩니다.", [preset.name]),
-          textAlign: TextAlign.center,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            GameSectionTitle(preset.name),
+            gap(6),
+            const GameHint('저장한 구성만 삭제됩니다. 보유 장비와 현재 배치는 유지됩니다.'),
+          ],
         ),
       ),
     );
@@ -288,13 +310,18 @@ class HangarPresets extends StatelessWidget {
             label: '이 구성 적용',
           ),
         ],
-        child: Text(
-          message("{0}\n{1}\n\n{2}", [
-            preset.name,
-            _brief(preset),
-            issue ?? '현재 배치를 이 구성으로 바꿉니다.',
-          ]),
-          textAlign: TextAlign.center,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            GameSectionTitle(preset.name),
+            gap(6),
+            ..._brief(preset),
+            gap(8),
+            GameHint(
+              issue ?? '현재 배치를 이 구성으로 바꿉니다.',
+              tone: issue == null ? GameTone.muted : GameTone.danger,
+            ),
+          ],
         ),
       ),
     );
@@ -371,6 +398,40 @@ class _PresetNameDialogState extends State<_PresetNameDialog> {
             onSubmitted: audibleChange((_) => _save()),
 
             textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One labelled preset fact: a coloured tag beside its value.
+class _PresetRow extends StatelessWidget {
+  const _PresetRow(this.label, this.value, {this.tone = GameTone.sky});
+  final String label, value;
+  final GameTone tone;
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 76,
+            child: Center(child: GameTag(label, tone: tone)),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              tr(value),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: GameUi.body,
+                height: 1.35,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ),
         ],
       ),

@@ -13,6 +13,7 @@ import '../data/profile.dart';
 import '../data/guild_client.dart';
 import 'components.dart';
 import 'account_screen.dart';
+import 'arcade_home_widgets.dart' show CurrencyArt;
 import 'catalog_screens.dart';
 
 class GuildScreen extends StatefulWidget {
@@ -209,15 +210,14 @@ class _GuildScreenState extends State<GuildScreen> {
                               ],
                             ),
                             if (g == null) ...[
-                              Text(
-                                message("{0} / 20명 · 초대 코드 {1}", [
-                                  item['members'],
-                                  item['id'],
-                                ]),
-                                style: const TextStyle(fontSize: 16),
-
-                                textAlign: TextAlign.center,
-                              ),
+                              GameFactRow([
+                                GameFact('인원', '${item['members']}/20'),
+                                GameFact(
+                                  '초대 코드',
+                                  '${item['id']}',
+                                  tone: GameTone.gold,
+                                ),
+                              ]),
                               gap(24),
                               Center(
                                 child: GameActionButton(
@@ -371,23 +371,43 @@ class _GuildScreenState extends State<GuildScreen> {
 
                             textAlign: TextAlign.center,
                           ),
-                          SelectableText(
-                            '초대 코드 ${g['id']}',
-                            style: const TextStyle(fontSize: 18),
-
-                            textAlign: TextAlign.center,
+                          // v12.14: the code keeps its copyable text beside a
+                          // tag; guild numbers sit in labelled tiles.
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const GameTag('초대 코드'),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: SelectableText(
+                                  '${g['id']}',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
                           ),
-                          Text(
-                            message("Lv.{0} · 기여 경험치 {1} · {2}/20명", [
-                              1 + (g['xp'] as int) ~/ 200,
-                              g['xp'],
-                              (state!['members'] as List).length,
-                            ]),
-                            style: const TextStyle(fontSize: 16),
-
-                            textAlign: TextAlign.center,
-                          ),
-                          GameCostLine('내 길드 코인 ${user['coins']}'),
+                          gap(8),
+                          GameFactRow([
+                            GameFact(
+                              '길드 Lv',
+                              '${1 + (g['xp'] as int) ~/ 200}',
+                              tone: GameTone.gold,
+                            ),
+                            GameFact('기여 경험치', '${g['xp']}'),
+                            GameFact(
+                              '인원',
+                              '${(state!['members'] as List).length}/20',
+                            ),
+                            GameFact(
+                              '내 코인',
+                              '${user['coins']}',
+                              tone: GameTone.good,
+                            ),
+                          ]),
                           gap(24),
                           GameActionButton(
                             label: user['checkday'] == state!['day']
@@ -426,22 +446,18 @@ class _GuildScreenState extends State<GuildScreen> {
                               1,
                             ),
                           ),
-                          Text(
-                            message("{0} / 100,000 피해 · 오늘 {1}/3회", [
-                              state!['damage'],
-                              state!['attempts'],
-                            ]),
-                            style: const TextStyle(fontSize: 18),
-
-                            textAlign: TextAlign.center,
-                          ),
-                          Text(
-                            tr(
-                              '30초·10격파 이상 일반 출격이 자동 기여됩니다. 1격파 = 피해 3, 1회 최대 3,000. 월요일 초기화.',
+                          gap(8),
+                          GameFactRow([
+                            GameFact(
+                              '누적 피해',
+                              '${state!['damage']} / 100,000',
+                              tone: GameTone.danger,
                             ),
-                            style: TextStyle(fontSize: 16),
-
-                            textAlign: TextAlign.center,
+                            GameFact('오늘 기여', '${state!['attempts']}/3'),
+                          ]),
+                          gap(6),
+                          const GameHint(
+                            '30초·10격파 이상 일반 출격이 자동 기여됩니다. 1격파 = 피해 3, 1회 최대 3,000. 월요일 초기화.',
                           ),
                           gap(24),
                           GameActionButton(
@@ -459,12 +475,29 @@ class _GuildScreenState extends State<GuildScreen> {
                             child: RasterIcon(Icons.storefront, size: 144),
                           ),
                           const GameSectionTitle('길드 보급소'),
-                          Text(
-                            tr('먹이 30 + 별가루 2 · 하루 1회\n보상은 우편으로 지급됩니다.'),
-                            style: TextStyle(fontSize: 18),
-
-                            textAlign: TextAlign.center,
+                          gap(8),
+                          const GameInfoBlock(
+                            label: '보급 내용',
+                            tone: GameTone.good,
+                            children: [
+                              SizedBox(height: 6),
+                              Wrap(
+                                alignment: WrapAlignment.center,
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: [
+                                  GameRewardChip('먹이', 30),
+                                  GameRewardChip(
+                                    '별가루',
+                                    2,
+                                    image: CurrencyArt.stardust,
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
+                          gap(6),
+                          const GameHint('하루 1회 · 보상은 우편으로 지급됩니다'),
                           const GameCostLine('길드 코인 10'),
                           gap(24),
                           GameActionButton(

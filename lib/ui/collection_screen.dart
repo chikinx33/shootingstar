@@ -143,30 +143,43 @@ class _CollectionScreenState extends State<CollectionScreen> {
                 0 => GamePages(
                   key: const Key('collection-investigation'),
                   children: [
-                    Center(child: _icon(book.nextRelicId, size: 112)),
+                    Center(child: _icon(book.nextRelicId, size: 100)),
                     gap(12),
-                    Text(
-                      message("다음 조사: {0}", [
-                        relicCatalog[book.nextRelicId].name,
-                      ]),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
+                    // v12.14: labelled next target and holdings; the rule is
+                    // a quiet hint and the set bonuses sit in their own tiles.
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const GameTag('다음 조사'),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            tr(relicCatalog[book.nextRelicId].name),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    gap(10),
+                    // Align keeps the pairs on one line (the pager would
+                    // otherwise stack each Wrap child).
+                    Align(
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 14,
+                        runSpacing: 4,
+                        children: [
+                          _Pair('탐사권', '${book.keys}', tone: GameTone.good),
+                          _Pair('유물 가루', '${book.dust}', tone: GameTone.sky),
+                        ],
                       ),
                     ),
-                    gap(10),
-                    Text(
-                      message("탐사권 {0} · 유물 가루 {1}", [book.keys, book.dust]),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 18),
-                    ),
-                    gap(10),
-                    Text(
-                      tr('탐사권 1개로 유물 조각 3개를 획득합니다. 12종을 차례로 조사합니다.'),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16),
-                    ),
+                    gap(8),
+                    const GameHint('탐사권 1개로 유물 조각 3개를 획득합니다. 12종을 차례로 조사합니다.'),
                     gap(16),
                     Center(
                       child: GameActionButton(
@@ -189,16 +202,19 @@ class _CollectionScreenState extends State<CollectionScreen> {
                       ),
                     ),
                     gap(12),
-                    Text(
-                      message("화력 +{0} · 선체 +{1}\n회수 +{2} · 쿨다운 단축 +{3}", [
-                        _percent(book.damageBonus),
-                        _percent(book.hullBonus),
-                        _percent(book.pickupBonus),
-                        _percent(book.cooldownBonus),
-                      ]),
-                      style: const TextStyle(fontSize: 16, color: cyan),
-                      textAlign: TextAlign.center,
-                    ),
+                    GameFactRow([
+                      for (final (label, value) in [
+                        ('화력', book.damageBonus),
+                        ('선체', book.hullBonus),
+                        ('회수', book.pickupBonus),
+                        ('쿨다운 단축', book.cooldownBonus),
+                      ])
+                        GameFact(
+                          label,
+                          '+${_percent(value)}',
+                          tone: GameTone.good,
+                        ),
+                    ]),
                   ],
                 ),
                 1 => GameSlotList(
@@ -437,23 +453,20 @@ class _CollectionScreenState extends State<CollectionScreen> {
               GameDetailHeader(
                 image: _icon(id, size: 72),
                 title: '등급 ${book.levels[id]}/5',
-                status: '조각 ${book.shards[id]} · 가루 ${book.dust}',
+                status: message('보유 조각 {0} · 가루 {1}', [
+                  book.shards[id],
+                  book.dust,
+                ]),
               ),
               Text(tr(relic.detail), textAlign: TextAlign.center),
               gap(8),
-              Text(
-                tr(relicSets[relic.setId].passive),
-                style: const TextStyle(color: cyan, fontSize: 16),
-
-                textAlign: TextAlign.center,
+              GameInfoBlock(
+                label: '세트 효과',
+                tone: GameTone.good,
+                lead: relicSets[relic.setId].passive,
               ),
               gap(8),
-              Text(
-                tr('선택 조각 제작 · 가루 3개'),
-                style: TextStyle(fontSize: 14, color: muted),
-
-                textAlign: TextAlign.center,
-              ),
+              const GameHint('원하는 조각 제작 · 가루 3개'),
               gap(12),
               GameDetailTools(
                 children: [
@@ -519,4 +532,32 @@ class _CollectionScreenState extends State<CollectionScreen> {
       },
     ),
   );
+}
+
+/// "label value" inline: a coloured tag and its bold value.
+class _Pair extends StatelessWidget {
+  const _Pair(this.label, this.value, {this.tone = GameTone.gold});
+  final String label, value;
+  final GameTone tone;
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GameTag(label, tone: tone),
+        const SizedBox(width: 4),
+        Text(
+          tr(value),
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            height: 1.3,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ],
+    );
+  }
 }

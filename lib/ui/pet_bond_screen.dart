@@ -13,6 +13,7 @@ import '../data/pet_bond.dart';
 import '../data/profile.dart';
 import '../main.dart';
 import '../art/toon_assets.dart';
+import 'arcade_home_widgets.dart' show CurrencyArt;
 import 'compact_choice.dart';
 import 'components.dart';
 
@@ -68,13 +69,21 @@ class PetBondScreen extends StatelessWidget {
             onPressed: audible(() => Navigator.pop(dialog, true)),
           ),
         ],
-        child: Text(
-          tr(
-            '각성에 사용한 ${refund.summary}을 돌려받습니다.\n'
-            '각성 단계와 선택 스킬은 초기화하며 호감도, 기존 육성·승급, 오늘의 교감 횟수는 유지합니다.',
-          ),
-
-          textAlign: TextAlign.center,
+        // v12.14: the refund reads as item chips; what resets and what
+        // stays are separate coloured notes.
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            GameInfoBlock(
+              label: '돌려받는 재료',
+              tone: GameTone.good,
+              children: [const SizedBox(height: 6), _costChips(refund)],
+            ),
+            gap(10),
+            const GameHint('각성 단계와 선택 스킬은 초기화됩니다', tone: GameTone.danger),
+            const GameHint('호감도·육성·승급·오늘의 교감 횟수는 그대로입니다'),
+          ],
         ),
       ),
     );
@@ -101,38 +110,44 @@ class PetBondScreen extends StatelessWidget {
     context: context,
     builder: (_) => GameDialog(
       title: '교감·각성 안내',
+      // v12.14: rules as a labelled block; each awakening step's requirement
+      // and cost as two small tables instead of "a · b / c" sentences.
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            tr(
-              '출전 펫과 120초 이상 생존하고 적 10기 이상 처치하면 호감도 +10. '
-              '하루 전투 교감 +30, 먹이 선물 2회까지 모든 펫이 함께 사용합니다. 한국 시간 자정에 갱신됩니다.',
-            ),
-            textAlign: TextAlign.center,
-          ),
-          gap(12),
-          Text(
-            tr('단계별 각성'),
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-            textAlign: TextAlign.center,
+          const GameInfoBlock(
+            label: '호감도 얻기',
+            tone: GameTone.good,
+            lead: '120초 생존 + 10기 처치 = 호감도 +10',
+            detail: '하루 전투 교감 30 · 먹이 선물 2회(모든 펫 공용, 자정 갱신)',
           ),
           gap(8),
-          for (var i = 0; i < 3; i++) ...[
-            Text(
-              tr(
-                '각성 ${i + 1} · Lv.${PetBond.levelRequirements[i]} / 승급 ${i + 1} / 호감도 ${PetBond.favorRequirements[i]}\n'
-                '${(i + 1) * 100} 츄르 · 먹이 ${(i + 1) * 20} · 유전자 ${i + 1}',
-              ),
-              textAlign: TextAlign.center,
-            ),
-            gap(8),
-          ],
-          gap(4),
-          Text(
-            tr('출전 펫에만 적용됩니다. 호감도 자체는 전투 능력을 올리지 않습니다. 선택 변경은 무료입니다.'),
-            textAlign: TextAlign.center,
+          _TierTable(
+            label: '각성 조건',
+            tone: GameTone.sky,
+            columns: const ['펫 Lv', '승급', '호감도'],
+            rows: [
+              for (var i = 0; i < 3; i++)
+                [
+                  '${PetBond.levelRequirements[i]}',
+                  '${i + 1}',
+                  '${PetBond.favorRequirements[i]}',
+                ],
+            ],
           ),
+          gap(8),
+          _TierTable(
+            label: '각성 비용',
+            tone: GameTone.gold,
+            columns: const ['츄르', '먹이', '유전자'],
+            rows: [
+              for (var i = 0; i < 3; i++)
+                ['${(i + 1) * 100}', '${(i + 1) * 20}', '${i + 1}'],
+            ],
+          ),
+          gap(8),
+          const GameHint('출전 펫에만 적용 · 호감도는 전투 능력과 무관 · 스킬 변경 무료'),
         ],
       ),
     ),
@@ -167,9 +182,6 @@ class PetBondScreen extends StatelessWidget {
           food: p.petFood,
           shards: p.petShards[pet],
         );
-        final rescued = unlocked
-            ? 'Lv.${p.petLevels[pet]} · 승급 ${p.petRanks[pet]}단계 · 각성 $level/3'
-            : '구조가 필요한 펫입니다.';
         return Scaffold(
           appBar: GameAppBar(
             title: Text(tr('펫 교감·각성'), textAlign: TextAlign.center),
@@ -207,7 +219,27 @@ class PetBondScreen extends StatelessWidget {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        Text(tr(rescued), textAlign: TextAlign.center),
+                        const SizedBox(height: 4),
+                        if (unlocked)
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: [
+                              _Pair('Lv', '${p.petLevels[pet]}'),
+                              _Pair(
+                                '승급',
+                                message('{0}단계', [p.petRanks[pet]]),
+                                tone: GameTone.sky,
+                              ),
+                              _Pair('각성', '$level/3', tone: GameTone.good),
+                            ],
+                          )
+                        else
+                          const GameHint(
+                            '구조가 필요한 펫입니다.',
+                            tone: GameTone.danger,
+                          ),
                       ],
                     ),
                   ),
@@ -235,14 +267,10 @@ class PetBondScreen extends StatelessWidget {
                 ],
               ),
               gap(4),
-              Text(
-                message("오늘 전투 교감 {0}/30 · 선물 {1}/2", [
-                  book.combatFavorToday,
-                  book.giftsToday,
-                ]),
-                style: TextStyle(color: muted, fontSize: GameUi.body),
-                textAlign: TextAlign.center,
-              ),
+              _pairLine([
+                ('오늘 전투 교감', '${book.combatFavorToday}/30', GameTone.sky),
+                ('오늘 선물', '${book.giftsToday}/2', GameTone.sky),
+              ]),
               gap(6),
               GameActionButton(
                 label: '먹이 10 선물 · 호감도 +10',
@@ -256,23 +284,16 @@ class PetBondScreen extends StatelessWidget {
                 ),
               ),
               gap(10),
-              Text(
-                message("보유 {0} 츄르 · 먹이 {1} · 유전자 {2}", [
-                  p.credits,
-                  p.petFood,
-                  p.petShards[pet],
-                ]),
-                style: const TextStyle(color: cyan, fontSize: GameUi.body),
-                textAlign: TextAlign.center,
-              ),
+              // v12.14: holdings as coloured label + value pairs.
+              _pairLine([
+                ('보유 츄르', '${p.credits}', GameTone.gold),
+                ('먹이', '${p.petFood}', GameTone.good),
+                ('유전자', '${p.petShards[pet]}', GameTone.sky),
+              ]),
               if (cost != null) ...[
-                Text(
-                  tr(issue ?? '각성 조건을 충족했습니다.'),
-                  style: TextStyle(
-                    color: issue == null ? cyan : muted,
-                    fontSize: GameUi.body,
-                  ),
-                  textAlign: TextAlign.center,
+                GameHint(
+                  issue ?? '각성 조건을 충족했습니다.',
+                  tone: issue == null ? GameTone.good : GameTone.danger,
                 ),
                 gap(6),
                 GameActionButton(
@@ -325,6 +346,141 @@ class PetBondScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+List<Widget> _holdingChips(int credits, int food, int shards) => [
+  GameRewardChip('츄르', credits, image: CurrencyArt.churu),
+  GameRewardChip('먹이', food),
+  GameRewardChip('유전자', shards),
+];
+
+Widget _costChips(PetBondCost cost) => Wrap(
+  alignment: WrapAlignment.center,
+  spacing: 6,
+  runSpacing: 6,
+  children: _holdingChips(cost.credits, cost.food, cost.shards),
+);
+
+/// Several "label value" pairs as one paragraph: it wraps like text, so the
+/// pager keeps it as lines instead of one item per pair.
+Widget _pairLine(List<(String, String, GameTone)> pairs) => Builder(
+  builder: (context) {
+    AppLanguage.watch(context);
+    return Text.rich(
+      TextSpan(
+        children: [
+          for (final (i, (label, value, tone)) in pairs.indexed) ...[
+            if (i > 0) const TextSpan(text: '    '),
+            TextSpan(
+              text: '${tr(label)} ',
+              style: TextStyle(color: tone.color, fontWeight: FontWeight.w800),
+            ),
+            TextSpan(
+              text: value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ],
+      ),
+      textAlign: TextAlign.center,
+      style: const TextStyle(fontSize: GameUi.body),
+    );
+  },
+);
+
+/// "label value" inline: the label in its tone colour, the value in bold
+/// white, one text line high so the one-page layout keeps its height.
+class _Pair extends StatelessWidget {
+  const _Pair(this.label, this.value, {this.tone = GameTone.gold});
+  final String label, value;
+  final GameTone tone;
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: '${tr(label)} ',
+            style: TextStyle(color: tone.color, fontWeight: FontWeight.w800),
+          ),
+          TextSpan(
+            text: tr(value),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+      textAlign: TextAlign.center,
+      style: const TextStyle(fontSize: GameUi.body),
+    );
+  }
+}
+
+/// Awakening steps 1–3 against [columns]: a tagged three-row table.
+class _TierTable extends StatelessWidget {
+  const _TierTable({
+    required this.label,
+    required this.tone,
+    required this.columns,
+    required this.rows,
+  });
+  final String label;
+  final GameTone tone;
+  final List<String> columns;
+  final List<List<String>> rows;
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    Widget cell(String text, {Color? color, bool bold = false}) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Text(
+        tr(text),
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: color ?? Colors.white,
+          fontSize: bold ? GameUi.body : GameUi.caption,
+          height: 1.3,
+          fontWeight: bold ? FontWeight.w900 : FontWeight.w800,
+        ),
+      ),
+    );
+    return GameInset(
+      tone: tone,
+      child: Column(
+        children: [
+          GameTag(label, tone: tone),
+          const SizedBox(height: 4),
+          Table(
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            children: [
+              TableRow(
+                children: [
+                  cell('단계', color: GameTone.muted.color),
+                  for (final c in columns) cell(c, color: tone.color),
+                ],
+              ),
+              for (var i = 0; i < rows.length; i++)
+                TableRow(
+                  children: [
+                    cell(
+                      message('각성 {0}', [i + 1]),
+                      color: GameTone.gold.color,
+                    ),
+                    for (final v in rows[i]) cell(v, bold: true),
+                  ],
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

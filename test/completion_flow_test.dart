@@ -112,8 +112,8 @@ void main() {
           await tapUi(tester, find.byKey(const ValueKey('house-node-0')));
           // v12.9.0: the house line is the guardian cat's own vow.
           await revealUi(tester, find.text('“${houseOf(0).line}”'));
-          await revealUi(tester, find.text(houseBossStyles.first));
-          await tapUi(tester, find.bySemanticsLabel('이 집 지키기').last);
+          await revealUi(tester, find.text(houseBossStyles.first.name));
+          await tapUi(tester, find.bySemanticsLabel('수호묘 출동!').last);
           expect(p.selectedStage, 0);
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox());

@@ -73,8 +73,8 @@ void main() {
           await tester.pump(const Duration(milliseconds: 350));
           await tester.pump(const Duration(milliseconds: 350));
           expect(find.text('출격 보상 내역'), findsOneWidget);
-          await revealUi(tester, find.text('항로 첫 보너스'));
-          expect(find.text('항로 첫 보너스'), findsOneWidget);
+          await revealUi(tester, find.text('처음 지킨 보너스'));
+          expect(find.text('처음 지킨 보너스'), findsOneWidget);
           expect(p.credits, balance);
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox());
@@ -94,8 +94,9 @@ void main() {
           );
           await tester.tap(find.text('안내 열기'));
           await tester.pumpAndSettle();
-          expect(find.text('보스·항로 보상'), findsOneWidget);
-          await revealUi(tester, find.text('항로 첫 보너스 · 수령 완료'));
+          expect(find.text('보상 안내'), findsOneWidget);
+          // v12.14: a claimed one-time bonus carries a "받음" tag.
+          await revealUi(tester, find.text('받음'));
           expect(p.credits, balance);
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox());

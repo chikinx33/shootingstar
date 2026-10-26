@@ -68,7 +68,9 @@ void main() {
         await tester.pump(const Duration(milliseconds: 2100));
         await tester.tap(find.byTooltip('전투 정보'));
         await tester.pump(const Duration(milliseconds: 300));
-        expect(find.text('주포 특화 · 축전 레일'), findsOneWidget);
+        // v12.14: the specialization is a labelled block (주포 특화 + name).
+        expect(find.text('주포 특화'), findsOneWidget);
+        expect(find.text('축전 레일'), findsWidgets);
         await revealUi(tester, find.textContaining('중형 레일건'));
         expect(find.textContaining('중형 레일건'), findsOneWidget);
         await tapUi(tester, find.byTooltip('전투 정보 닫기').last);

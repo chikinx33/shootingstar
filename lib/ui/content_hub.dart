@@ -969,31 +969,84 @@ class _ContentHubState extends State<ContentHub> {
     final maxLevel = 20 + p.petRanks[i] * 10;
     final food = p.petLevels[i] * 10;
     final shards = 3 * (p.petRanks[i] + 1);
+    // v12.14: state, level and grade are tags beside the name; what the
+    // player owns and what growth costs sit in labelled tiles.
     return [
-      GameDetailHeader(
-        image: ToonTile('ships', 3 + i, size: 72),
-        title: message('{0} · {1}', [
-          petNames[i],
-          active ? '출전 중' : (rescued ? '대기 중' : '미구조'),
-        ]),
-        status: 'Lv.${p.petLevels[i]} · ${qualityNames[p.petRanks[i]]}',
+      Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Row(
+          children: [
+            SizedBox.square(
+              dimension: 72,
+              child: ToonTile('ships', 3 + i, size: 72),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    tr(petNames[i]),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      GameTag(
+                        active ? '출전 중' : (rescued ? '대기 중' : '미구조'),
+                        tone: active
+                            ? GameTone.good
+                            : (rescued ? GameTone.sky : GameTone.muted),
+                      ),
+                      if (rescued) GameTag('Lv.${p.petLevels[i]}'),
+                      GameTag(qualityNames[p.petRanks[i]], tone: GameTone.sky),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
       Text(
         tr(petDescriptions[i]),
         textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 15, height: 1.3),
+        style: TextStyle(
+          fontSize: 15,
+          height: 1.3,
+          color: GameTone.muted.color,
+        ),
       ),
-      Text(
+      const SizedBox(height: 8),
+      GameFactRow(
         rescued
-            ? message('먹이 {0} · 육성 {1} · 조각 {2}/{3}', [
-                p.petFood,
-                p.petLevels[i] < maxLevel ? food : '최대',
-                p.petShards[i],
-                shards,
-              ])
-            : message('구조용 알 {0}개', [p.petEggs]),
-        textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 14, color: Color(0xFFFFD27A)),
+            ? [
+                GameFact('보유 먹이', '${p.petFood}', tone: GameTone.gold),
+                GameFact(
+                  '육성 비용',
+                  p.petLevels[i] < maxLevel ? message('먹이 {0}', [food]) : '최대',
+                  tone: GameTone.good,
+                ),
+                GameFact(
+                  '승급 조각',
+                  '${p.petShards[i]}/$shards',
+                  tone: GameTone.good,
+                ),
+              ]
+            : [
+                GameFact(
+                  '구조용 알',
+                  message('{0}개', [p.petEggs]),
+                  tone: GameTone.gold,
+                ),
+              ],
       ),
       const SizedBox(height: 12),
       if (rescued) ...[

@@ -94,7 +94,9 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return Scaffold(
-      appBar: GameAppBar(title: Text(tr('일일 순환 도전'), textAlign: TextAlign.center)),
+      appBar: GameAppBar(
+        title: Text(tr('일일 순환 도전'), textAlign: TextAlign.center),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(12),
         children: [
@@ -118,28 +120,16 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen> {
                   textAlign: TextAlign.center,
                 ),
                 gap(5),
-                Text(
-                  message("{0} · 매일 00:00 KST 교체", [book.day]),
-                  style: const TextStyle(fontSize: 14, color: muted),
-
-                  textAlign: TextAlign.center,
-                ),
+                GameHint(message('{0} · 매일 0시(한국 시간)에 바뀝니다', [book.day])),
                 gap(8),
                 Text(
                   tr(DailyChallengeBook.variantDescriptions[book.variant]),
                   textAlign: TextAlign.center,
                 ),
                 gap(10),
-                Text(
-                  message("도전 토큰 {0}", [book.tokens]),
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: cyan,
-                  ),
-
-                  textAlign: TextAlign.center,
-                ),
+                GameFactRow([
+                  GameFact('보유 도전 토큰', '${book.tokens}', tone: GameTone.gold),
+                ]),
               ],
             ),
             active: true,
@@ -206,21 +196,20 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen> {
             gap(12),
             Center(child: RasterIcon(Icons.rocket_launch, size: 72)),
             gap(12),
-            Text(
-              message("적 밀도 +{0}% · 적 내구 +{1}%", [tier * 15, tier * 20]),
-              textAlign: TextAlign.center,
-            ),
-            gap(6),
-            Text(
-              tr(
+            // v12.14: difficulty and reward as labelled tiles
+            GameFactRow([
+              GameFact('적 밀도', '+${tier * 15}%', tone: GameTone.danger),
+              GameFact('적 내구', '+${tier * 20}%', tone: GameTone.danger),
+              GameFact(
+                '첫 승리 토큰',
                 book.cleared.contains(tier)
-                    ? '오늘 첫 승리 보상 수령 완료'
-                    : '첫 승리 보상 · 도전 토큰 ${DailyChallengeBook.tokenRewards[tier]}',
+                    ? '받음'
+                    : '+${DailyChallengeBook.tokenRewards[tier]}',
+                tone: book.cleared.contains(tier)
+                    ? GameTone.muted
+                    : GameTone.good,
               ),
-              style: const TextStyle(color: cyan),
-
-              textAlign: TextAlign.center,
-            ),
+            ]),
             gap(8),
             Center(
               child: GameActionButton(

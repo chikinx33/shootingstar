@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 
 /// v12 projectiles are light, not pictures (user decision 2026-10-24):
 /// glowing beans, diamonds, ovals, crescents, beams, electric arcs and
-/// lightning. Still shapes are recorded once per (shape, colour, size) and
-/// replayed, so hundreds of bullets stay cheap on the web renderer.
+/// lightning. Still shapes are baked once per (shape, colour, size) into a
+/// bitmap and blitted, so hundreds of bullets stay cheap on the web renderer.
 enum GlowShape { bean, diamond, oval, orb, crescent, star }
 
 abstract final class GlowShots {
@@ -18,8 +18,21 @@ abstract final class GlowShots {
   static const orange = Color(0xFFFF8A3D);
   static const green = Color(0xFF7DFF8A);
 
-  static final _cache = <(GlowShape, int, int), ui.Picture>{};
+  /// v12.14 (user 2026-10-26: the web build stalled under heavy fire): each
+  /// (shape, colour, size) glow is baked once into a bitmap and every bullet
+  /// is a plain image blit. Replaying a recorded picture re-ran its blur for
+  /// every bullet, and faded bullets each opened a saveLayer.
+  static final _cache = <(GlowShape, int, int), ui.Image>{};
   static int get cachedPictures => _cache.length;
+
+  /// The glow reaches past the shape: wide stroke plus blur on each side.
+  static const _extent = 2.6;
+
+  /// Bitmaps are baked at this many pixels per logical pixel (phones are
+  /// 2–3x); large sizes are baked coarser to bound memory.
+  static double _rasterScale(double s) => s > 80 ? 1.5 : 2.5;
+
+  static final _blit = Paint()..filterQuality = FilterQuality.low;
 
   /// Draws [shape] centred at [at], [size] px long, pointing along [angle]
   /// (radians, 0 = up the screen).
@@ -32,30 +45,61 @@ abstract final class GlowShots {
     double angle = 0,
     double opacity = 1,
   }) {
+    if (opacity <= 0) return;
     final bucket = (size.clamp(4, 160) / 2).round();
     final key = (shape, color.toARGB32(), bucket);
-    var picture = _cache[key];
-    if (picture == null) {
-      if (_cache.length > 160) _cache.remove(_cache.keys.first)!.dispose();
-      final recorder = ui.PictureRecorder();
-      _record(Canvas(recorder), shape, bucket * 2.0, color);
-      picture = recorder.endRecording();
-      _cache[key] = picture;
+    final image = _cache[key] ?? _bake(key, shape, bucket * 2.0, color);
+    final box = bucket * 2.0 * _extent;
+    final paint = opacity >= 1
+        ? _blit
+        : (Paint()
+            ..filterQuality = FilterQuality.low
+            ..color = Color.fromRGBO(255, 255, 255, opacity.clamp(0.0, 1.0)));
+    final src = Rect.fromLTWH(
+      0,
+      0,
+      image.width.toDouble(),
+      image.height.toDouble(),
+    );
+    if (angle == 0) {
+      canvas.drawImageRect(
+        image,
+        src,
+        Rect.fromCenter(center: at, width: box, height: box),
+        paint,
+      );
+      return;
     }
     canvas.save();
     canvas.translate(at.dx, at.dy);
-    if (angle != 0) canvas.rotate(angle);
-    if (opacity < 1) {
-      canvas.saveLayer(
-        null,
-        Paint()..color = Colors.white.withValues(alpha: opacity),
-      );
-      canvas.drawPicture(picture);
-      canvas.restore();
-    } else {
-      canvas.drawPicture(picture);
-    }
+    canvas.rotate(angle);
+    canvas.drawImageRect(
+      image,
+      src,
+      Rect.fromCenter(center: Offset.zero, width: box, height: box),
+      paint,
+    );
     canvas.restore();
+  }
+
+  static ui.Image _bake(
+    (GlowShape, int, int) key,
+    GlowShape shape,
+    double s,
+    Color color,
+  ) {
+    if (_cache.length > 160) _cache.remove(_cache.keys.first)!.dispose();
+    final scale = _rasterScale(s);
+    final side = (s * _extent * scale).ceil();
+    final recorder = ui.PictureRecorder();
+    final c = Canvas(recorder)
+      ..scale(scale)
+      ..translate(s * _extent / 2, s * _extent / 2);
+    _record(c, shape, s, color);
+    final picture = recorder.endRecording();
+    final image = picture.toImageSync(side, side);
+    picture.dispose();
+    return _cache[key] = image;
   }
 
   static Path _shapePath(GlowShape shape, double s) {
@@ -139,12 +183,23 @@ abstract final class GlowShots {
     Color color, {
     double opacity = 1,
   }) {
-    final halo = Paint()
-      ..color = color.withValues(alpha: .28 * opacity)
-      ..strokeWidth = width * 2.4
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, width * .7);
-    canvas.drawLine(from, to, halo);
+    // soft halo as two faint widened strokes: a per-call blur stalls the web
+    canvas.drawLine(
+      from,
+      to,
+      Paint()
+        ..color = color.withValues(alpha: .12 * opacity)
+        ..strokeWidth = width * 3.2
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.drawLine(
+      from,
+      to,
+      Paint()
+        ..color = color.withValues(alpha: .22 * opacity)
+        ..strokeWidth = width * 2
+        ..strokeCap = StrokeCap.round,
+    );
     canvas.drawLine(
       from,
       to,
@@ -191,11 +246,10 @@ abstract final class GlowShots {
     canvas.drawPath(
       path,
       Paint()
-        ..color = color.withValues(alpha: .35 * opacity)
+        ..color = color.withValues(alpha: .22 * opacity)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = width * 3
-        ..strokeJoin = StrokeJoin.round
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, width),
+        ..strokeWidth = width * 3.4
+        ..strokeJoin = StrokeJoin.round,
     );
     canvas.drawPath(
       path,
@@ -228,10 +282,17 @@ abstract final class GlowShots {
       at,
       radius,
       Paint()
-        ..color = color.withValues(alpha: .3 * opacity)
+        ..color = color.withValues(alpha: .14 * opacity)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = width * 2.6
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, width),
+        ..strokeWidth = width * 3.4,
+    );
+    canvas.drawCircle(
+      at,
+      radius,
+      Paint()
+        ..color = color.withValues(alpha: .24 * opacity)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = width * 2,
     );
     canvas.drawCircle(
       at,
@@ -253,10 +314,13 @@ abstract final class GlowShots {
   }) {
     canvas.drawCircle(
       at,
-      radius * 1.35,
-      Paint()
-        ..color = color.withValues(alpha: .22 * opacity)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, radius * .45),
+      radius * 1.45,
+      Paint()..color = color.withValues(alpha: .1 * opacity),
+    );
+    canvas.drawCircle(
+      at,
+      radius * 1.2,
+      Paint()..color = color.withValues(alpha: .16 * opacity),
     );
     canvas.drawCircle(
       at,

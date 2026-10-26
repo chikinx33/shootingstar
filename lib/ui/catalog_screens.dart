@@ -15,7 +15,9 @@ import 'shop_screen.dart';
 import '../art/toon_assets.dart';
 import '../art/menu_art.dart';
 import '../data/content_catalog.dart';
+import '../data/fleet_journal.dart';
 import '../data/content_systems.dart';
+import 'arcade_home_widgets.dart' show CurrencyArt;
 import 'components.dart';
 import 'reward_popup.dart';
 import 'item_slots.dart';
@@ -107,8 +109,13 @@ class CatalogHeader extends StatelessWidget {
     this.action,
     this.localizeStatus = true,
     this.mascot,
+    this.facts,
   });
   final bool localizeStatus;
+
+  /// v12.14: labelled values shown on the plate instead of [status]
+  /// ("Lv.3 · 350 XP · 12일 남음" → 등급 Lv.3 / XP 350 / 남은 기간 12일).
+  final List<GameFact>? facts;
   final String title, status;
   final IconData icon;
   final Widget? action;
@@ -142,7 +149,47 @@ class CatalogHeader extends StatelessWidget {
                 SizedBox(width: 64, child: Center(child: action)),
               ],
             ),
-            if (status.isNotEmpty)
+            if (facts != null)
+              UiKitFrame(
+                'plate',
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 3,
+                ),
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 14,
+                  children: [
+                    for (final f in facts!)
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '${tr(f.label)} ',
+                              style: TextStyle(
+                                color: f.tone.color,
+                                fontSize: GameUi.caption,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            TextSpan(
+                              text: tr(f.value),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(height: 1.3),
+                      ),
+                  ],
+                ),
+              )
+            else if (status.isNotEmpty)
               UiKitFrame(
                 'plate',
                 padding: const EdgeInsets.symmetric(
@@ -218,7 +265,8 @@ class _SupplyShopState extends State<SupplyShop> {
           CatalogHeader(
             title: '함대 보급',
             mascot: Mascot.supply,
-            status: p.developerMode ? '개발자 · 무료 구매' : '${p.credits} 츄르',
+            // the lobby header already shows the churu balance (no duplicates)
+            status: p.developerMode ? '개발자 · 무료 구매' : '',
             icon: Icons.inventory_2,
           ),
           CatalogTabs(
@@ -246,7 +294,7 @@ class _SupplyShopState extends State<SupplyShop> {
                             '무기 파츠 보급',
                             'gear-cargo',
                             () => p.gearKeys,
-                            '윙건 · 미사일 · 자주포 순환 획득 · 독립 Lv.1 파츠',
+                            '윙건·미사일·자주포를 차례로 하나씩 · Lv.1 파츠',
                             '무기 파츠 보급 열기',
                             () =>
                                 p.gearKeys > 0 &&
@@ -266,7 +314,7 @@ class _SupplyShopState extends State<SupplyShop> {
                             '보조 파츠 보급',
                             'pet-cargo',
                             () => p.petEggs,
-                            '방어 · 공격 보조 · 유틸 7종 순환 획득',
+                            '방어·공격 보조·유틸 7종을 차례로 하나씩',
                             '보조 파츠 보급 열기',
                             () =>
                                 p.petEggs > 0 &&
@@ -316,20 +364,34 @@ class _SupplyShopState extends State<SupplyShop> {
                                       ),
                                     ),
                                   ],
+                                  // v12.14: quantity, price and the daily
+                                  // limit each get their own labelled tile.
                                   child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
                                     children: [
-                                      RasterIcon(offer.$5, size: 80),
-                                      Text(
-                                        message("수량 {0}", [offer.$3]),
-                                        style: const TextStyle(fontSize: 20),
-
-                                        textAlign: TextAlign.center,
+                                      Center(
+                                        child: RasterIcon(offer.$5, size: 80),
                                       ),
-                                      GameCostLine(
-                                        p.developerMode
-                                            ? '개발자 무료 교환'
-                                            : '${offer.$4} 츄르 · 남은 횟수 ${3 - (p.shopCounts[offer.$1] ?? 0)}/3',
-                                      ),
+                                      gap(8),
+                                      GameFactRow([
+                                        GameFact(
+                                          '받는 수량',
+                                          '×${offer.$3}',
+                                          tone: GameTone.good,
+                                        ),
+                                        GameFact(
+                                          '가격',
+                                          p.developerMode
+                                              ? '무료'
+                                              : message('{0} 츄르', [offer.$4]),
+                                          tone: GameTone.gold,
+                                        ),
+                                        GameFact(
+                                          '오늘 남은 횟수',
+                                          '${3 - (p.shopCounts[offer.$1] ?? 0)}/3',
+                                        ),
+                                      ]),
                                     ],
                                   ),
                                 ),
@@ -381,18 +443,22 @@ class _SupplyShopState extends State<SupplyShop> {
               ),
             ],
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                MenuImage(asset, size: 72),
-                Text(
-                  message("보급권 {0}", [keys()]),
-                  style: const TextStyle(fontSize: 20),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  tr(description),
-                  style: const TextStyle(fontSize: 16),
-                  textAlign: TextAlign.center,
+                Center(child: MenuImage(asset, size: 72)),
+                gap(8),
+                GameFactRow([
+                  GameFact(
+                    '보유 보급권',
+                    message('{0}장', [keys()]),
+                    tone: GameTone.gold,
+                  ),
+                ]),
+                gap(8),
+                GameInfoBlock(
+                  label: '나오는 것',
+                  tone: GameTone.good,
+                  lead: description,
                 ),
               ],
             ),
@@ -422,9 +488,28 @@ class _SeasonMailboxState extends State<SeasonMailbox> {
         children: [
           CatalogHeader(
             title: tab == 2 ? '보상 우편' : '항성 원정',
-            status: tab == 2
-                ? '미수령 ${p.mail.where((m) => !m.claimed).length}건'
-                : 'Lv.${(p.seasonXp ~/ 100).clamp(0, 20)} · ${p.seasonXp} XP · ${p.seasonDaysLeft(DateTime.now())}일 남음',
+            status: '',
+            facts: tab == 2
+                ? [
+                    GameFact(
+                      '안 받은 우편',
+                      message('{0}건', [p.mail.where((m) => !m.claimed).length]),
+                      tone: GameTone.gold,
+                    ),
+                  ]
+                : [
+                    GameFact(
+                      '등급',
+                      'Lv.${(p.seasonXp ~/ 100).clamp(0, 20)}',
+                      tone: GameTone.gold,
+                    ),
+                    GameFact('XP', '${p.seasonXp}'),
+                    GameFact(
+                      '남은 기간',
+                      message('{0}일', [p.seasonDaysLeft(DateTime.now())]),
+                      tone: GameTone.muted,
+                    ),
+                  ],
             icon: tab == 2 ? Icons.card_giftcard : Icons.workspace_premium,
           ),
           CatalogTabs(
@@ -491,7 +576,7 @@ class _SeasonMailboxState extends State<SeasonMailbox> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              message("{0}단계 · {1} XP", [tier, tier * 100]),
+              message("{0}단계", [tier]),
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
 
               textAlign: TextAlign.center,
@@ -499,8 +584,21 @@ class _SeasonMailboxState extends State<SeasonMailbox> {
           ),
         ],
       ),
-      gap(12),
-      RewardPreview(reward: p.seasonReward(p.seasonKey, tier)),
+      gap(8),
+      GameFactRow([
+        GameFact('필요 XP', '${tier * 100}'),
+        GameFact(
+          '내 XP',
+          '${p.seasonXp}',
+          tone: p.seasonXp >= tier * 100 ? GameTone.good : GameTone.gold,
+        ),
+      ]),
+      gap(10),
+      RewardGroup(
+        label: '단계 보상',
+        claimed: p.seasonClaims.contains(tier),
+        chips: RewardPreview(reward: p.seasonReward(p.seasonKey, tier)),
+      ),
       gap(16),
       Center(
         child: GameActionButton(
@@ -539,7 +637,11 @@ class _SeasonMailboxState extends State<SeasonMailbox> {
         ],
       ),
       gap(12),
-      RewardPreview(reward: m),
+      RewardGroup(
+        label: '우편 보상',
+        claimed: m.claimed,
+        chips: RewardPreview(reward: m),
+      ),
       gap(16),
       Center(
         child: GameActionButton(
@@ -557,6 +659,30 @@ class _SeasonMailboxState extends State<SeasonMailbox> {
       ),
     ],
   );
+
+  /// Accumulated patrol time and what claiming now would give.
+  Widget _patrolNow(int minutes) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      KitGauge(minutes / 480, height: 14),
+      gap(4),
+      GameHint(message('누적 {0}분 / 최대 480분', [minutes]), tone: GameTone.sky),
+      gap(8),
+      RewardGroup(
+        label: '지금 회수하면',
+        chips: minutes < 30
+            ? const GameHint('30분부터 회수할 수 있습니다')
+            : RewardChips(
+                credits: minutes ~/ 30 * 20,
+                plans: minutes ~/ 60,
+                food: minutes ~/ 60 * 5,
+              ),
+      ),
+      gap(4),
+      const GameHint('30분마다 츄르 20\n1시간마다 별가루 1과 먹이 5'),
+    ],
+  );
+
   List<Widget> _missions() => [
     Center(
       child: GameActionButton(
@@ -584,14 +710,31 @@ class _SeasonMailboxState extends State<SeasonMailbox> {
             textAlign: TextAlign.center,
           ),
           gap(8),
-          Text(
-            message("{0} / {1}\n시즌 XP 50 · 50 츄르 · 먹이 10 · 보급권", [
-              p.dailyProgress(i),
+          // v12.14: progress as a gauge with its count, reward as chips
+          KitGauge(
+            p.dailyProgress(i) / ContentSystems.dailyTargets[i],
+            height: 14,
+          ),
+          gap(4),
+          GameHint(
+            message('진행 {0} / {1}', [
+              p.dailyProgress(i).clamp(0, ContentSystems.dailyTargets[i]),
               ContentSystems.dailyTargets[i],
             ]),
-            style: const TextStyle(fontSize: 18),
-
-            textAlign: TextAlign.center,
+            tone: GameTone.sky,
+          ),
+          gap(8),
+          RewardGroup(
+            label: '보상',
+            claimed: p.dailyClaims.contains(i),
+            chips: RewardChips(
+              credits: 50,
+              food: 10,
+              seasonXp: 50,
+              gearKeys: i == 0 ? 1 : 0,
+              techKeys: i == 1 ? 1 : 0,
+              eggs: i == 2 ? 1 : 0,
+            ),
           ),
           gap(12),
           Center(
@@ -623,14 +766,7 @@ class _SeasonMailboxState extends State<SeasonMailbox> {
           textAlign: TextAlign.center,
         ),
         gap(8),
-        Text(
-          message("{0}분 누적 / 최대 8시간\n30분마다 20 츄르 · 1시간마다 별가루 1 + 먹이 5", [
-            p.patrolMinutes(DateTime.now()),
-          ]),
-          style: const TextStyle(fontSize: 18),
-
-          textAlign: TextAlign.center,
-        ),
+        _patrolNow(p.patrolMinutes(DateTime.now())),
         gap(12),
         Center(
           child: GameActionButton(
@@ -654,51 +790,20 @@ class _SeasonMailboxState extends State<SeasonMailbox> {
   ];
 }
 
-/// Item previews share the quantity/icon hierarchy of the reference inventory.
+/// A mail or season reward as item chips (v12.14: kit pictures, not the old
+/// icon sheet).
 class RewardPreview extends StatelessWidget {
   const RewardPreview({super.key, required this.reward});
   final RewardMail reward;
   @override
-  Widget build(BuildContext context) {
-    AppLanguage.watch(context);
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        for (final item in [
-          ('츄르', reward.credits, Icons.hexagon),
-          ('별가루', reward.plans, Icons.description),
-          ('먹이', reward.food, Icons.pets),
-          ('장비권', reward.gearKeys, Icons.vpn_key),
-          ('테크권', reward.techKeys, Icons.precision_manufacturing),
-          ('구조권', reward.eggs, Icons.favorite),
-        ])
-          if (item.$2 > 0)
-            SizedBox(
-              width: 96,
-              child: Column(
-                children: [
-                  RasterIcon(item.$3, size: 48),
-                  Text(
-                    message("×{0}", [item.$2]),
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                    ),
-
-                    textAlign: TextAlign.center,
-                  ),
-                  Text(
-                    tr(item.$1),
-                    style: const TextStyle(fontSize: 16),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => RewardChips(
+    credits: reward.credits,
+    plans: reward.plans,
+    food: reward.food,
+    gearKeys: reward.gearKeys,
+    techKeys: reward.techKeys,
+    eggs: reward.eggs,
+  );
 }
 
 /// v12.8 game kit tab: the chosen one glows orange and sits raised.
@@ -893,6 +998,116 @@ class SupplyShelfCard extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// v12.14: a reward as item chips (picture, name, amount) instead of a
+/// "50 츄르 · 먹이 10" sentence. Shared by the supply, season, activity and
+/// quest screens.
+class RewardChips extends StatelessWidget {
+  const RewardChips({
+    super.key,
+    this.credits = 0,
+    this.plans = 0,
+    this.food = 0,
+    this.gearKeys = 0,
+    this.techKeys = 0,
+    this.eggs = 0,
+    this.collectionKeys = 0,
+    this.seasonXp = 0,
+    this.extra = const [],
+  });
+  RewardChips.of(FleetReward r, {Key? key, int seasonXp = 0})
+    : this(
+        key: key,
+        credits: r.credits,
+        plans: r.plans,
+        food: r.food,
+        gearKeys: r.gearKeys,
+        techKeys: r.techKeys,
+        eggs: r.eggs,
+        collectionKeys: r.collectionKeys,
+        seasonXp: seasonXp,
+      );
+  final int credits, plans, food, gearKeys, techKeys, eggs, collectionKeys;
+  final int seasonXp;
+
+  /// Rewards without an amount picture (e.g. a guaranteed gear piece).
+  final List<Widget> extra;
+
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        if (credits > 0)
+          GameRewardChip('츄르', credits, image: CurrencyArt.churu),
+        if (plans > 0)
+          GameRewardChip('별가루', plans, image: CurrencyArt.stardust),
+        if (food > 0) GameRewardChip('먹이', food),
+        if (gearKeys > 0)
+          GameRewardChip('장비 보급권', gearKeys, image: CurrencyArt.gearTicket),
+        if (techKeys > 0)
+          GameRewardChip(
+            '테크 보급권',
+            techKeys,
+            image: 'assets/art/icons_v11/blueprint.webp',
+          ),
+        if (eggs > 0)
+          GameRewardChip('펫 구조권', eggs, image: 'assets/art/icons_v11/egg.webp'),
+        if (collectionKeys > 0)
+          GameRewardChip(
+            '수집품 보급권',
+            collectionKeys,
+            image: 'assets/art/icons_v11/crate.webp',
+          ),
+        if (seasonXp > 0) GameRewardChip('시즌 XP', seasonXp),
+        ...extra,
+      ],
+    );
+  }
+}
+
+/// A labelled reward group: coloured tag (and a "받음" tag once claimed)
+/// over the reward chips.
+class RewardGroup extends StatelessWidget {
+  const RewardGroup({
+    super.key,
+    required this.label,
+    required this.chips,
+    this.tone = GameTone.good,
+    this.claimed = false,
+  });
+  final String label;
+  final Widget chips;
+  final GameTone tone;
+  final bool claimed;
+  @override
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Opacity(
+      opacity: claimed ? .55 : 1,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(child: GameTag(label, tone: tone)),
+              if (claimed) ...[
+                const SizedBox(width: 6),
+                const GameTag('받음', tone: GameTone.muted),
+              ],
+            ],
+          ),
+          const SizedBox(height: 6),
+          chips,
+        ],
       ),
     );
   }

@@ -86,47 +86,79 @@ class FlightHistoryScreen extends StatelessWidget {
                     orElse: () => armaments.first,
                   )
                   .name,
-              status:
-                  '${record.loop + 1}순환 · Lv.${record.level} · ${record.seconds}초',
+              status: message('{0}순환', [record.loop + 1]),
             ),
-            Text(
-              message("{0}격파 · 보스 {1}기\n마지막 피격: {2}", [
-                record.kills,
-                record.bosses,
-                record.cause.isEmpty ? "없음" : record.cause,
-              ]),
-              style: const TextStyle(fontSize: 16),
-
-              textAlign: TextAlign.center,
+            // v12.14: the run's numbers in labelled tiles, the last hit and
+            // the next goal as tagged blocks, damage as name | amount rows.
+            const SizedBox(height: 8),
+            GameFactRow([
+              GameFact('격파', '${record.kills}'),
+              GameFact('보스', '${record.bosses}', tone: GameTone.danger),
+              GameFact('시간', message('{0}초', [record.seconds])),
+              GameFact('Lv', '${record.level}', tone: GameTone.gold),
+            ]),
+            const SizedBox(height: 8),
+            GameInfoBlock(
+              label: '마지막 피격',
+              tone: GameTone.danger,
+              lead: record.cause.isEmpty ? '없음' : record.cause,
             ),
-            const GameSectionTitle('다음 출격의 목표'),
-            Text(
-              tr(record.nextStep),
-              style: const TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
+            const SizedBox(height: 8),
+            GameInfoBlock(
+              label: '다음 출격 목표',
+              tone: GameTone.good,
+              lead: record.nextStep,
             ),
             if (ranked.isNotEmpty) ...[
-              const GameSectionTitle('주요 피해 기여'),
-              for (final e in ranked.take(3))
-                Text(
-                  message("{0} · {1}", [
-                    damageSourceLabel(
-                      e.key,
-                      pilot: '파일럿',
-                      armament: armaments
-                          .firstWhere(
-                            (a) => a.id == record.armament,
-                            orElse: () => armaments.first,
-                          )
-                          .name,
-                    ),
-                    e.value.floor(),
-                  ]),
-                  style: const TextStyle(fontSize: 16),
-
-                  textAlign: TextAlign.center,
+              const SizedBox(height: 8),
+              GameInset(
+                tone: GameTone.sky,
+                child: Column(
+                  children: [
+                    const GameTag('주요 피해 기여', tone: GameTone.sky),
+                    const SizedBox(height: 4),
+                    for (final e in ranked.take(3))
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              tr(
+                                damageSourceLabel(
+                                  e.key,
+                                  pilot: '파일럿',
+                                  armament: armaments
+                                      .firstWhere(
+                                        (a) => a.id == record.armament,
+                                        orElse: () => armaments.first,
+                                      )
+                                      .name,
+                                ),
+                              ),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: GameUi.body,
+                                height: 1.35,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${e.value.floor()}',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: GameTone.gold.color,
+                              fontSize: GameUi.body,
+                              height: 1.35,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
                 ),
+              ),
             ],
+            const SizedBox(height: 12),
             GameActionButton(
               label: '영구 연구 보기',
               onPressed: audible(

@@ -71,14 +71,15 @@ class CampaignRewardBook {
     bosses = bosses.clamp(0, requiredBosses);
     final rewards = <(String, FleetReward)>[];
     if (bosses > 0) {
-      rewards.add(('세계 보스 회수 ×$bosses', multiply(bossRewards[world], bosses)));
+      rewards.add(('보스 처치 ×$bosses', multiply(bossRewards[world], bosses)));
       if (bossWorlds.add(world)) {
-        rewards.add(('세계 첫 보스 보너스', firstBossRewards[world]));
+        rewards.add(('동네 첫 보스', firstBossRewards[world]));
       }
     }
     if (clear && bosses >= requiredBosses) {
-      rewards.add(('항로 완주', clearReward(stage)));
-      if (routes.add(stage)) rewards.add(('항로 첫 보너스', firstClearReward(stage)));
+      rewards.add(('집 지킴', clearReward(stage)));
+      if (routes.add(stage))
+        rewards.add(('처음 지킨 보너스', firstClearReward(stage)));
     }
     return rewards;
   }

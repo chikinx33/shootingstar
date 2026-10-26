@@ -71,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _showUpdateNotices() async {
     p.shipModules; // runs the fleet's one-time slot changes
     if (!mounted || p.updateNotices.isEmpty) return;
-    final lines = p.updateNotices.join('\n\n');
+    final lines = [...p.updateNotices];
     p.updateNotices.clear();
     await showDialog<void>(
       context: context,
@@ -85,7 +85,23 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => Navigator.pop(dialog),
           ),
         ],
-        child: Text(tr(lines), textAlign: TextAlign.center),
+        // v12.14: one tagged block per change instead of one run-on text.
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < lines.length; i++) ...[
+              if (i > 0) const SizedBox(height: 8),
+              GameInfoBlock(
+                label: '환급 완료',
+                tone: GameTone.good,
+                children: [
+                  const SizedBox(height: 4),
+                  Text(tr(lines[i]), textAlign: TextAlign.center),
+                ],
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

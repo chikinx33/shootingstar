@@ -211,46 +211,61 @@ class _ShipHangarState extends State<ShipHangar> {
                     ),
                   ),
                 // v12.9.2: the cat is the pilot; its fixed trait
-                Text(
-                  compact
-                      ? message('특기 {0}', [tr(catTraitFor(i).name)])
-                      : message('특기 {0} · {1}', [
-                          tr(catTraitFor(i).name),
-                          tr(catTraitFor(i).short),
-                        ]),
+                // v12.14: labelled — a "특기" tag, the trait name, its effect
+                Row(
                   key: ValueKey('ship-trait-$i'),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF8FF0C8),
-                  ),
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const GameTag('특기', tone: GameTone.good),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: tr(catTraitFor(i).name),
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF8FF0C8),
+                              ),
+                            ),
+                            if (!compact)
+                              TextSpan(
+                                text: '  ${tr(catTraitFor(i).short)}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: GameTone.muted.color,
+                                ),
+                              ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
                 ),
                 // the smallest phones keep the gun line for the stats only
-                if (!compact) const SizedBox(height: 2),
-                if (!compact)
-                  Text(
-                    message('고유 주포 {0} · 궁극기 {1}', [
-                      tr(_guns[i]),
-                      tr(_ultimates[i]),
-                    ]),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFFDCE6F2),
+                if (!compact) ...[
+                  const SizedBox(height: 6),
+                  GameFactRow([
+                    GameFact('고유 주포', _guns[i], tone: GameTone.danger),
+                    GameFact('궁극기', _ultimates[i], tone: GameTone.gold),
+                  ]),
+                ],
+                if (compact) ...[
+                  const SizedBox(height: 6),
+                  GameFactRow([
+                    GameFact('선체', '${ship.health.toInt()}'),
+                    GameFact('기동', '${ship.speed.toInt()}'),
+                    GameFact(
+                      '화력',
+                      '${(ship.damage * 100).round()}%',
+                      tone: GameTone.danger,
                     ),
-                  ),
-                if (compact)
-                  Text(
-                    message("기본 선체 {0} · 기동 {1} · 화력 {2}%", [
-                      ship.health.toInt(),
-                      ship.speed.toInt(),
-                      (ship.damage * 100).round(),
-                    ]),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 14),
-                  )
-                else ...[
+                  ]),
+                ] else ...[
                   const SizedBox(height: 6),
                   _gauge(
                     '선체',

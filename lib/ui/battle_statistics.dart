@@ -347,15 +347,15 @@ class BattleStatisticsDialog extends StatelessWidget {
             shadows: [Shadow(color: Color(0xFF3A1A06), offset: Offset(0, 2))],
           ),
         ),
-        gap(4),
-        Text(
-          message("전투 {0}초 · 평균 {1} DPS", [
-            snapshot.damage.combatSeconds.toStringAsFixed(1),
-            _number(snapshot.damage.dps),
-          ]),
-          textAlign: TextAlign.center,
-        ),
-        gap(4),
+        gap(8),
+        GameFactRow([
+          GameFact(
+            '전투 시간',
+            message('{0}초', [snapshot.damage.combatSeconds.toStringAsFixed(1)]),
+          ),
+          GameFact('평균 DPS', _number(snapshot.damage.dps), tone: GameTone.gold),
+        ]),
+        gap(6),
         Text(
           tr('DPS = 실제 가한 피해 ÷ 실제 전투 시간\n일시정지·스킬 선택 시간과 초과 피해는 제외합니다.'),
           style: TextStyle(fontSize: 14, color: muted),
@@ -450,13 +450,11 @@ class BattleStatisticsDialog extends StatelessWidget {
                     ),
                   ),
                   gap(4),
-                  Text(
-                    message("{0} 피해 · {1} DPS", [
-                      _number(entry.damage),
-                      _number(entry.dps),
-                    ]),
-                    style: const TextStyle(fontSize: 13, color: muted),
-                    textAlign: TextAlign.center,
+                  Row(
+                    children: [
+                      Expanded(child: _rowFact('피해', _number(entry.damage))),
+                      Expanded(child: _rowFact('DPS', _number(entry.dps))),
+                    ],
                   ),
                 ],
               ),
@@ -473,58 +471,76 @@ class BattleStatisticsDialog extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          message("{0}\n영구 강화 {1}/10 · 주무기 피해 +{2}%", [
-            snapshot.armament,
-            snapshot.armamentLevel,
-            snapshot.armamentLevel * 2,
-          ]),
-          style: const TextStyle(
-            fontSize: 19,
-            fontWeight: FontWeight.w900,
-            color: cyan,
+        // v12.14: labelled groups and fact tiles instead of six lines of
+        // "영구 강화 … · 주무기 피해 …" text in one colour.
+        GameInfoBlock(
+          label: '주무장',
+          lead: snapshot.armament,
+          children: [
+            const SizedBox(height: 6),
+            GameFactRow([
+              GameFact(
+                '영구 강화',
+                '${snapshot.armamentLevel}/10',
+                tone: GameTone.gold,
+              ),
+              GameFact(
+                '주무기 피해',
+                '+${snapshot.armamentLevel * 2}%',
+                tone: GameTone.good,
+              ),
+            ]),
+          ],
+        ),
+        gap(8),
+        GameFactRow([
+          GameFact('R 연사', '${snapshot.mainRate}/5'),
+          GameFact('P 출력', '${snapshot.mainPower}/5'),
+          GameFact('N 발사', '${snapshot.mainCount}/4'),
+          GameFact(
+            '탄 수',
+            message('{0}발', [snapshot.mainCount + 1]),
+            tone: GameTone.gold,
           ),
-
-          textAlign: TextAlign.center,
+        ]),
+        gap(8),
+        GameInfoBlock(
+          label: '조종사',
+          tone: GameTone.sky,
+          lead: snapshot.pilot,
+          children: [
+            const SizedBox(height: 4),
+            Center(
+              child: GameTag(
+                message('고유 모듈 {0}단계', [snapshot.pilotRank]),
+                tone: GameTone.sky,
+              ),
+            ),
+          ],
         ),
-        gap(6),
-        Text(
-          message("주포 보급 · R 연사 {0}/5 · P 출력 {1}/5\nN 발사 수 {2}/4 · {3}발", [
-            snapshot.mainRate,
-            snapshot.mainPower,
-            snapshot.mainCount,
-            snapshot.mainCount + 1,
-          ]),
-
-          textAlign: TextAlign.center,
-        ),
-        gap(10),
-        Text(
-          message("{0} · 고유 모듈 {1}단계", [snapshot.pilot, snapshot.pilotRank]),
-          textAlign: TextAlign.center,
-        ),
-        gap(10),
-        Text(
-          tr(snapshot.mainLoadout),
-          style: const TextStyle(fontSize: 14, color: cyan),
-
-          textAlign: TextAlign.center,
+        gap(8),
+        GameInfoBlock(
+          label: '주포 구성',
+          tone: GameTone.sky,
+          detail: snapshot.mainLoadout,
         ),
         if (snapshot.ultimate.isNotEmpty) ...[
-          gap(10),
-          Text(
-            tr(snapshot.ultimate),
-            style: const TextStyle(fontSize: 14, color: cyan),
-
-            textAlign: TextAlign.center,
+          gap(8),
+          GameInfoBlock(
+            label: '궁극기',
+            tone: GameTone.gold,
+            detail: snapshot.ultimate,
           ),
         ],
-        for (final detail in snapshot.synergies) ...[
-          gap(12),
-          Text(
-            tr(detail),
-            style: const TextStyle(fontSize: 14, color: cyan),
-            textAlign: TextAlign.center,
+        if (snapshot.synergies.isNotEmpty) ...[
+          gap(8),
+          GameInfoBlock(
+            label: '연계',
+            tone: GameTone.good,
+            children: [
+              for (final detail in snapshot.synergies)
+                GameHint(detail, tone: GameTone.good),
+            ],
           ),
         ],
         gap(16),
@@ -567,15 +583,20 @@ class BattleStatisticsDialog extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                message("{0} · {1}{2}단계", [
-                  e.name,
-                  e.evolved ? 'EVO · ' : '',
-                  e.rank,
-                ]),
-                style: const TextStyle(fontWeight: FontWeight.w800),
-
-                textAlign: TextAlign.center,
+              Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 6,
+                runSpacing: 2,
+                children: [
+                  Text(
+                    tr(e.name),
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                    textAlign: TextAlign.center,
+                  ),
+                  GameTag(message('{0}단계', [e.rank])),
+                  if (e.evolved) const GameTag('EVO', tone: GameTone.good),
+                ],
               ),
               gap(4),
               Text(
@@ -591,6 +612,24 @@ class BattleStatisticsDialog extends StatelessWidget {
     ),
   );
 }
+
+/// A small "label value" pair under a damage bar.
+Widget _rowFact(String label, String value) => Text.rich(
+  TextSpan(
+    children: [
+      TextSpan(
+        text: '${tr(label)} ',
+        style: TextStyle(color: GameTone.muted.color),
+      ),
+      TextSpan(
+        text: value,
+        style: const TextStyle(fontWeight: FontWeight.w900),
+      ),
+    ],
+  ),
+  style: const TextStyle(fontSize: GameUi.caption),
+  textAlign: TextAlign.center,
+);
 
 String _number(double value) {
   if (!value.isFinite) return '표시 범위 초과';

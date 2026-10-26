@@ -14,7 +14,9 @@ import '../data/profile.dart';
 import '../data/ship_modules.dart';
 import '../l10n/app_language.dart';
 import 'audio_feedback.dart';
+import 'arcade_home_widgets.dart' show CurrencyArt;
 import 'game_dialog.dart';
+import 'game_info.dart';
 import 'game_ui.dart';
 import 'item_info_card.dart';
 import 'item_slots.dart';
@@ -242,6 +244,7 @@ class _CatGearScreenState extends State<CatGearScreen>
     required Widget value,
     required List<(String, String, Color)> stats,
     required String note,
+    Widget? extra,
     String semantics = '',
     VoidCallback? onTap,
   }) {
@@ -329,6 +332,7 @@ class _CatGearScreenState extends State<CatGearScreen>
               ],
             ),
           ),
+          if (extra != null) ...[const SizedBox(height: 4), extra],
           const SizedBox(height: 4),
           Text(
             tr(note),
@@ -401,7 +405,19 @@ class _CatGearScreenState extends State<CatGearScreen>
         ('궁극기', snap.ultimateName, const Color(0xFFD9A8FF)),
         ('장착', '$fitted/${moduleProfiles.length}', const Color(0xFF7CC8FF)),
       ],
-      note: message('보유 파츠 {0}/240 · 눌러서 기체 강화', [p.shipModules.owned.length]),
+      extra: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const GameTag('보유 파츠', tone: GameTone.sky),
+          const SizedBox(width: 6),
+          Text(
+            '${p.shipModules.owned.length}/240',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+          ),
+        ],
+      ),
+      note: '눌러서 기체 정보·강화',
       onTap: () => showAirframeDetails(context, p),
     );
   }
@@ -789,14 +805,48 @@ class _CatGearScreenState extends State<CatGearScreen>
             onPressed: () => Navigator.pop(dialog, false),
           ),
         ],
-        child: Text(
-          message('{0} Lv.{1}\n{2} 츄르 · 별가루 {3}', [
-            part.definition.name,
-            part.level,
-            20 + part.level * 5,
-            1 + part.level ~/ 3,
-          ]),
-          textAlign: TextAlign.center,
+        // v12.14: name with a level tag, then what salvaging gives back
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    tr(part.definition.name),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                GameTag('Lv.${part.level}'),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                const GameTag('분해 시 획득', tone: GameTone.good),
+                GameRewardChip(
+                  '츄르',
+                  20 + part.level * 5,
+                  image: CurrencyArt.churu,
+                ),
+                GameRewardChip(
+                  '별가루',
+                  1 + part.level ~/ 3,
+                  image: CurrencyArt.stardust,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

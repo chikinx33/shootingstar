@@ -14,6 +14,7 @@ import '../data/ship_modules.dart';
 import '../data/profile.dart';
 import '../data/content.dart';
 import '../l10n/app_language.dart';
+import 'arcade_home_widgets.dart' show CurrencyArt;
 import 'components.dart';
 import 'audio_feedback.dart';
 import 'item_slots.dart';
@@ -367,6 +368,8 @@ Future<void> showModulePartDetail(
           p.credits >= p.moduleUpgradeCredits(part.level) &&
           p.blueprints >= p.moduleUpgradePlans(part.level);
       String number(double? v) => v == null ? '—' : v.toStringAsFixed(1);
+      String change(double? was, double now) =>
+          was == null || same ? number(now) : '${number(was)} → ${number(now)}';
       return GameDialog(
         title: '파츠 특성',
         child: Column(
@@ -382,64 +385,92 @@ Future<void> showModulePartDetail(
               )
             else
               ModulePartIcon(part.definition, size: 72),
+            _NameLevel(part.definition.name, part.level),
             Text(
-              tr('${part.definition.name} · Lv.${part.level}'),
+              tr(part.definition.effect),
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+              style: const TextStyle(fontSize: 15, height: 1.3),
             ),
-            Text(tr(part.definition.effect), textAlign: TextAlign.center),
-            Text(tr('$mount · ${m.direction}'), textAlign: TextAlign.center),
-            if (part.definition.weapon)
-              Text(
-                tr(m.roleFor(part.definition.category)),
-                textAlign: TextAlign.center,
-              ),
-            if (!part.definition.weapon)
-              Text(
-                tr('지원 효율 ${(stats.supportPower * 100).round()}%'),
-                textAlign: TextAlign.center,
-              ),
-            if (part.definition.weapon) ...[
-              Text(
-                tr('피해 ${number(before?.damage)} → ${number(stats.damage)}'),
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                tr(
-                  '보스 기본 피해 ${number(before?.bossDamage)} → ${number(stats.bossDamage)}',
-                ),
-                textAlign: TextAlign.center,
-              ),
-              if (part.definition.category == PartCategory.drone)
-                Text(
-                  tr(
-                    '드론 체력 ${stats.droneHealth.round()} · 복귀 ${stats.droneRecovery.round()}초',
+            const SizedBox(height: 4),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                GameTag(mount, tone: GameTone.sky),
+                GameTag(m.direction, tone: GameTone.sky),
+                if (part.definition.weapon)
+                  GameTag(
+                    m.roleFor(part.definition.category),
+                    tone: GameTone.good,
                   ),
-                  textAlign: TextAlign.center,
+              ],
+            ),
+            const SizedBox(height: 8),
+            // v12.14: each stat is its own labelled tile; when another part
+            // sits here the tile shows "now -> this part".
+            if (!part.definition.weapon)
+              GameFactRow([
+                GameFact(
+                  '지원 효율',
+                  '${(stats.supportPower * 100).round()}%',
+                  tone: GameTone.good,
                 ),
-              Text(
-                tr(
-                  '초당 발사 ${number(before?.fireRate)} → ${number(stats.fireRate)}',
+              ])
+            else ...[
+              if (before != null && !same)
+                const GameHint('지금 장착 → 이 파츠', tone: GameTone.sky),
+              GameFactRow([
+                GameFact(
+                  '피해',
+                  change(before?.damage, stats.damage),
+                  tone: GameTone.danger,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                tr(
-                  '발사 수 ${before?.count ?? 0} → ${stats.count} · 관통 +${stats.pierce}',
+                GameFact(
+                  '보스 피해',
+                  change(before?.bossDamage, stats.bossDamage),
+                  tone: GameTone.danger,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                tr(
-                  '폭발 범위 ${number(before?.aoe)} → ${number(stats.aoe)} · 사거리 ${stats.range.round()}',
+                GameFact('초당 발사', change(before?.fireRate, stats.fireRate)),
+              ]),
+              const SizedBox(height: 6),
+              GameFactRow([
+                GameFact(
+                  '발사 수',
+                  before == null || same
+                      ? '${stats.count}'
+                      : '${before.count} → ${stats.count}',
                 ),
-                textAlign: TextAlign.center,
-              ),
+                GameFact('관통', '+${stats.pierce}'),
+                GameFact(
+                  '폭발 범위',
+                  change(before?.aoe, stats.aoe),
+                  tone: GameTone.gold,
+                ),
+                GameFact('사거리', '${stats.range.round()}'),
+              ]),
+              if (part.definition.category == PartCategory.drone) ...[
+                const SizedBox(height: 6),
+                GameFactRow([
+                  GameFact(
+                    '드론 체력',
+                    '${stats.droneHealth.round()}',
+                    tone: GameTone.good,
+                  ),
+                  GameFact(
+                    '드론 복귀',
+                    message('{0}초', [stats.droneRecovery.round()]),
+                    tone: GameTone.good,
+                  ),
+                ]),
+              ],
             ],
+            const SizedBox(height: 6),
             if (from != null && from != mount)
-              Text(tr('$from → $mount · 레벨 유지'), textAlign: TextAlign.center),
+              GameHint('$from → $mount · 레벨 유지', tone: GameTone.sky),
             if (duplicate)
-              Text(tr('같은 보조 부품은 중복 장착할 수 없습니다.'), textAlign: TextAlign.center),
+              const GameHint('같은 보조 부품은 중복 장착할 수 없습니다.', tone: GameTone.danger),
+            const SizedBox(height: 8),
             GameActionButton(
               label: same ? '장착 중' : '장착',
               primary: true,
@@ -450,12 +481,13 @@ Future<void> showModulePartDetail(
                       if (p.equipModule(mount, id)) Navigator.pop(context);
                     }),
             ),
-            Text(
-              tr(
-                '${p.moduleUpgradeCredits(part.level)} 츄르 · 별가루 ${p.moduleUpgradePlans(part.level)}',
-              ),
-              textAlign: TextAlign.center,
+            const SizedBox(height: 8),
+            _CostRow(
+              '강화 비용',
+              p.moduleUpgradeCredits(part.level),
+              p.moduleUpgradePlans(part.level),
             ),
+            const SizedBox(height: 6),
             GameActionButton(
               label: part.level >= 40 ? '최고 레벨' : '파츠 강화',
               icon: Icons.upgrade,
@@ -473,16 +505,15 @@ Future<void> showModulePartDetail(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                tr(part.definition.name),
-                                textAlign: TextAlign.center,
+                              _NameLevel(part.definition.name, part.level),
+                              const SizedBox(height: 8),
+                              _CostRow(
+                                '분해 시 획득',
+                                20 + part.level * 5,
+                                1 + part.level ~/ 3,
+                                tone: GameTone.good,
                               ),
-                              Text(
-                                tr(
-                                  '${20 + part.level * 5} 츄르 · 별가루 ${1 + part.level ~/ 3}',
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
+                              const SizedBox(height: 12),
                               GameActionButton(
                                 label: '분해',
                                 onPressed: () => Navigator.pop(dialog, true),
@@ -508,57 +539,53 @@ Future<void> showModulePartDetail(
     },
   ),
 );
-Future<void> showAirframeDetails(
-  BuildContext context,
-  Profile p,
-) => showDialog<void>(
-  context: context,
-  builder: (_) => AnimatedBuilder(
-    animation: p,
-    builder: (context, _) {
-      final snap = p.moduleLoadout, level = snap.airframeLevel;
-      return GameDialog(
-        title: '기체 정보',
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              tr('${ships[p.selectedShip].name} · Lv.$level'),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+Future<void> showAirframeDetails(BuildContext context, Profile p) =>
+    showDialog<void>(
+      context: context,
+      builder: (_) => AnimatedBuilder(
+        animation: p,
+        builder: (context, _) {
+          final snap = p.moduleLoadout, level = snap.airframeLevel;
+          return GameDialog(
+            title: '기체 정보',
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _NameLevel(ships[p.selectedShip].name, level, size: 22),
+                const SizedBox(height: 8),
+                GameFactRow([
+                  GameFact('고유 주포', snap.signatureName, tone: GameTone.danger),
+                  GameFact('고유 궁극기', snap.ultimateName, tone: GameTone.gold),
+                ]),
+                const SizedBox(height: 6),
+                const GameHint('주포·궁극기는 탈착할 수 없습니다.'),
+                const GameHint(
+                  '기체 강화는 주포·궁극기·기본 체력을 올립니다.',
+                  tone: GameTone.sky,
+                ),
+                const SizedBox(height: 8),
+                _CostRow(
+                  '강화 비용',
+                  p.moduleUpgradeCredits(level),
+                  p.moduleUpgradePlans(level),
+                ),
+                const SizedBox(height: 8),
+                GameActionButton(
+                  label: level >= 40 ? '최고 레벨' : '기체 강화',
+                  primary: true,
+                  onPressed:
+                      level < 40 &&
+                          p.credits >= p.moduleUpgradeCredits(level) &&
+                          p.blueprints >= p.moduleUpgradePlans(level)
+                      ? audible(p.upgradeAirframe)
+                      : null,
+                ),
+              ],
             ),
-            Text(
-              tr('고유 주포 · ${snap.signatureName}'),
-              textAlign: TextAlign.center,
-            ),
-            Text(
-              tr('고유 궁극기 · ${snap.ultimateName}'),
-              textAlign: TextAlign.center,
-            ),
-            Text(tr('주포·궁극기는 탈착할 수 없습니다.'), textAlign: TextAlign.center),
-            Text(tr('기체 강화는 주포·궁극기·기본 체력을 올립니다.'), textAlign: TextAlign.center),
-            Text(
-              tr(
-                '${p.moduleUpgradeCredits(level)} 츄르 · 별가루 ${p.moduleUpgradePlans(level)}',
-              ),
-              textAlign: TextAlign.center,
-            ),
-            GameActionButton(
-              label: level >= 40 ? '최고 레벨' : '기체 강화',
-              primary: true,
-              onPressed:
-                  level < 40 &&
-                      p.credits >= p.moduleUpgradeCredits(level) &&
-                      p.blueprints >= p.moduleUpgradePlans(level)
-                  ? audible(p.upgradeAirframe)
-                  : null,
-            ),
-          ],
-        ),
-      );
-    },
-  ),
-);
+          );
+        },
+      ),
+    );
 
 class ModuleWorkshop extends StatelessWidget {
   const ModuleWorkshop({
@@ -611,15 +638,12 @@ class ModuleWorkshop extends StatelessWidget {
                           ],
                         ),
                       ),
-                      Text(
-                        tr(
-                          '${ships[profile.selectedShip].name} · Lv.${profile.moduleLoadout.airframeLevel} · ${profile.credits} 츄르',
-                        ),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w900,
-                        ),
+                      // churu already sits in the screen's currency header
+                      // (v12.10: one currency, one place)
+                      _NameLevel(
+                        ships[profile.selectedShip].name,
+                        profile.moduleLoadout.airframeLevel,
+                        size: 17,
                       ),
                     ],
                   ),
@@ -704,13 +728,9 @@ class ModuleWorkshop extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.all(8),
-            child: Text(
-              message('보유 파츠 {0}/240 · 장착 {1}칸', [
-                profile.shipModules.owned.length,
-                moduleProfiles.length,
-              ]),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14),
+            // the mounts are the slots above; only the owned count is new
+            child: Center(
+              child: _Count('보유 파츠', '${profile.shipModules.owned.length}/240'),
             ),
           ),
         ],
@@ -725,6 +745,73 @@ class ModuleWorkshop extends StatelessWidget {
             body: body,
           );
   }
+}
+
+/// A sky tag and its count, kept together on one line.
+class _Count extends StatelessWidget {
+  const _Count(this.label, this.value);
+  final String label, value;
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      GameTag(label, tone: GameTone.sky),
+      const SizedBox(width: 6),
+      Text(
+        value,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+      ),
+    ],
+  );
+}
+
+/// Name with its level as a gold tag beside it.
+class _NameLevel extends StatelessWidget {
+  const _NameLevel(this.name, this.level, {this.size = 20});
+  final String name;
+  final int level;
+  final double size;
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Flexible(
+        child: Text(
+          tr(name),
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: size, fontWeight: FontWeight.w900),
+        ),
+      ),
+      const SizedBox(width: 6),
+      GameTag('Lv.$level'),
+    ],
+  );
+}
+
+/// A labelled cost (or gain): tag, then churu and stardust chips.
+class _CostRow extends StatelessWidget {
+  const _CostRow(
+    this.label,
+    this.credits,
+    this.plans, {
+    this.tone = GameTone.gold,
+  });
+  final String label;
+  final int credits, plans;
+  final GameTone tone;
+  @override
+  Widget build(BuildContext context) => Wrap(
+    alignment: WrapAlignment.center,
+    crossAxisAlignment: WrapCrossAlignment.center,
+    spacing: 6,
+    runSpacing: 4,
+    children: [
+      GameTag(label, tone: tone),
+      GameRewardChip('츄르', credits, image: CurrencyArt.churu),
+      GameRewardChip('별가루', plans, image: CurrencyArt.stardust),
+    ],
+  );
 }
 
 class _MountDiagram extends CustomPainter {

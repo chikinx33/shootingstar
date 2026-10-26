@@ -4,13 +4,14 @@ import 'audio_feedback.dart';
 
 import 'package:flutter/material.dart';
 
+import 'catalog_screens.dart' show RewardChips, RewardGroup;
+
 import 'reward_popup.dart';
 
 import '../data/content.dart';
 import '../data/profile.dart';
 import '../art/lobby_art.dart';
 import 'evolution_codex.dart';
-import '../main.dart';
 import 'components.dart';
 import 'content_hub.dart';
 import 'game_motion.dart';
@@ -101,12 +102,14 @@ class SurvivalMeta extends StatelessWidget {
                 ],
                 gap(8),
                 if (section == 3) ...[
-                  Text(
-                    tr('군집 증가 · 보스 체력 +40%\n챕터 완주 시 도전 개방\n첫 승리 별가루 +5'),
-                    style: TextStyle(color: muted),
-
-                    textAlign: TextAlign.center,
-                  ),
+                  // v12.14: rule, unlock and reward as labelled tiles
+                  const GameFactRow([
+                    GameFact('규칙', '보스 체력 +40%', tone: GameTone.danger),
+                    GameFact('개방', '집을 지킨 뒤'),
+                    GameFact('첫 승리', '별가루 +5', tone: GameTone.good),
+                  ]),
+                  gap(6),
+                  const GameHint('적 무리가 더 많이 몰려옵니다'),
                   gap(),
                   for (int i = 0; i < stages.length; i++)
                     StaggerIn(
@@ -143,17 +146,18 @@ class SurvivalMeta extends StatelessWidget {
 
                               textAlign: TextAlign.center,
                             ),
-                            Text(
-                              message("{0} / {1} · 100 츄르 + 별가루 3", [
+                            GameHint(
+                              message('진행 {0} / {1}', [
                                 profile.missionProgress(i),
                                 Profile.missionTargets[i],
                               ]),
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: muted,
-                              ),
-
-                              textAlign: TextAlign.center,
+                              tone: GameTone.sky,
+                            ),
+                            gap(6),
+                            RewardGroup(
+                              label: '보상',
+                              claimed: profile.claimedMissions.contains(i),
+                              chips: const RewardChips(credits: 100, plans: 3),
                             ),
                             TextButton(
                               onPressed: audible(
