@@ -23,7 +23,9 @@ class ReleaseGateTest(unittest.TestCase):
         # start every case from the unconfigured state, whatever the real file holds
         self.config.update(package_id='com.shootingstar.shootingstar', package_confirmed_in_console=False,
                            native_build_authorized=False, support_email=None, publisher_name=None,
-                           privacy_url=None, deletion_url=None)
+                           privacy_url=None, deletion_url=None,
+                           ads={**self.config['ads'], 'app_id': None,
+                                'rewarded_unit_id': None, 'console_verified': False})
 
     def row(self, name):
         return next(r for r in gate.inspect(self.root, self.config)['checks'] if r['check'] == name)

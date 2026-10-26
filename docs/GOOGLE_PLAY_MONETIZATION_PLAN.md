@@ -44,7 +44,7 @@
 ### 실제로 켜려면 (남은 일)
 
 1. Play Console 결제 프로필 경고 해결(사용자).
-2. AdMob에서 앱·보상형 광고 단위 생성 → `android/gradle.properties`의 `admobAppId`, `lib/services/commerce_config.dart`의 `releaseRewardedUnit`에 넣는다. 웹에 `app-ads.txt`.
+2. ~~AdMob 앱·보상형 광고 단위~~ 완료(2026-10-26, v12.13.1): 앱 `Purrtectors: Cat Sky Squad` `ca-app-pub-1789414876927818~8138094369`(스토어 미연결, 정식 출시 뒤 Play와 연결), 보상형 `rewarded_bonus` `ca-app-pub-1789414876927818/3867676865`(보상 1 Reward — 실제 보상은 게임이 정함). `android/gradle.properties`·`commerce_config.dart`에 넣었고 `https://purrtectors.chikinx1.workers.dev/app-ads.txt` 게시(`release/pages/`). AD_ID 권한은 3번 신고를 바꿀 때 매니페스트에서 다시 켠다.
 3. Play Console 신고를 먼저 바꾼다: 광고 포함 "예", 광고 ID(AD_ID 권한을 다시 넣을 때 "예"), 데이터 보안(AdMob: 대략적 위치·기기 ID·앱 상호작용·진단, 구매 내역), 콘텐츠 등급 디지털 구매 "예", 개인정보처리방침에 광고·결제 추가.
 4. 결제 권한이 든 AAB를 한 번 올린 뒤 위 5개 상품을 만든다(Play 규칙).
 5. 서버 비밀값 `PLAY_SERVICE_ACCOUNT`(Play 권한 서비스 계정 JSON)과 `SHOP_ENABLED=true`, `PLAY_PACKAGE`를 Worker에 넣는다.

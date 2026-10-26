@@ -14,9 +14,9 @@
   }],
   "ads": {
     "provider": "admob",
-    "app_id": null,
-    "rewarded_unit_id": null,
-    "console_verified": false,
+    "app_id": "ca-app-pub-1789414876927818~8138094369",
+    "rewarded_unit_id": "ca-app-pub-1789414876927818/3867676865",
+    "console_verified": true,
     "placement": "eligible_sortie_result_optional",
     "reward_credits": 20,
     "per_sortie": 1,

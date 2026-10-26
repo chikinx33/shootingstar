@@ -1,7 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET"/>
-    <!-- Ads are not live yet (no AdMob IDs, SDK kept inert): no advertising
-         ID until they are, so the Play declarations stay "no ads". -->
+    <!-- AdMob IDs are set (v12.13.1), but the advertising ID stays off until
+         the Play declarations switch to "ads / advertising ID: yes".
+         Rewarded ads still serve without it. -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove"/>
     <application
         android:label="@string/app_name"
